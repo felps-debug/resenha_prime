@@ -562,8 +562,33 @@ function bumpDm(m) {
   return true;
 }
 
-// ---------- Loja: telão em modo de teste ----------
+// ---------- Loja ----------
 let bannerTimer = null;
+let shopCategory = 'Destaques';
+let shopSelectedId = 'chapeu';
+let shopTargetId = null;
+let shopReturnView = 'chat';
+const SHOP_CATEGORIES = ['Destaques', 'Zoeira', 'Efeitos de tela', 'Telão', 'Call', 'Sala · vaquinha', 'Estilo'];
+const SHOP_PRODUCTS = [
+  { id: 'chapeu', name: 'Chapéu de palhaço', category: 'Zoeira', description: 'Coloca um chapéu de palhaço na foto do amigo por 24 horas.', cents: 99, period: '24 H', art: '🤡', featured: true, target: 'member' },
+  { id: 'nome-rosa', name: 'Nome rosa-chiclete', category: 'Zoeira', description: 'O nome do amigo fica rosa-chiclete no chat e na lista por 24 horas.', cents: 49, period: '24 H', art: 'Caio', featured: true, target: 'member' },
+  { id: 'apelido', name: 'Apelido forçado', category: 'Zoeira', description: 'O amigo vira Pé-frio, ou o que você escrever, por 1 hora.', cents: 99, period: '1 H', art: 'Pé-frio', featured: true, target: 'member' },
+  { id: 'fantasma', name: 'Modo fantasma', category: 'Zoeira', description: 'A foto do amigo some e vira um fantasminha por 1 hora.', cents: 49, period: '1 H', art: '👻', featured: true, target: 'member' },
+  { id: 'espelho', name: 'Espelho', category: 'Zoeira', description: 'A próxima zoeira que mandarem pra você volta pra quem mandou.', cents: 99, period: 'DEFESA', art: '🛡️', featured: true, target: 'self' },
+  { id: 'gol', name: '/gol', category: 'Efeitos de tela', description: 'A tela de todo mundo treme, explode GOOOL e cai confete.', cents: 99, art: 'GOOOL', featured: true, target: 'room' },
+  { id: 'parabens', name: '/parabéns', category: 'Efeitos de tela', description: 'Balões sobem na tela da sala inteira.', cents: 99, art: '🎈', target: 'room' },
+  { id: 'f', name: '/F', category: 'Efeitos de tela', description: 'Chuva de flores pra quem perdeu a aposta.', cents: 99, art: 'F', target: 'room' },
+  { id: 'terremoto', name: '/terremoto', category: 'Efeitos de tela', description: 'A sala inteira chacoalha por 3 segundos.', cents: 99, art: '〰️', target: 'room' },
+  { id: 'pacote-efeitos', name: 'Pacote de efeitos', category: 'Efeitos de tela', description: 'Os quatro efeitos de tela por um preço só.', cents: 249, art: '/gol · /parabéns · /F · /terremoto', badge: 'MAIS VANTAJOSO', target: 'room' },
+  { id: 'telao', name: 'Telão da sala', category: 'Telão', description: 'Sua mensagem num letreiro animado no topo da sala por 24 horas.', cents: 50, period: '24 H', art: '★ CAIO DEVE 20 CONTO ★', featured: true, target: 'room' },
+  { id: 'entrada', name: 'Entrada triunfal', category: 'Call', description: 'Quando você entra na call, todo mundo vê seu card com holofote.', cents: 199, art: 'CHEGOU O CRAQUE', target: 'self' },
+  { id: 'voz', name: 'Voz zoada', category: 'Call', description: 'Robô, esquilo, monstro ou rádio de pinga. Liga e desliga na call.', cents: 149, art: '🤖 🐿️ 📻', target: 'self' },
+  { id: 'soundboard', name: 'Soundboard', category: 'Call', description: 'Buzina de estádio, tambor de suspense, risada de plateia e mais sons.', cents: 199, art: '🔊', target: 'self' },
+  { id: 'mascote', name: 'Mascote da sala', category: 'Sala · vaquinha', description: 'Ajude a vaquinha coletiva a alimentar o mascote da sala.', cents: 50, art: '🐝', target: 'room' },
+  { id: 'estilo', name: 'Moldura brilhante', category: 'Estilo', description: 'Uma moldura especial para destacar seu perfil.', cents: 99, art: '✦', target: 'self' }
+];
+const shopMoney = (cents) => (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
 async function loadRoomBanner(id) {
   clearTimeout(bannerTimer);
   if (!current || current.id !== id || isDm(current)) return;
@@ -581,27 +606,143 @@ async function loadRoomBanner(id) {
   bannerTimer = setTimeout(() => loadRoomBanner(id), Math.max(1000, new Date(data.expires_at).getTime() - Date.now() + 1000));
 }
 
-async function openShop() {
-  const { data: item, error } = await sb.from('shop_items').select('name,price_cents').eq('id', 'telao').maybeSingle();
-  if (error || !item) { toast('A loja está indisponível agora.'); return; }
-  const price = (item.price_cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  const personalize = h('button', { class: 'btn primary', onClick: () => {
-    closeModal();
-    if (!rooms.length) { toast('Entre em uma sala para usar o Telão.'); return; }
-    openTelaoPurchase(item);
-  } }, 'Personalizar');
-  const product = h('article', { class: 'shop-product' },
-    h('div', { class: 'shop-product-icon', 'aria-hidden': 'true' }, '📣'),
-    h('div', { class: 'shop-product-info' },
-      h('h3', null, item.name || 'Telão da sala'),
-      h('p', { class: 'muted' }, 'Destaque uma mensagem no topo do chat da sala por 24 horas.'),
-      h('div', { class: 'shop-product-meta' }, h('strong', null, price), h('span', { class: 'shop-test-badge' }, 'Modo de teste'))),
-    personalize);
-  openModal({
-    title: 'Loja', wide: true,
-    body: [h('p', { class: 'muted shop-intro' }, 'Itens para deixar sua sala com a sua cara.'), product],
-    actions: [h('button', { class: 'btn secondary', onClick: closeModal }, 'Fechar')]
+function openShop() {
+  if (view !== 'shop') shopReturnView = view;
+  setView('shop');
+  renderShop();
+}
+
+function renderShop() {
+  const root = $('shop-view');
+  if (!root) return;
+  root.replaceChildren();
+  const selected = SHOP_PRODUCTS.find((x) => x.id === shopSelectedId) || SHOP_PRODUCTS[0];
+  const head = h('header', { class: 'shop-page-head' },
+    h('button', { class: 'btn secondary shop-back', onClick: () => setView(shopReturnView) }, '‹ Voltar'),
+    h('h1', null, 'Loja'),
+    h('span', { class: 'shop-head-spacer' }),
+    h('button', { class: 'btn secondary', onClick: openMyShopItems }, '♧ Meus itens'));
+
+  const fund = h('section', { class: 'shop-fund' },
+    h('div', { class: 'shop-fund-copy' },
+      h('span', { class: 'shop-eyebrow' }, 'VALORES SIMBÓLICOS'),
+      h('h2', null, 'Zoar os amigos custa trocado'),
+      h('p', null, 'O Resenha é feito por amigos e continua de graça. Tudo aqui é opcional: quem compra ajuda a pagar o servidor e a call enquanto o projeto cresce. Nada dá vantagem, é só diversão. Paga uma vez, sem assinatura.')),
+    h('div', { class: 'shop-cost' },
+      h('div', { class: 'shop-cost-ring', 'aria-label': 'Custos do mês em breve' }, '—'),
+      h('div', null, h('strong', null, 'Custos deste mês'), h('span', null, 'Os valores da comunidade aparecem aqui quando estiverem disponíveis.'))));
+
+  const tabs = h('nav', { class: 'shop-tabs', 'aria-label': 'Categorias da Loja' });
+  for (const category of SHOP_CATEGORIES) {
+    const tab = h('button', { class: 'shop-tab' + (shopCategory === category ? ' active' : ''), type: 'button', 'aria-pressed': shopCategory === category }, category);
+    tab.addEventListener('click', () => {
+      shopCategory = category;
+      const first = category === 'Destaques' ? SHOP_PRODUCTS.find((x) => x.featured) : SHOP_PRODUCTS.find((x) => x.category === category);
+      if (first) shopSelectedId = first.id;
+      renderShop();
+    });
+    tabs.append(tab);
+  }
+  const rule = h('div', { class: 'shop-rule' }, h('strong', null, 'Zoeira tem regra.'), ' Toda zoeira mostra quem mandou e some sozinha. Quem não curte desliga no perfil, de graça.');
+  const list = h('div', { class: 'shop-catalog' });
+  const products = shopCategory === 'Destaques' ? SHOP_PRODUCTS.filter((x) => x.featured) : SHOP_PRODUCTS.filter((x) => x.category === shopCategory);
+  if (!products.length) list.append(h('p', { class: 'shop-empty' }, 'Novos itens dessa categoria aparecem aqui em breve.'));
+  for (const item of products) {
+    const card = h('button', { class: 'shop-card' + (selected.id === item.id ? ' selected' : ''), type: 'button', 'aria-pressed': selected.id === item.id },
+      shopArt(item),
+      h('span', { class: 'shop-card-name' }, item.name),
+      h('span', { class: 'shop-card-desc' }, item.description),
+      h('strong', { class: 'shop-price' }, shopMoney(item.cents)));
+    card.addEventListener('click', () => { shopSelectedId = item.id; renderShop(); });
+    list.append(card);
+  }
+  const content = h('div', { class: 'shop-content' },
+    h('div', { class: 'shop-browse' }, tabs, rule, list),
+    h('aside', { class: 'shop-detail-column' }, renderShopDetail(selected), renderShopActivity()));
+  root.append(head, fund, content);
+  if (current && !isDm(current)) loadShopActivity(root.querySelector('.shop-activity'), current.id);
+}
+
+function shopArt(item) {
+  return h('span', { class: `shop-art shop-art-${item.id}`, 'aria-hidden': 'true' },
+    item.period ? h('small', { class: 'shop-period' }, item.period) : null,
+    item.badge ? h('small', { class: 'shop-art-badge' }, item.badge) : null,
+    h('span', { class: 'shop-art-label' }, item.art));
+}
+
+function renderShopDetail(item) {
+  const detail = h('section', { class: 'shop-detail' }, shopArt(item),
+    h('span', { class: 'shop-detail-category' }, item.category.toUpperCase()),
+    h('h2', null, item.name),
+    h('p', null, item.description));
+  let targetName = 'sua sala';
+  if (item.target === 'member') {
+    const people = members.filter((m) => m.user_id !== me?.id);
+    const target = people.find((m) => m.user_id === shopTargetId) || people[0];
+    if (target) { shopTargetId = target.user_id; targetName = target.name; }
+    detail.append(h('strong', { class: 'shop-field-title' }, 'Quem vai ser zoado?'));
+    const recipients = h('div', { class: 'shop-recipients' });
+    if (people.length) for (const person of people) {
+      const pill = h('button', { class: 'shop-recipient' + (target && target.user_id === person.user_id ? ' active' : ''), type: 'button', 'aria-pressed': Boolean(target && target.user_id === person.user_id) }, avatarOf(person.user_id, person.name, 'sm'), person.name);
+      pill.addEventListener('click', () => { shopTargetId = person.user_id; renderShop(); });
+      recipients.append(pill);
+    } else recipients.append(h('span', { class: 'shop-empty' }, 'Entre em uma sala para escolher alguém.'));
+    detail.append(recipients);
+  } else if (item.target === 'room') {
+    detail.append(h('strong', { class: 'shop-field-title' }, 'Sala'));
+    detail.append(h('span', { class: 'shop-detail-context' }, current && !isDm(current) ? current.name : 'Entre em uma sala para usar este item.'));
+    targetName = current && !isDm(current) ? current.name : 'sua sala';
+  } else {
+    detail.append(h('strong', { class: 'shop-field-title' }, 'Para quem?'), h('span', { class: 'shop-detail-context' }, me?.display_name || 'Você'));
+  }
+  const buyLabel = item.target === 'member' ? `Zoar ${targetName} por ${shopMoney(item.cents)}` : item.id === 'telao' ? `Destacar por ${shopMoney(item.cents)}` : `Escolher por ${shopMoney(item.cents)}`;
+  const buy = h('button', { class: 'btn primary block shop-buy', type: 'button' }, buyLabel);
+  buy.addEventListener('click', () => {
+    if (item.id === 'telao') {
+      if (!current || isDm(current)) { toast('Entre em uma sala para personalizar o Telão.'); return; }
+      openTelaoPurchase({ name: item.name, price_cents: item.cents });
+      return;
+    }
+    toast('Pagamento ainda não configurado; nenhuma cobrança foi feita.');
   });
+  detail.append(buy, h('p', { class: 'shop-payment-note' }, item.target === 'member' ? `Aparece “zoeira de ${me?.display_name || 'você'}” junto. Pagamento único por Pix.` : 'Pagamento único. O pagamento ainda não está configurado.'));
+  return detail;
+}
+
+function renderShopActivity() {
+  return h('section', { class: 'shop-activity' },
+    h('div', { class: 'shop-activity-head' }, h('strong', null, '● Acontecendo agora'), h('span', null, 'na sala')),
+    h('p', { class: 'shop-empty' }, current && !isDm(current) ? 'Carregando atividades da sala…' : 'Entre em uma sala para ver os itens ativos.'));
+}
+
+async function loadShopActivity(container, roomId) {
+  if (!container || !current || current.id !== roomId) return;
+  const { data, error } = await sb.from('purchases').select('item_id,buyer_id,extra,expires_at,paid_at')
+    .eq('room_id', roomId).eq('status', 'paid').gt('expires_at', new Date().toISOString())
+    .order('paid_at', { ascending: false }).limit(4);
+  if (!container.isConnected || !current || current.id !== roomId) return;
+  container.replaceChildren(h('div', { class: 'shop-activity-head' }, h('strong', null, '● Acontecendo agora'), h('span', null, 'na sala')));
+  if (error || !data?.length) { container.append(h('p', { class: 'shop-empty' }, 'Nenhum item ativo nesta sala ainda.')); return; }
+  await ensureNames(data.map((x) => x.buyer_id));
+  if (!container.isConnected || !current || current.id !== roomId) return;
+  for (const purchase of data) {
+    const product = SHOP_PRODUCTS.find((x) => x.id === purchase.item_id);
+    container.append(h('div', { class: 'shop-activity-item' }, shopArt(product || { id: 'active', art: '✦' }),
+      h('span', null, h('strong', null, names.get(purchase.buyer_id) || 'Alguém'), h('small', null, product?.name || 'Item da loja'))));
+  }
+}
+
+async function openMyShopItems() {
+  const list = h('div', { class: 'shop-owned-list' }, h('p', { class: 'muted' }, 'Carregando…'));
+  openModal({ title: 'Meus itens', body: list });
+  const { data, error } = await sb.from('purchases').select('item_id,expires_at,paid_at').eq('buyer_id', me.id).eq('status', 'paid').order('paid_at', { ascending: false }).limit(30);
+  list.replaceChildren();
+  if (error) { list.append(h('p', { class: 'muted' }, 'Não consegui carregar seus itens agora.')); return; }
+  if (!data?.length) { list.append(h('p', { class: 'muted' }, 'Suas compras confirmadas vão aparecer aqui.')); return; }
+  for (const purchase of data) {
+    const product = SHOP_PRODUCTS.find((x) => x.id === purchase.item_id);
+    list.append(h('div', { class: 'list-item' }, h('span', { class: 'grow' }, product?.name || 'Item do Resenha'), h('span', { class: 'sub' }, purchase.expires_at ? new Date(purchase.expires_at).toLocaleDateString('pt-BR') : 'Ativo')));
+  }
 }
 
 function openTelaoPurchase(item) {
@@ -612,6 +753,7 @@ function openTelaoPurchase(item) {
   const price = (item.price_cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   openModal({ title: 'Telão da sala', body: [h('p', { class: 'muted' }, `Sua mensagem aparece no topo do chat por 24 horas. ${price}. Modo de teste.`), field('Sala', select), field('Mensagem (até 40 caracteres)', message)], actions: [h('button', { class: 'btn secondary', onClick: closeModal }, 'Cancelar'), buy] });
   buy.addEventListener('click', async () => {
+    if (!cfg.shopReady) { toast('Pagamento ainda não configurado; nenhuma cobrança foi feita.'); return; }
     buy.disabled = true;
     try {
       const { url } = await api('/api/checkout', { roomId: select.value, text: message.value });
@@ -623,6 +765,7 @@ function openTelaoPurchase(item) {
 function renderRail() {
   const dmBtn = $('dm-btn');
   dmBtn.classList.toggle('active', mode === 'dms');
+  $('shop-btn')?.classList.toggle('active', view === 'shop');
   let dmUnread = 0;
   for (const d of dms) { const u = unread.get(d.id); if (u) dmUnread += u.n; }
   $('dm-count').hidden = !dmUnread;
@@ -1840,22 +1983,28 @@ function setView(v) {
   view = v;
   $('ch-updates').classList.toggle('active', v === 'updates');
   $('ch-chat').classList.toggle('active', v === 'chat');
+  $('ch-shop').classList.toggle('active', v === 'shop');
   $('ch-call').classList.toggle('active', v === 'call');
   $('updates-view').hidden = v !== 'updates';
   $('chat-view').hidden = v !== 'chat';
   $('call-view').hidden = v !== 'call';
+  $('shop-view').hidden = v !== 'shop';
+  $('members-panel').hidden = v === 'shop';
   $('chat-search-btn').hidden = v !== 'chat' || !current;
   $('pins-btn').hidden = v !== 'chat' || !current;
-  const icons = { updates: ICON.megaphone, chat: '#', call: ICON.mic };
-  const titles = { updates: 'atualizações', chat: 'chat', call: 'Call' };
+  $('members-toggle').hidden = v === 'shop';
+  const icons = { updates: ICON.megaphone, chat: '#', call: ICON.mic, shop: '♧' };
+  const titles = { updates: 'atualizações', chat: 'chat', call: 'Call', shop: 'Loja' };
   const dm = isDm(current);
   $('top-icon').innerHTML = dm && v !== 'updates' ? '@' : icons[v];
   $('top-title').textContent = dm && v !== 'updates' ? dmTitle(current) + (v === 'call' ? ' · ligação' : '') : titles[v];
   if (!dm) $('top-sub').textContent = '';
   $('app').classList.remove('show-side');
+  $('app').classList.toggle('shop-open', v === 'shop');
   $('side-toggle').setAttribute('aria-expanded', 'false');
   if (v === 'updates') renderUpdates();
   if (v === 'chat' && current) clearUnread(current.id);
+  renderRail();
   onCallChange();
 }
 
@@ -2638,6 +2787,7 @@ function wireStatic() {
   $('pins-btn').addEventListener('click', openPinsModal);
   $('shop-btn').hidden = false;
   $('shop-btn').addEventListener('click', openShop);
+  $('ch-shop').addEventListener('click', openShop);
   setupThemeToggle($('theme-btn'));
   $('mic-btn').addEventListener('click', toggleMic);
   $('mic-btn-2').addEventListener('click', toggleMic);
