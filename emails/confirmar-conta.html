@@ -1,0 +1,62 @@
+<!--
+  Resenha · e-mail de confirmação de conta
+  Onde usar: Supabase → Authentication → Emails → "Confirm signup" (com o SMTP do Resend configurado).
+  Assunto sugerido: Confirma aí sua conta no Resenha
+  Variáveis do Supabase: {{ .ConfirmationURL }} (link de confirmação) e {{ .SiteURL }} (endereço do site).
+-->
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light only">
+  <meta name="supported-color-schemes" content="light">
+  <title>Confirma aí sua conta no Resenha</title>
+</head>
+<body style="margin:0;padding:0;background:#F3F2EF;-webkit-text-size-adjust:100%;">
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">Falta só um clique pra você entrar na resenha.</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F3F2EF;">
+    <tr>
+      <td align="center" style="padding:32px 16px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:480px;">
+          <tr>
+            <td style="padding:0 4px 20px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="vertical-align:middle;"><img src="{{ .SiteURL }}/icons/icon-192.png" width="40" height="40" alt="" style="display:block;border:0;border-radius:12px;"></td>
+                  <td style="vertical-align:middle;padding-left:10px;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:20px;font-weight:800;color:#14161B;letter-spacing:-0.5px;">resenha<span style="color:#FF6B3D;">.</span></td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+          <tr>
+            <td style="background:#FFFFFF;border-radius:20px;padding:36px 32px;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#14161B;">
+              <h1 style="margin:0 0 12px;font-size:26px;line-height:1.2;font-weight:800;letter-spacing:-0.3px;color:#14161B;">Falta só um clique</h1>
+              <p style="margin:0 0 24px;font-size:16px;line-height:1.55;color:#4A4F5B;">Você criou uma conta no Resenha. Confirma que esse e-mail é seu e a galera já pode te chamar pra call.</p>
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  <td align="center" bgcolor="#FF6B3D" style="border-radius:14px;">
+                    <a href="{{ .ConfirmationURL }}" target="_blank" style="display:block;padding:16px 24px;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;font-weight:800;color:#1A0F0A;text-decoration:none;border-radius:14px;">Confirmar minha conta</a>
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:24px 0 0;font-size:13px;line-height:1.55;color:#626875;">O botão não funcionou? Copia e cola este link no navegador:</p>
+              <p style="margin:6px 0 0;font-size:13px;line-height:1.5;word-break:break-all;"><a href="{{ .ConfirmationURL }}" target="_blank" style="color:#C2410C;text-decoration:underline;">{{ .ConfirmationURL }}</a></p>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:28px;">
+                <tr><td style="border-top:1px solid #E2E1DC;font-size:0;line-height:0;">&nbsp;</td></tr>
+              </table>
+              <p style="margin:20px 0 0;font-size:13px;line-height:1.55;color:#626875;">Não foi você? Pode ignorar este e-mail. Sem clicar no link, a conta não é ativada.</p>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:20px 8px 0;font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:1.5;color:#8A909C;">
+              Resenha · salas, chat e call pra sua galera<br>
+              <a href="{{ .SiteURL }}" target="_blank" style="color:#8A909C;text-decoration:underline;">Abrir o Resenha</a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
