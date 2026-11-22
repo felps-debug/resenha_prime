@@ -93,9 +93,9 @@ app.use(express.static(path.join(__dirname, 'public'), {
   }
 }));
 
-app.get('/health', (req, res) => res.send('ok'));
+app.get(['/health', '/api/health'], (req, res) => res.send('ok'));
 
-app.get('/config', (req, res) => {
+app.get(['/config', '/api/config'], (req, res) => {
   res.json({ supabaseUrl: SUPABASE_URL, supabaseKey: SUPABASE_KEY, livekitUrl: LIVEKIT_URL, livekitReady, shopReady });
 });
 
