@@ -7,7 +7,8 @@ Atualizado em 22/11/2026. Documento de passagem: dá pra retomar o trabalho daqu
 - Decisão mais recente: continuar o desenvolvimento normalmente, mas deixar a integração de pagamento sem configurar por enquanto. A tela e o botão da loja permanecem acessíveis; sem credenciais, o servidor informa que o pagamento não está configurado.
 - Welison escolheu Vercel para hospedar o app; Render saiu do plano. Criados `vercel.json` e exportação condicional do Express. Ainda falta conectar o repositório e cadastrar as variáveis de ambiente no projeto Vercel.
 - Revisão do protótipo Claude: o menu mobile agora abre o trilho de salas e os canais como um único drawer com backdrop, fechamento por toque/Escape e controle acessível. A call mobile ganhou avançar/voltar entre transmissões, controle de áudio e alternância entre call e chat.
-- Validação local renovada nesta sessão: `npm test` passou com 33/33 testes e `npm run build` concluiu. A publicação ainda precisa de configuração de LiveKit para ativar as calls.
+- Validação local renovada nesta sessão: `npm test` passou com 33/33 testes e `npm run build` concluiu. Publicado em produção na Vercel: https://resenha-nu.vercel.app. Página inicial, `/health` e `/config` responderam; `/config` confirma LiveKit e loja desligados por falta de variáveis, conforme combinado para pagamentos. As calls aguardam as chaves LiveKit.
+- Projeto Vercel criado na conta `felps-debugs-projects`; publicação foi feita via CLI, sem conectar o repositório Git nem enviar push. Revisar URLs de redirecionamento do Supabase para o domínio da produção antes de validar cadastro e recuperação de senha.
 - Stripe permanece pausada, sem configuração de credenciais ou processamento.
 - Pagamentos permanecem pausados, conforme pedido: a tela e o botão continuam, sem preencher credenciais nem validar checkout real.
 
