@@ -384,6 +384,15 @@ button { cursor: pointer; }
 .modal-head h2 { margin: 0; font-size: 21px; letter-spacing: -.01em; }
 .modal-body { padding: 16px 22px; display: flex; flex-direction: column; gap: 14px; }
 .modal-foot { padding: 14px 22px 20px; display: flex; justify-content: flex-end; gap: 8px; }
+.shop-intro { margin: 0; }
+.shop-product { display: flex; align-items: center; gap: 16px; padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--bg-2); }
+.shop-product-icon { width: 54px; height: 54px; flex: 0 0 54px; display: grid; place-items: center; border-radius: 15px; background: color-mix(in srgb, var(--accent) 16%, var(--bg-1)); font-size: 25px; }
+.shop-product-info { flex: 1; min-width: 0; }
+.shop-product-info h3 { margin: 0 0 5px; font-size: 16px; }
+.shop-product-info p { margin: 0; font-size: 13px; line-height: 1.45; }
+.shop-product-meta { display: flex; align-items: center; gap: 9px; margin-top: 10px; }
+.shop-product-meta strong { font-size: 15px; }
+.shop-test-badge { border-radius: 999px; padding: 4px 8px; background: var(--bg-hover); color: var(--text-2); font-size: 11px; font-weight: 700; }
 .invite-box { display: flex; gap: 8px; background: var(--bg-input); border-radius: var(--radius); padding: 6px 6px 6px 14px; align-items: center; }
 .invite-box input { flex: 1; background: transparent; border: 0; outline: none; font-size: 14px; min-width: 0; color: var(--text); }
 .list { display: flex; flex-direction: column; gap: 6px; }
@@ -418,6 +427,9 @@ button { cursor: pointer; }
 }
 .side-toggle { display: none; }
 @media (max-width: 560px) {
+  .shop-product { flex-wrap: wrap; }
+  .shop-product-info { flex: 1 1 calc(100% - 70px); }
+  .shop-product > .btn { width: 100%; }
   .side-toggle { display: inline-flex; } .sidebar, .rail { display: none; }
   .app.show-side .rail { display: flex; position: fixed; left: 0; top: 0; bottom: 0; height: 100dvh; z-index: 27; box-shadow: 4px 0 18px var(--shadow); }
   .app.show-side .sidebar { display: flex; position: fixed; left: 64px; top: 0; bottom: 0; width: min(268px, calc(100vw - 64px)); z-index: 27; box-shadow: 8px 0 24px var(--shadow); }

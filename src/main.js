@@ -582,9 +582,29 @@ async function loadRoomBanner(id) {
 }
 
 async function openShop() {
-  if (!rooms.length) { toast('Entre em uma sala para usar a loja.'); return; }
   const { data: item, error } = await sb.from('shop_items').select('name,price_cents').eq('id', 'telao').maybeSingle();
   if (error || !item) { toast('A loja está indisponível agora.'); return; }
+  const price = (item.price_cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const personalize = h('button', { class: 'btn primary', onClick: () => {
+    closeModal();
+    if (!rooms.length) { toast('Entre em uma sala para usar o Telão.'); return; }
+    openTelaoPurchase(item);
+  } }, 'Personalizar');
+  const product = h('article', { class: 'shop-product' },
+    h('div', { class: 'shop-product-icon', 'aria-hidden': 'true' }, '📣'),
+    h('div', { class: 'shop-product-info' },
+      h('h3', null, item.name || 'Telão da sala'),
+      h('p', { class: 'muted' }, 'Destaque uma mensagem no topo do chat da sala por 24 horas.'),
+      h('div', { class: 'shop-product-meta' }, h('strong', null, price), h('span', { class: 'shop-test-badge' }, 'Modo de teste'))),
+    personalize);
+  openModal({
+    title: 'Loja', wide: true,
+    body: [h('p', { class: 'muted shop-intro' }, 'Itens para deixar sua sala com a sua cara.'), product],
+    actions: [h('button', { class: 'btn secondary', onClick: closeModal }, 'Fechar')]
+  });
+}
+
+function openTelaoPurchase(item) {
   const select = h('select', null, rooms.map((r) => h('option', { value: r.id }, r.name)));
   if (current && !isDm(current)) select.value = current.id;
   const message = h('input', { maxlength: '40', placeholder: 'Sua mensagem para a sala' });
