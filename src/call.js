@@ -1,8 +1,14 @@
 // Call de voz/vídeo/tela com LiveKit (SFU).
-import {
-  Room, RoomEvent, Track, DisconnectReason, ConnectionState, ScreenSharePresets, VideoPresets
-} from 'livekit-client';
 import { $, h, ICON, avatar, toast, beep } from './ui.js';
+
+let Room, RoomEvent, Track, DisconnectReason, ScreenSharePresets, VideoPresets;
+let livekitPromise;
+function ensureLiveKit() {
+  if (!livekitPromise) livekitPromise = import('livekit-client').then((sdk) => {
+    ({ Room, RoomEvent, Track, DisconnectReason, ScreenSharePresets, VideoPresets } = sdk);
+  }).catch((error) => { livekitPromise = null; throw error; });
+  return livekitPromise;
+}
 
 const SETTINGS_KEY = 'resenha:av';
 const VOL_KEY = 'resenha:volumes';
@@ -72,7 +78,7 @@ export async function joinCall(roomId, roomName, getToken) {
   call.roomName = roomName;
   call.onChange();
   try {
-    const { token, url } = await getToken(roomId);
+    const [{ token, url }] = await Promise.all([getToken(roomId), ensureLiveKit()]);
     const s = loadSettings();
     const room = new Room({
       adaptiveStream: true,
@@ -109,7 +115,9 @@ export async function joinCall(roomId, roomName, getToken) {
     call.room = null;
     call.roomId = null;
     const msg = String((err && err.message) || '');
-    toast(/signal connection|Failed to fetch|websocket/i.test(msg)
+    toast(/dynamically imported module|loading chunk/i.test(msg)
+      ? 'Não consegui carregar a call. Recarregue o aplicativo e tente novamente.'
+      : /signal connection|Failed to fetch|websocket/i.test(msg)
       ? 'Não consegui conectar na call. Confira sua internet ou as chaves do LiveKit no servidor.'
       : msg || 'Não foi possível entrar na call.', 4500);
   } finally {
@@ -267,7 +275,7 @@ export async function applyAudioFilters() {
 }
 
 export async function listDevices(kind) {
-  try { return await Room.getLocalDevices(kind, true); } catch (_) { return []; }
+  try { await ensureLiveKit(); return await Room.getLocalDevices(kind, true); } catch (_) { return []; }
 }
 
 // ---------- Estado para a interface ----------

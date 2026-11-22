@@ -48,14 +48,80 @@ export const ICON = {
   shield: svg('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>', 14),
   smallMicOff: svg('<path d="M2 2l20 20"/><path d="M15 9.3V5a3 3 0 0 0-5.7-1.3M9 9v2a3 3 0 0 0 5.1 2.1M19 10v1a7 7 0 0 1-.9 3.4M16.9 16.9A7 7 0 0 1 5 11v-1M12 18v4"/>', 14, 2.4),
   smallHeadOff: svg('<path d="M2 2l20 20"/><path d="M3 18v-6a9 9 0 0 1 3-6.7M9.5 3.3A9 9 0 0 1 21 12v6"/>', 14, 2.4),
-  smallCam: svg('<path d="m22 8-6 4 6 4z"/><rect x="2" y="6" width="14" height="12" rx="2"/>', 14, 2.4)
+  smallCam: svg('<path d="m22 8-6 4 6 4z"/><rect x="2" y="6" width="14" height="12" rx="2"/>', 14, 2.4),
+  reply: svg('<path d="M9 14 4 9l5-5"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/>', 17),
+  react: svg('<circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/>', 17),
+  plus: svg('<path d="M12 5v14M5 12h14"/>', 14, 2.4),
+  sun: svg('<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>', 19),
+  moon: svg('<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>', 19)
 };
+
+// Logo "Roda": três pessoas em volta da conversa
+export const LOGO_SVG = (size = 24) =>
+  `<svg viewBox="0 0 48 48" width="${size}" height="${size}" aria-hidden="true"><circle cx="24" cy="24" r="13" fill="none" stroke="currentColor" stroke-width="4"/><circle cx="24" cy="11" r="5.5" fill="currentColor"/><circle cx="35.3" cy="30.5" r="5.5" fill="currentColor"/><circle cx="12.7" cy="30.5" r="5.5" fill="currentColor"/></svg>`;
+
+// ---------- Ripple: onda a partir do clique nos botões principais ----------
+export function initRipple() {
+  document.addEventListener('pointerdown', (e) => {
+    const host = e.target.closest && e.target.closest('.btn.primary, .btn.secondary, .ripple-host');
+    if (!host || host.disabled) return;
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const r = host.getBoundingClientRect();
+    const size = Math.max(r.width, r.height) * 2.2;
+    const dot = document.createElement('span');
+    dot.className = 'ripple';
+    dot.style.width = dot.style.height = size + 'px';
+    dot.style.left = (e.clientX - r.left - size / 2) + 'px';
+    dot.style.top = (e.clientY - r.top - size / 2) + 'px';
+    host.append(dot);
+    setTimeout(() => dot.remove(), 700);
+  }, { passive: true });
+}
+
+// ---------- Tema claro/escuro com transição circular ----------
+const THEME_KEY = 'resenha:tema';
+export function currentTheme() {
+  const t = document.documentElement.dataset.theme;
+  if (t === 'light' || t === 'dark') return t;
+  return matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+}
+function applyTheme(t) {
+  document.documentElement.dataset.theme = t;
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.content = t === 'light' ? '#F3F2EF' : '#0E0F13';
+  try { localStorage.setItem(THEME_KEY, t); } catch (_) {}
+}
+export function setupThemeToggle(btn) {
+  const paint = () => {
+    const light = currentTheme() === 'light';
+    btn.innerHTML = `<span class="theme-icon">${light ? ICON.moon : ICON.sun}</span>`;
+    btn.title = light ? 'Mudar para tema escuro' : 'Mudar para tema claro';
+    btn.setAttribute('aria-label', btn.title);
+  };
+  paint();
+  btn.addEventListener('click', () => {
+    const next = currentTheme() === 'light' ? 'dark' : 'light';
+    const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!document.startViewTransition || reduce) { applyTheme(next); paint(); return; }
+    const r = btn.getBoundingClientRect();
+    const x = r.left + r.width / 2, y = r.top + r.height / 2;
+    const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+    const t = document.startViewTransition(() => { applyTheme(next); paint(); });
+    t.ready.then(() => {
+      document.documentElement.animate(
+        { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
+        { duration: 600, easing: 'ease-in-out', pseudoElement: '::view-transition-new(root)' }
+      );
+    }).catch(() => {});
+  });
+}
 
 export function iconEl(name, cls) {
   return h('span', { class: cls || 'ico', html: ICON[name], style: { display: 'inline-flex' } });
 }
 
-const COLORS = ['#4c6ef5', '#e8590c', '#2f9e44', '#c2255c', '#7048e8', '#1098ad', '#d9480f', '#5c7cfa', '#0ca678', '#ae3ec9'];
+// Tons pastel com texto escuro: leem bem no tema escuro e no claro
+const COLORS = ['#F2A65A', '#8BD3A8', '#C9A7F5', '#F28DA6', '#7FB2F0', '#E8D07A', '#9FB8C8', '#B5C99A', '#F5A3A3', '#7FD6D0'];
 export function colorFor(id) {
   let x = 0;
   for (const c of String(id)) x = (x * 31 + c.charCodeAt(0)) >>> 0;

@@ -2,12 +2,17 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Resenha</title>
-  <meta name="theme-color" content="#1e1f22">
+  <meta name="theme-color" content="#0E0F13">
   <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/svg+xml" href="/icons/logo.svg">
   <link rel="icon" type="image/png" href="/icons/favicon-32.png">
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap">
+  <script src="/theme-init.js"></script>
   <link rel="stylesheet" href="/style.css">
 </head>
 <body>
@@ -15,85 +20,144 @@
 
   <!-- ===== Login / cadastro ===== -->
   <main id="auth-screen" class="auth" hidden>
-    <div class="auth-card">
-      <div class="auth-logo" aria-hidden="true">
-        <svg viewBox="0 0 24 24" width="30" height="30" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+    <section class="auth-brand" aria-hidden="true">
+      <div class="auth-brand-top">
+        <span class="logo-mark">
+          <svg viewBox="0 0 48 48" width="30" height="30"><circle cx="24" cy="24" r="13" fill="none" stroke="currentColor" stroke-width="4"/><circle cx="24" cy="11" r="5.5" fill="currentColor"/><circle cx="35.3" cy="30.5" r="5.5" fill="currentColor"/><circle cx="12.7" cy="30.5" r="5.5" fill="currentColor"/></svg>
+        </span>
+        <span>resenha<span class="dot">.</span></span>
       </div>
-      <h1 id="auth-title">Bem-vindo de volta!</h1>
-      <p id="auth-sub" class="muted center">Entre para ver suas salas.</p>
+      <div class="bubbles">
+        <div class="bubble"><span class="b-av" style="background:#F2A65A">B</span><span class="b-text">Call hoje às 22h?</span></div>
+        <div class="bubble me"><span class="b-text">Bora! Já tô entrando</span></div>
+        <div class="bubble"><span class="b-av" style="background:#8BD3A8">C</span><span class="b-text">Transmito o jogo depois</span></div>
+      </div>
+      <div>
+        <h2>Sua galera, uma sala só.</h2>
+        <p>Chat que fica salvo, call com voz, câmera e tela, e um sorteador que ninguém consegue roubar.</p>
+      </div>
+    </section>
 
-      <form id="auth-form" class="form">
-        <div id="name-field" class="field" hidden>
-          <label for="auth-name">Nome de exibição</label>
-          <input id="auth-name" maxlength="32" autocomplete="nickname">
-        </div>
-        <div id="email-field" class="field">
-          <label for="auth-email">E-mail</label>
-          <input id="auth-email" type="email" autocomplete="email" required>
-        </div>
-        <div id="pass-field" class="field">
-          <label for="auth-pass">Senha</label>
-          <input id="auth-pass" type="password" minlength="6" autocomplete="current-password" required>
-        </div>
-        <button type="button" id="forgot-link" class="link">Esqueceu a senha?</button>
-        <button type="submit" id="auth-submit" class="btn primary block">Entrar</button>
-        <p id="auth-msg" class="msg" role="alert"></p>
-      </form>
+    <section class="auth-form-side">
+      <div class="auth-card">
+        <span class="auth-logo logo-mark" aria-hidden="true">
+          <svg viewBox="0 0 48 48" width="34" height="34"><circle cx="24" cy="24" r="13" fill="none" stroke="currentColor" stroke-width="4"/><circle cx="24" cy="11" r="5.5" fill="currentColor"/><circle cx="35.3" cy="30.5" r="5.5" fill="currentColor"/><circle cx="12.7" cy="30.5" r="5.5" fill="currentColor"/></svg>
+        </span>
+        <h1 id="auth-title">Bem-vindo de volta!</h1>
+        <p id="auth-sub" class="muted">Entre para ver suas salas.</p>
 
-      <div id="oauth-box">
-        <div class="divider"><span>ou</span></div>
-        <button type="button" id="google-btn" class="btn secondary block">
-          <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.3-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.2-.1-2.3-.4-3.5z"/></svg>
-          Entrar com Google
+        <div id="oauth-box">
+          <button type="button" id="google-btn" class="btn secondary block">
+            <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.3-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.2-.1-2.3-.4-3.5z"/></svg>
+            Entrar com Google
+          </button>
+          <div class="divider" style="margin-top:14px"><span>OU COM E-MAIL</span></div>
+        </div>
+
+        <form id="auth-form" class="form">
+          <div id="name-field" class="field" hidden>
+            <label for="auth-name">Nome de exibição</label>
+            <input id="auth-name" maxlength="32" autocomplete="nickname">
+          </div>
+          <div id="email-field" class="field">
+            <label for="auth-email">E-mail</label>
+            <input id="auth-email" type="email" autocomplete="email" placeholder="voce@email.com" required>
+          </div>
+          <div id="pass-field" class="field">
+            <label for="auth-pass">Senha</label>
+            <input id="auth-pass" type="password" minlength="6" autocomplete="current-password" placeholder="Pelo menos 6 caracteres" required>
+          </div>
+          <button type="button" id="forgot-link" class="link">Esqueceu a senha?</button>
+          <button type="submit" id="auth-submit" class="btn primary block">Entrar</button>
+          <p id="auth-msg" class="msg" role="alert"></p>
+        </form>
+
+        <p class="switch"><span id="switch-text">Ainda não tem conta?</span> <button type="button" id="switch-btn" class="link">Criar conta</button></p>
+        <button type="button" class="btn secondary block install-btn" id="install-auth" hidden>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+          Instalar o app no PC
         </button>
       </div>
-      <p class="switch"><span id="switch-text">Ainda não tem conta?</span> <button type="button" id="switch-btn" class="link">Criar conta</button></p>
-      <button type="button" class="btn secondary block install-btn" id="install-auth" hidden>
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
-        Instalar o app no PC
-      </button>
-    </div>
+    </section>
   </main>
 
   <!-- ===== App ===== -->
   <div id="app" class="app" hidden>
     <nav class="rail" aria-label="Suas salas">
+      <button class="rail-room rail-dm" id="dm-btn" title="Mensagens diretas" aria-label="Mensagens diretas">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.6A8 8 0 1 1 21 12z"/><path d="M8.5 12h.01M12 12h.01M15.5 12h.01"/></svg>
+        <span class="mention-count" id="dm-count" hidden></span>
+      </button>
+      <div class="rail-sep"></div>
       <div id="rail-rooms" class="rail-rooms"></div>
+      <button class="rail-btn" id="shop-btn" title="Loja" aria-label="Loja" hidden>
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h16l-1 11H5L4 9Z"/><path d="M8 9V7a4 4 0 0 1 8 0v2"/></svg>
+      </button>
       <div class="rail-sep"></div>
       <button class="rail-btn green" id="create-room-btn" title="Criar sala" aria-label="Criar sala">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
       </button>
-      <button class="rail-btn green" id="explore-btn" title="Explorar salas públicas" aria-label="Explorar salas públicas">
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m16.2 7.8-2.1 6.3-6.3 2.1 2.1-6.3z"/></svg>
+      <button class="rail-btn" id="explore-btn" title="Explorar salas públicas" aria-label="Explorar salas públicas">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></svg>
       </button>
-      <button class="rail-btn green" id="install-rail" title="Instalar o app no PC" aria-label="Instalar o app no PC" hidden>
-        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+      <button class="rail-btn" id="install-rail" title="Instalar o app no PC" aria-label="Instalar o app no PC" hidden>
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
       </button>
+      <div class="rail-spacer"></div>
     </nav>
 
-    <aside class="sidebar">
+    <button id="mobile-backdrop" class="mobile-backdrop" aria-label="Fechar menu" tabindex="-1"></button>
+
+    <aside class="sidebar" id="sidebar">
       <header class="side-head">
         <button id="room-menu-btn" class="room-menu-btn" aria-haspopup="menu">
-          <span id="room-title">Nenhuma sala</span>
+          <span class="room-head-text">
+            <span id="room-title">Nenhuma sala</span>
+            <span id="room-sub" class="room-sub"></span>
+          </span>
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <button class="icon-btn head-btn" id="invite-btn" title="Convidar pessoas" aria-label="Convidar pessoas">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M19 8v6M16 11h6"/></svg>
         </button>
       </header>
 
       <div class="channels" id="channels">
-        <div class="cat">Avisos</div>
-        <button class="channel" id="ch-updates">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
-          atualizações
-          <span class="new-badge" id="updates-badge" hidden>NOVO</span>
-        </button>
-        <div class="cat">Canais de texto</div>
-        <button class="channel" id="ch-chat"><span class="hash">#</span> chat</button>
-        <div class="cat">Canais de voz</div>
-        <button class="channel" id="ch-call">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H2v6h4l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/></svg>
-          Call
-        </button>
-        <ul id="call-list" class="call-list"></ul>
+        <div id="room-channels" class="room-channels">
+          <div class="cat">Canais</div>
+          <button class="channel" id="ch-updates">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+            atualizações
+            <span class="new-badge" id="updates-badge" hidden>NOVO</span>
+          </button>
+          <button class="channel" id="ch-chat"><span class="hash">#</span> chat</button>
+        </div>
+
+        <div id="dm-panel" class="dm-panel" hidden>
+          <label class="dm-search">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <span class="sr-only">Buscar conversa</span>
+            <input id="dm-search" placeholder="Buscar conversa" autocomplete="off">
+          </label>
+          <div class="cat cat-row">Mensagens diretas
+            <button class="icon-btn" id="dm-new" title="Nova conversa ou grupo" aria-label="Nova conversa ou grupo">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
+          </div>
+          <div id="dm-list" class="dm-list"></div>
+        </div>
+
+        <div class="call-card" id="call-card">
+          <button class="channel" id="ch-call">
+            <span class="live-ind" aria-hidden="true"></span>
+            <span id="call-card-title">Call da sala</span>
+          </button>
+          <ul id="call-list" class="call-list"></ul>
+          <button class="btn primary block" id="call-card-join">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4"/></svg>
+            Entrar na call
+          </button>
+        </div>
       </div>
 
       <div id="voice-bar" class="voice-bar" hidden>
@@ -125,27 +189,39 @@
 
     <main class="main">
       <header class="topbar">
-        <button class="icon-btn side-toggle" id="side-toggle" aria-label="Mostrar canais">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        <button class="icon-btn side-toggle" id="side-toggle" aria-label="Mostrar canais" aria-controls="sidebar" aria-expanded="false">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+        </button>
+        <button class="icon-btn return-call-btn" id="return-call-btn" aria-label="Voltar para a call" title="Voltar para a call" hidden>
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="m16 10 5-3v10l-5-3z"/></svg>
         </button>
         <span id="top-icon" class="hash">#</span>
         <span id="top-title" class="top-title">chat</span>
         <span id="top-sub" class="top-sub"></span>
         <span class="spacer"></span>
-        <button class="icon-btn" id="members-toggle" title="Membros" aria-label="Mostrar ou esconder membros">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/></svg>
+        <button class="icon-btn" id="chat-search-btn" title="Buscar mensagens" aria-label="Buscar mensagens" hidden>
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+        </button>
+        <button class="icon-btn" id="pins-btn" title="Mensagens fixadas" aria-label="Mensagens fixadas" hidden>
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m8 3 8 0-1 6 3 3v2H6v-2l3-3-1-6Z"/><path d="M12 14v7"/></svg>
+        </button>
+        <button class="icon-btn" id="theme-btn" title="Mudar tema" aria-label="Mudar tema"></button>
+        <button class="icon-btn pressed" id="members-toggle" title="Membros" aria-label="Mostrar ou esconder membros">
+          <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M17 4a4 4 0 0 1 0 8M22 21a7 7 0 0 0-4-6.3"/></svg>
         </button>
       </header>
 
       <div class="main-body">
         <section id="chat-view" class="chat-view">
+          <div id="room-banner" class="room-banner" hidden></div>
           <div id="messages" class="messages" aria-live="polite"></div>
           <form id="chat-form" class="chat-form">
             <div id="mention-pop" class="mention-pop" role="listbox" aria-label="Mencionar alguém" hidden></div>
             <div id="attach-preview" class="attach-preview" hidden></div>
+            <div id="reply-bar" class="reply-bar" hidden></div>
             <div class="composer" id="composer">
               <button type="button" class="icon-btn" id="attach-btn" title="Enviar imagem ou GIF" aria-label="Enviar imagem ou GIF">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>
               </button>
               <label for="chat-input" class="sr-only">Mensagem</label>
               <textarea id="chat-input" rows="1" maxlength="2000" placeholder="Conversar em #chat" aria-autocomplete="list" aria-controls="mention-pop"></textarea>
@@ -153,10 +229,14 @@
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 8h.01M16 8h.01M12 12h.01M8 16h.01M16 16h.01"/></svg>
               </button>
               <button type="button" class="icon-btn" id="emoji-btn" title="Emojis" aria-label="Emojis">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg>
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg>
+              </button>
+              <button type="submit" class="send-btn ripple-host" id="send-btn" title="Enviar" aria-label="Enviar">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
               </button>
               <input type="file" id="attach-input" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
             </div>
+            <div id="typing" class="typing" aria-live="polite"></div>
           </form>
         </section>
 
@@ -166,6 +246,10 @@
 
         <section id="call-view" class="call-view" hidden>
           <div id="stage" class="stage"></div>
+          <div id="stage-nav" class="stage-nav" hidden>
+            <button class="round" id="stage-prev" aria-label="Tela anterior" title="Tela anterior">‹</button>
+            <button class="round" id="stage-next" aria-label="Próxima tela" title="Próxima tela">›</button>
+          </div>
           <div id="call-empty" class="call-empty" hidden>
             <h2>Call da sala</h2>
             <p class="muted" id="call-empty-sub">Ninguém na call ainda.</p>
@@ -174,7 +258,11 @@
           <div class="stage-bar" id="stage-bar" hidden>
             <button class="round" id="mic-btn-2"></button>
             <button class="round" id="cam-btn-2"></button>
+            <button class="round" id="speaker-btn-2" aria-label="Desativar áudio" title="Desativar áudio"></button>
             <button class="round" id="screen-btn-2"></button>
+            <button class="round call-chat-btn" id="call-chat-btn" aria-label="Abrir chat" title="Abrir chat">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/></svg>
+            </button>
             <button class="round danger" id="hangup-btn-2" aria-label="Sair da call" title="Sair da call"></button>
           </div>
           <button id="audio-unlock" class="audio-unlock" hidden>Clique para ativar o som da call</button>
