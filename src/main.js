@@ -11,6 +11,7 @@ import { COMMANDS, parseCommand, resultCard, BOT_ICON } from './draw.js';
 import { createChatCache } from './chat-cache.js';
 import { initTheme, attachAccount, resolvedTheme, setPrefs } from './theme.js';
 import { openConfig, openShell, closeConfig } from './config.js';
+import { initMusic, musicJoin, musicLeave, mountMusicPanel, setPanelOpen, setPanelView, setModerator, parseMusic, runChatCommand, musicCard, MUSIC_COMMANDS } from './music.js';
 import { moveFocus } from './focus-navigation.js';
 import {
   call, joinCall, leaveCall, toggleMic, setDeafened, toggleCam, toggleScreen, participants, renderStage,
@@ -280,6 +281,8 @@ async function startApp() {
   }, 60000);
 
   call.onChange = onCallChange;
+  initMusic({ sb, api, me, participants: () => participants().map((x) => ({ identity: x.identity, name: x.name })), nameOf: (id) => names.get(id) || (profs.get(id) || {}).display_name || 'alguém' });
+  mountMusicPanel(document.body);
   call.avatarUrl = (id) => (profs.get(id) || {}).avatar_url || null;
   call.onPersonClick = (tile, id) => memberMenu(tile, id);
   wireStatic();
@@ -1272,6 +1275,16 @@ function updateMentionPopup() {
   const pop = $('mention-pop');
   const before = input.value.slice(0, input.selectionStart);
   // Comandos do bot: texto começando com / e ainda sem espaço
+  const mm = input.value.match(/^m!(\S*)$/i);
+  if (mm) {
+    const q = mm[1].toLowerCase();
+    const items = MUSIC_COMMANDS.filter((c) => c.cmd.slice(2).startsWith(q) || c.alias.some((a) => a.slice(2).startsWith(q)));
+    if (!items.length) { closeMentionPopup(); return; }
+    mentionState = { cmd: true, music: true, items, index: 0 };
+    renderMentionPopup();
+    pop.hidden = false;
+    return;
+  }
   const cm = input.value.match(/^\/(\S*)$/);
   if (cm) {
     const q = cm[1].toLowerCase();
@@ -1298,7 +1311,7 @@ function renderMentionPopup() {
   const pop = $('mention-pop');
   pop.innerHTML = '';
   if (mentionState.cmd) {
-    pop.append(h('div', { class: 'mention-head' }, 'Comandos do Sorteador'));
+    pop.append(h('div', { class: 'mention-head' }, mentionState.music ? 'Comandos do DJ Resenha' : 'Comandos do Sorteador'));
     mentionState.items.forEach((c, i) => {
       const b = h('button', { type: 'button', class: 'mention-item cmd-item' + (i === mentionState.index ? ' active' : ''), role: 'option', 'aria-selected': String(i === mentionState.index) },
         h('span', { class: 'cmd-name' }, c.cmd), h('span', { class: 'cmd-desc' }, c.desc), h('span', { class: 'cmd-ex' }, c.example));
@@ -1836,7 +1849,20 @@ function msgTools(m, row, isBot) {
 }
 
 // Mensagem do bot Sorteador
+function djMessageEl(m) {
+  msgById.set(m.id, m);
+  const body = h('div', { class: 'msg-body' },
+    h('div', { class: 'msg-meta' }, h('span', { class: 'msg-name bot-name dj-name' }, 'DJ Resenha'), h('span', { class: 'bot-tag' }, 'BOT'), h('span', { class: 'msg-time' }, fmtTime(m.created_at))),
+    musicCard(m.payload),
+    h('div', { class: 'reactions', 'data-rx': String(m.id), hidden: true }));
+  const row = h('div', { class: 'msg-row bot dj', 'data-mid': String(m.id) },
+    h('span', { class: 'avatar bot-avatar dj-avatar', 'aria-hidden': 'true', html: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>' }), body);
+  row.append(msgTools(m, row, true));
+  return row;
+}
+
 function botMessageEl(m) {
+  if (m.payload && String(m.payload.type || '').startsWith('music')) return djMessageEl(m);
   msgById.set(m.id, m);
   const who = names.get(m.user_id) || 'Alguém';
   const mem = members.find((x) => x.user_id === m.user_id);
@@ -2001,7 +2027,7 @@ function wireChat() {
       if (e.key === 'ArrowDown') { e.preventDefault(); mentionState.index = (mentionState.index + 1) % mentionState.items.length; renderMentionPopup(); return; }
       if (e.key === 'ArrowUp') { e.preventDefault(); mentionState.index = (mentionState.index - 1 + mentionState.items.length) % mentionState.items.length; renderMentionPopup(); return; }
       // Comando já completo (ex.: "/moeda"): Enter envia direto
-      if (e.key === 'Enter' && mentionState.cmd && COMMANDS.some((c) => c.cmd === input.value.trim().toLowerCase())) {
+      if (e.key === 'Enter' && mentionState.cmd && (COMMANDS.some((c) => c.cmd === input.value.trim().toLowerCase()) || MUSIC_COMMANDS.some((c) => c.cmd === input.value.trim().toLowerCase()))) {
         closeMentionPopup();
       } else if (e.key === 'Enter' || e.key === 'Tab') { e.preventDefault(); pickMention(mentionState.index); return; }
       if (e.key === 'Escape') { e.preventDefault(); closeMentionPopup(); return; }
@@ -2045,6 +2071,16 @@ function wireChat() {
     const raw = input.value.trim();
     const img = pendingImage;
     if (!raw && !img) return;
+    if (/^m!/i.test(raw) && !img) {
+      const mreq = parseMusic(raw);
+      input.value = '';
+      autosize();
+      closeMentionPopup();
+      if (mreq.error) { toast(mreq.error, 4500); return; }
+      if (!call.room || call.roomId !== current.id) { toast('Entre numa call desta sala para usar o DJ.'); return; }
+      runChatCommand(mreq).catch((err) => toast(err.message, 4500));
+      return;
+    }
     if (raw.startsWith('/') && !img) {
       const req = parseCommand(raw);
       if (req) {
@@ -2104,6 +2140,14 @@ function wireChat() {
   }
 }
 
+// Painel de música/assistir junto: só aparece na visão da call, mas o som continua em qualquer tela
+let actOpen = false;
+function applyAct() {
+  const open = actOpen && view === 'call' && Boolean(call.room);
+  setPanelOpen(open);
+  $('call-view').classList.toggle('act-open', open);
+}
+
 // ---------- Visões (chat / call) ----------
 function setView(v) {
   view = v;
@@ -2130,6 +2174,7 @@ function setView(v) {
   if (v === 'updates') renderUpdates();
   if (v === 'chat' && current) clearUnread(current.id);
   paintChannelActive();
+  applyAct();
   paintTopRoom();
   paintCallBanner();
   renderRail();
@@ -2673,6 +2718,8 @@ function onCallChange() {
     $('speaker-btn-2').classList.toggle('off', call.deafened);
     $('hangup-btn-2').innerHTML = ICON.hangup;
   }
+  if (connected) { setModerator(can('delete_messages') || can('kick')); musicJoin(call.roomId, call.channelId); } else { musicLeave(); actOpen = false; for (const o of document.querySelectorAll('.act-tab')) o.classList.toggle('on', o.dataset.act === 'call'); }
+  applyAct();
   const inThis = connected && call.roomId === current?.id;
   $('return-call-btn').hidden = !(inThis && view !== 'call');
   $('call-chat-btn').hidden = !inThis || view !== 'call';
@@ -3586,6 +3633,15 @@ function wireStatic() {
   $('stage-prev').addEventListener('click', () => moveStageFocus(-1));
   $('stage-next').addEventListener('click', () => moveStageFocus(1));
   $('call-chat-btn').addEventListener('click', () => current && setView('chat'));
+  for (const b of document.querySelectorAll('.act-tab')) {
+    b.addEventListener('click', () => {
+      const act = b.dataset.act;
+      for (const o of document.querySelectorAll('.act-tab')) o.classList.toggle('on', o === b);
+      actOpen = act !== 'call';
+      if (actOpen) setPanelView(act === 'watch' ? 'watch' : 'music');
+      applyAct();
+    });
+  }
   $('return-call-btn').addEventListener('click', () => call.room && setView('call'));
   $('members-toggle').addEventListener('click', () => {
     const p = $('members-panel');

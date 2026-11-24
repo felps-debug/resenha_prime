@@ -74,7 +74,7 @@ app.use((req, res, next) => {
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Permissions-Policy', 'camera=(self), microphone=(self), display-capture=(self)');
   res.setHeader('Content-Security-Policy', [
-    "default-src 'self'", "script-src 'self'",
+    "default-src 'self'", "script-src 'self' https://www.youtube.com https://s.ytimg.com", "frame-src https://www.youtube.com https://www.youtube-nocookie.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com", "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: blob: https:", "media-src 'self' blob: https:", `connect-src ${connectSources}`,
     "worker-src 'self' blob:", "object-src 'none'", "base-uri 'self'", "frame-ancestors 'none'"
@@ -248,6 +248,44 @@ app.get('/api/live-rooms', rateLimit(30, 60000), async (req, res) => {
   } catch (err) {
     console.error('live-rooms', err);
     res.status(500).json({ error: 'Erro ao listar as calls.' });
+  }
+});
+
+// Música da call: dados de um vídeo do YouTube (oEmbed, sem chave) e busca por nome (precisa de YOUTUBE_API_KEY)
+const YT_ID = /^[A-Za-z0-9_-]{6,20}$/;
+app.get('/api/youtube-info', rateLimit(40, 60000), async (req, res) => {
+  try {
+    const auth = await getUser(req);
+    if (!auth) return res.status(401).json({ error: 'Faça login de novo.' });
+    const id = String(req.query.id || '');
+    if (!YT_ID.test(id)) return res.status(400).json({ error: 'Link do YouTube inválido.' });
+    const r = await fetch(`https://www.youtube.com/oembed?format=json&url=${encodeURIComponent('https://www.youtube.com/watch?v=' + id)}`, { signal: AbortSignal.timeout(6000) });
+    if (!r.ok) return res.status(404).json({ error: 'Não achei esse vídeo (ele pode ser privado ou não permitir reprodução).' });
+    const j = await r.json();
+    res.json({ id, title: String(j.title || 'Sem título').slice(0, 120), author: String(j.author_name || '').slice(0, 80), thumb: `https://i.ytimg.com/vi/${id}/mqdefault.jpg` });
+  } catch (err) {
+    console.error('youtube-info', err);
+    res.status(502).json({ error: 'Não consegui falar com o YouTube agora.' });
+  }
+});
+app.get('/api/youtube-search', rateLimit(30, 60000), async (req, res) => {
+  try {
+    const auth = await getUser(req);
+    if (!auth) return res.status(401).json({ error: 'Faça login de novo.' });
+    const q = String(req.query.q || '').trim().slice(0, 100);
+    if (!q) return res.status(400).json({ error: 'Escreva o nome da música.' });
+    const key = process.env.YOUTUBE_API_KEY;
+    if (!key) return res.status(501).json({ error: 'A busca por nome ainda não está ativa (falta a chave YOUTUBE_API_KEY no servidor). Cole o link do vídeo do YouTube.' });
+    const r = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoEmbeddable=true&maxResults=1&q=${encodeURIComponent(q)}&key=${encodeURIComponent(key)}`, { signal: AbortSignal.timeout(6000) });
+    if (!r.ok) return res.status(502).json({ error: 'A busca do YouTube não respondeu. Tente colar o link.' });
+    const j = await r.json();
+    const item = (j.items || [])[0];
+    if (!item || !item.id || !item.id.videoId) return res.status(404).json({ error: 'Não achei nada com esse nome.' });
+    const id = item.id.videoId;
+    res.json({ id, title: String(item.snippet.title || 'Sem título').slice(0, 120), author: String(item.snippet.channelTitle || '').slice(0, 80), thumb: `https://i.ytimg.com/vi/${id}/mqdefault.jpg` });
+  } catch (err) {
+    console.error('youtube-search', err);
+    res.status(502).json({ error: 'Não consegui buscar agora.' });
   }
 });
 
