@@ -12,10 +12,10 @@ import { createChatCache } from './chat-cache.js';
 import { initTheme, attachAccount, resolvedTheme, setPrefs } from './theme.js';
 import { openConfig, openShell, closeConfig } from './config.js';
 import { initShopFx, onShopFx, shopRoom, shopLeave, owns, nickFor, isPink, decorateAvatar, getVaquinha, loadVaquinha, fire, CHAT_EFFECTS, SOUNDS, VOICES } from './shop-fx.js';
-import { initMusic, musicJoin, musicLeave, mountMusicPanel, setPanelOpen, setPanelView, setModerator, parseMusic, runChatCommand, musicCard, MUSIC_COMMANDS } from './music.js';
+import { initMusic, musicJoin, musicLeave, mountMusicPanel, setPanelOpen, setPanelView, setModerator, parseMusic, runChatCommand, musicCard, MUSIC_COMMANDS, onMusic, setMusicHooks, refreshMusicPanel } from './music.js';
 import { moveFocus } from './focus-navigation.js';
 import {
-  call, joinCall, leaveCall, toggleMic, setDeafened, toggleCam, toggleScreen, participants, renderStage,
+  call, joinCall, leaveCall, toggleMic, setDeafened, toggleCam, toggleScreen, participants, renderStage, togglePin,
   getVolume, setVolume, loadSettings, saveSettings, switchDevice, applyAudioFilters, listDevices, sendZoeira, setVoiceEffect, applyMicChain
 } from './call.js';
 
@@ -288,6 +288,22 @@ async function startApp() {
   onShopFx(() => { if (members.length) renderMembers(); if (view === 'shop') renderShop(); paintCallTools(); });
   initMusic({ sb, api, me, participants: () => participants().map((x) => ({ identity: x.identity, name: x.name })), nameOf: (id) => names.get(id) || (profs.get(id) || {}).display_name || 'alguém' });
   mountMusicPanel(document.body);
+  setMusicHooks({
+    isPinned: () => call.pinned.includes('watch'),
+    togglePin: () => { togglePin('watch'); setTimeout(refreshMusicPanel, 400); },
+    onClose: () => { actOpen = false; for (const o of document.querySelectorAll('.act-tab')) o.classList.toggle('on', o.dataset.act === 'call'); applyAct(); }
+  });
+  // Vídeo do "Assistir junto" vira um quadro da call (dá para fixar como principal). Ao começar, já entra fixado para todo mundo.
+  let wasWatching = false;
+  onMusic((state) => {
+    const watching = Boolean(state && state.current && state.mode === 'watch');
+    call.watch = watching;
+    if (watching && !wasWatching) { if (!call.pinned.includes('watch')) call.pinned = [...call.pinned, 'watch'].slice(-4); }
+    if (!watching) call.pinned = call.pinned.filter((k) => k !== 'watch');
+    wasWatching = watching;
+    if (view === 'call' && call.room) renderStage();
+    refreshMusicPanel();
+  });
   call.avatarUrl = (id) => (profs.get(id) || {}).avatar_url || null;
   call.onPersonClick = (tile, id) => memberMenu(tile, id);
   wireStatic();

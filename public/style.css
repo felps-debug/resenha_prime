@@ -1325,3 +1325,18 @@ kbd { font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 70
 .cfg-dirty.ok { color: var(--green); }
 .cfg-row input[type="number"] { width: 110px; background: var(--bg-input); border: 0; border-radius: 10px; padding: 10px 12px; color: var(--text); font-size: 15px; outline: 0; }
 .cfg-row input[type="number"]:focus { box-shadow: 0 0 0 2px rgba(var(--accent-rgb), .55); }
+
+/* Painel de música / assistir junto: quadro do player solto na tela, botão de fechar e vídeo no palco */
+.ap-head { flex-direction: row; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.ap-head-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ap-close { width: 34px; height: 34px; border: 0; border-radius: 10px; background: var(--bg-active); color: var(--text-2); display: flex; align-items: center; justify-content: center; flex: none; transition: background .15s, color .15s, transform .2s; }
+.ap-close:hover { color: var(--text); transform: rotate(90deg); }
+.yt-frame { position: fixed; left: -9999px; top: 0; width: 200px; height: 200px; overflow: hidden; background: #000; pointer-events: none; box-shadow: 0 10px 26px -10px rgba(0, 0, 0, .7); transition: none; transform: none !important; z-index: 27; }
+.yt-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
+.yt-hold { position: absolute; inset: 0; border-radius: 16px; background: var(--bg-2); display: flex; align-items: center; justify-content: center; padding: 14px; text-align: center; }
+.yt-note { margin: 0; font-size: 13px; line-height: 1.4; color: var(--text-3); }
+.act-panel.watch .cd-wrap { width: 100%; height: auto; aspect-ratio: 16 / 9; }
+.act-panel.other-mode .cd-controls { opacity: .9; }
+.watch-slot { background: #000; aspect-ratio: 16 / 9; }
+.watch-slot .label { z-index: 3; }
+.cd-pin.on { background: var(--accent-soft); color: var(--accent-ink); }

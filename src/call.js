@@ -23,6 +23,7 @@ export const call = {
   muted: false,
   deafened: false,
   focusKey: null,
+  watch: false,        // tem vídeo passando em "Assistir junto"
   voiceEffect: 'normal', // voz zoada da Loja (normal | robo | radio)
   pinned: [],          // quadros fixados, do mais antigo para o mais novo (até 4)
   layout: 'spotlight', // spotlight | side | float
@@ -505,7 +506,12 @@ function withPin(tile, key) {
   tile.append(pinButton(key));
   return named(tile, key);
 }
+function watchTile() {
+  // O vídeo em si é um quadro solto (music.js) que se encaixa por cima deste espaço
+  return h('div', { class: 'tile watch-slot' }, h('div', { class: 'label' }, h('span', { class: 'live-badge' }, 'JUNTOS'), h('span', null, 'Assistindo junto')));
+}
 function frameTile(f) {
+  if (f.kind === 'watch') return withPin(watchTile(), f.key);
   return withPin(f.kind === 'screen' ? screenTile(f.item, true) : personTile(f.item), f.key);
 }
 
@@ -576,6 +582,7 @@ export function renderStage() {
     }
   }
   const frames = [];
+  if (call.watch) frames.push({ key: 'watch', kind: 'watch' });
   for (const x of screens) frames.push({ key: `${x.identity}:screen`, kind: 'screen', item: x });
   for (const x of list) frames.push({ key: `${x.identity}:cam`, kind: 'person', item: x });
   const byKey = new Map(frames.map((f) => [f.key, f]));
