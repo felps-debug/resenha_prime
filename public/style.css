@@ -1369,3 +1369,15 @@ kbd { font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 70
 .stage.focus .focus-strip .tile { flex-basis: 190px; }
 .stage.focus { padding-top: 6px; }
 .layout-bar { margin-top: 8px; margin-bottom: 2px; padding: 3px; }
+
+/* Transmissão que você não está assistindo: cinza e escura. Volume da transmissão no canto do quadro. */
+.tile.dim video { filter: grayscale(.9) brightness(.45); transition: filter .25s; }
+.tile.dim:hover video { filter: none; }
+.tile.dim::after { content: "Clique para assistir"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; color: #ECEDEF; text-shadow: 0 2px 8px rgba(0, 0, 0, .8); opacity: .85; pointer-events: none; transition: opacity .2s; }
+.tile.dim:hover::after { opacity: 0; }
+.tile .sv { position: absolute; right: 10px; bottom: 10px; z-index: 3; display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 10px; background: rgba(14, 15, 19, .8); color: #ECEDEF; opacity: 0; transition: opacity .15s; }
+.tile:hover .sv, .tile .sv:focus-within { opacity: 1; }
+.tile .sv input { width: 90px; accent-color: var(--accent); }
+.tile .sv output { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 32px; text-align: right; }
+.tile .sv-ico { display: inline-flex; }
+@media (hover: none) { .tile .sv { opacity: 1; } }

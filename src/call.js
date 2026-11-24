@@ -54,6 +54,17 @@ export function getVolume(identity) {
   const v = loadVolumes()[identity];
   return typeof v === 'number' ? v : 1;
 }
+// Volume só da transmissão de tela da pessoa (o som do jogo, do vídeo...), separado da voz dela
+export function getStreamVolume(identity) {
+  const v = loadVolumes()[identity + ':stream'];
+  return typeof v === 'number' ? v : 1;
+}
+export function setStreamVolume(identity, value) {
+  const all = loadVolumes();
+  all[identity + ':stream'] = value;
+  localStorage.setItem(VOL_KEY, JSON.stringify(all));
+  applyVolume(identity);
+}
 export function setVolume(identity, value) {
   const all = loadVolumes();
   all[identity] = value;
@@ -66,7 +77,7 @@ function applyVolume(identity) {
   if (!p) return;
   const v = call.deafened ? 0 : getVolume(identity);
   p.setVolume(v, Track.Source.Microphone);
-  p.setVolume(v, Track.Source.ScreenShareAudio);
+  p.setVolume(call.deafened ? 0 : v * getStreamVolume(identity), Track.Source.ScreenShareAudio);
 }
 function applyAllVolumes() {
   if (!call.room) return;
@@ -428,10 +439,12 @@ function liveTrack(pub) {
   return pub && pub.track && !pub.isMuted ? pub.track : null;
 }
 
-function screenTile(item, big) {
+function screenTile(item, big, dim = false) {
   const key = `${item.identity}:screen`;
   const track = liveTrack(item.screen);
-  const tile = h('div', { class: 'tile' + (big ? '' : ' clickable') },
+  // Transmissão que você não está assistindo (fora do palco) fica cinza e escura; passar o mouse mostra normal
+  const dimmed = dim || !big;
+  const tile = h('div', { class: 'tile' + (big && !dim ? '' : ' clickable') + (dimmed ? ' dim' : '') },
     videoFor(key, track),
     h('div', { class: 'label' }, h('span', { class: 'live-badge' }, 'AO VIVO'), h('span', null, item.local ? 'Sua tela' : `Tela de ${item.name}`)));
   const fs = h('button', { class: 'fs', 'aria-label': 'Tela cheia', title: 'Tela cheia', html: ICON.full });
@@ -441,8 +454,23 @@ function screenTile(item, big) {
     else tile.requestFullscreen && tile.requestFullscreen();
   });
   tile.append(fs);
+  if (!item.local) tile.append(streamVolumeControl(item.identity));
   if (!big) tile.addEventListener('click', () => { call.focusKey = key; renderStage(); });
+  else if (dim) tile.addEventListener('click', () => togglePin(key));
   return tile;
+}
+
+function streamVolumeControl(identity) {
+  const wrap = h('div', { class: 'sv' });
+  const val = Math.round(getStreamVolume(identity) * 100);
+  const icon = h('span', { class: 'sv-ico', html: ICON.head });
+  const out = h('output', null, val + '%');
+  const range = h('input', { type: 'range', min: '0', max: '100', step: '5', value: String(val), 'aria-label': 'Volume da transmissão' });
+  range.addEventListener('input', () => { out.textContent = range.value + '%'; setStreamVolume(identity, Number(range.value) / 100); });
+  for (const ev of ['click', 'mousedown', 'dblclick']) wrap.addEventListener(ev, (e) => e.stopPropagation());
+  wrap.append(icon, range, out);
+  wrap.title = 'Volume da transmissão';
+  return wrap;
 }
 
 function personTile(item) {
@@ -512,7 +540,7 @@ function watchTile() {
 }
 function frameTile(f) {
   if (f.kind === 'watch') return withPin(watchTile(), f.key);
-  return withPin(f.kind === 'screen' ? screenTile(f.item, true) : personTile(f.item), f.key);
+  return withPin(f.kind === 'screen' ? screenTile(f.item, true, f.dim) : personTile(f.item), f.key);
 }
 
 function renderLayoutBar() {
@@ -547,7 +575,8 @@ function floatControls() {
 
 function renderPinned(stage, frames, byKey, base) {
   const pins = call.pinned.map((k) => byKey.get(k));
-  const others = frames.filter((f) => !call.pinned.includes(f.key));
+  // Quadros que você não fixou: as transmissões ficam escurecidas até você assistir
+  const others = frames.filter((f) => !call.pinned.includes(f.key)).map((f) => ({ ...f, dim: f.kind === 'screen' }));
   let strip = [];
   if (call.layout === 'side' && pins.length > 1) {
     stage.className = 'stage focus side-layout' + base;
