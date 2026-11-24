@@ -2252,6 +2252,70 @@ function createChannelModal(kind = 'text') {
   name.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submit(); } });
 }
 
+// ---------- Transmitir tela: pop-up nosso antes do seletor do navegador ----------
+function shareAction() {
+  if (!call.room) return;
+  if (call.room.localParticipant.isScreenShareEnabled) toggleScreen(); // já transmitindo: para direto
+  else shareModal();
+}
+
+function shareModal() {
+  const saved = loadSettings();
+  const state = { surface: saved.screenSurface || 'window', quality: saved.screenQuality || 'nitida', audio: saved.screenAudio !== false };
+  const SURFACES = [
+    ['monitor', 'Tela inteira', 'Tudo que aparece no monitor', '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>'],
+    ['window', 'Janela', 'Só um programa, como o jogo', '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/>'],
+    ['browser', 'Aba do navegador', 'Melhor pra vídeo com som', '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>']
+  ];
+  const QUALITIES = [['leve', 'Leve', '720p · 30', 'Gasta menos internet'], ['nitida', 'Nítida', '1080p · 30', 'O melhor pra quase tudo'], ['fluida', 'Fluida', '1080p · 60', 'Para jogos e movimento']];
+  const surfaceBtns = SURFACES.map(([id, title, desc, icon]) => {
+    const b = h('button', { type: 'button', class: 'sh-surface', role: 'radio', 'data-id': id },
+      h('span', { class: 'sh-ico', html: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icon}</svg>` }),
+      h('span', { class: 'sh-text' }, h('b', null, title), h('small', null, desc)));
+    b.addEventListener('click', () => { state.surface = id; paint(); });
+    return b;
+  });
+  const qualityBtns = QUALITIES.map(([id, title, spec]) => {
+    const b = h('button', { type: 'button', class: 'sh-quality', role: 'radio', 'data-id': id }, h('b', null, title), h('code', null, spec));
+    b.addEventListener('click', () => { state.quality = id; paint(); });
+    return b;
+  });
+  const qualityHint = h('p', { class: 'hint' });
+  const audio = h('input', { type: 'checkbox', class: 'cfg-switch', 'aria-label': 'Transmitir o som' });
+  audio.addEventListener('change', () => { state.audio = audio.checked; });
+  const go = h('button', { class: 'btn primary' }, h('span', { html: ICON.screen, style: { display: 'inline-flex' } }), 'Transmitir');
+  const cancel = h('button', { class: 'btn secondary', onClick: closeModal }, 'Cancelar');
+  const paint = () => {
+    for (const b of surfaceBtns) b.setAttribute('aria-checked', String(b.dataset.id === state.surface));
+    for (const b of qualityBtns) b.setAttribute('aria-checked', String(b.dataset.id === state.quality));
+    qualityHint.textContent = (QUALITIES.find((q) => q[0] === state.quality) || [])[3] || '';
+    audio.checked = state.audio;
+    const s = SURFACES.find((x) => x[0] === state.surface);
+    go.lastChild.textContent = `Transmitir ${s ? s[1].toLowerCase() : ''}`;
+  };
+  const others = Math.max(0, participants().length - 1);
+  openModal({
+    title: 'Transmitir tela',
+    wide: true,
+    body: [
+      h('p', { class: 'muted', style: { margin: '-6px 0 0' } }, others ? `${others} ${others === 1 ? 'pessoa' : 'pessoas'} na call ${others === 1 ? 'vai' : 'vão'} ver o que você escolher.` : 'Ninguém mais está na call ainda.'),
+      h('div', { class: 'sh-surfaces', role: 'radiogroup', 'aria-label': 'O que transmitir' }, ...surfaceBtns),
+      h('div', { class: 'field' }, h('span', { class: 'label' }, 'Qualidade'), h('div', { class: 'sh-qualities', role: 'radiogroup', 'aria-label': 'Qualidade' }, ...qualityBtns), qualityHint),
+      h('label', { class: 'cfg-row sh-audio' }, h('span', { class: 'cfg-row-text' }, h('b', null, 'Transmitir o som'), h('small', null, 'O pessoal ouve o jogo ou o vídeo')), audio),
+      h('p', { class: 'hint' }, 'No navegador, depois de clicar, o próprio Chrome confirma a tela: é uma proteção dele que nenhum site consegue esconder. O som só vai junto se você marcar a opção de compartilhar áudio nessa confirmação.')
+    ],
+    actions: [cancel, go]
+  });
+  paint();
+  go.addEventListener('click', () => {
+    const cur = loadSettings();
+    cur.screenSurface = state.surface; cur.screenQuality = state.quality; cur.screenAudio = state.audio;
+    saveSettings(cur);
+    closeModal();
+    toggleScreen({ surface: state.surface, quality: state.quality, audio: state.audio });
+  });
+}
+
 // ---------- Call: prévia de quem está lá ----------
 function startPreviewPolling() {
   clearInterval(previewTimer);
@@ -3052,8 +3116,8 @@ function wireStatic() {
   $('cam-btn').addEventListener('click', toggleCam);
   $('cam-btn-2').addEventListener('click', toggleCam);
   $('speaker-btn-2').addEventListener('click', () => setDeafened(!call.deafened));
-  $('screen-btn').addEventListener('click', toggleScreen);
-  $('screen-btn-2').addEventListener('click', toggleScreen);
+  $('screen-btn').addEventListener('click', shareAction);
+  $('screen-btn-2').addEventListener('click', shareAction);
   $('hangup-btn').addEventListener('click', () => leaveCall().then(startPreviewPolling));
   $('hangup-btn-2').addEventListener('click', () => leaveCall().then(startPreviewPolling));
   $('stage-prev').addEventListener('click', () => moveStageFocus(-1));

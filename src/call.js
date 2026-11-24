@@ -34,7 +34,7 @@ export const call = {
 
 // ---------- Preferências (dispositivos, filtros, volumes) ----------
 export function loadSettings() {
-  const def = { audioinput: '', audiooutput: '', videoinput: '', echoCancellation: true, noiseSuppression: true, autoGainControl: true, mirrorCam: true, zoeiraOnMe: true, zoeiraSound: true };
+  const def = { audioinput: '', audiooutput: '', videoinput: '', echoCancellation: true, noiseSuppression: true, autoGainControl: true, mirrorCam: true, zoeiraOnMe: true, zoeiraSound: true, screenQuality: 'nitida', screenAudio: true, screenSurface: 'window' };
   try { return { ...def, ...JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}') }; } catch (_) { return def; }
 }
 export function saveSettings(s) { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
@@ -298,7 +298,13 @@ export async function toggleCam() {
   call.onChange();
 }
 
-export async function toggleScreen() {
+const SCREEN_QUALITY = { leve: 'h720fps30', nitida: 'h1080fps30' };
+const screenPreset = (quality) => (quality === 'fluida'
+  ? { resolution: { width: 1920, height: 1080, frameRate: 60 }, encoding: { maxBitrate: 8_000_000, maxFramerate: 60 } }
+  : ScreenSharePresets[SCREEN_QUALITY[quality] || 'h1080fps30']);
+
+// opts (só ao ligar): { quality: leve|nitida|fluida, audio: boolean, surface: monitor|window|browser }
+export async function toggleScreen(opts = {}) {
   if (!call.room) return;
   if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
     toast('Seu navegador não permite transmitir a tela (use Chrome ou Edge no computador).');
@@ -307,14 +313,20 @@ export async function toggleScreen() {
   const lp = call.room.localParticipant;
   const on = !lp.isScreenShareEnabled;
   try {
-    await lp.setScreenShareEnabled(on, {
-      audio: true,
+    const saved = loadSettings();
+    const quality = opts.quality || saved.screenQuality || 'nitida';
+    const preset = screenPreset(quality);
+    const audio = opts.audio === undefined ? saved.screenAudio !== false : opts.audio;
+    const surface = opts.surface || saved.screenSurface;
+    await lp.setScreenShareEnabled(on, on ? {
+      audio,
       systemAudio: 'include',
       selfBrowserSurface: 'exclude',
       surfaceSwitching: 'include',
-      contentHint: 'detail',
-      resolution: ScreenSharePresets.h1080fps30.resolution
-    });
+      contentHint: quality === 'fluida' ? 'motion' : 'detail',
+      resolution: preset.resolution,
+      ...(surface ? { video: { displaySurface: surface } } : {})
+    } : undefined, on ? { screenShareEncoding: preset.encoding } : undefined);
     if (on) call.focusKey = `${lp.identity}:screen`;
   } catch (err) {
     if (err && err.name !== 'NotAllowedError') toast('Não foi possível transmitir a tela.');

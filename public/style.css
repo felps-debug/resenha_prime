@@ -1011,3 +1011,21 @@ kbd { font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 70
 .role-pick { display: flex; flex-direction: column; gap: 6px; padding: 12px; border-radius: 12px; background: var(--bg-2); }
 .role-pick .check { margin: 0; }
 @media (prefers-reduced-motion: reduce) { .channel.ch-new { animation: none; background: var(--accent-soft); } }
+
+/* Transmitir tela (docs/telas/Compartilhar.dc.html) */
+.modal.wide { max-width: 640px; }
+.sh-surfaces { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.sh-surface { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding: 14px; border: 0; border-radius: 16px; background: var(--bg-2); box-shadow: 0 0 0 1px var(--line); color: var(--text); text-align: left; transition: box-shadow .18s, transform .15s; }
+.sh-surface:hover { transform: translateY(-1px); }
+.sh-surface[aria-checked="true"] { box-shadow: 0 0 0 2px var(--accent); }
+.sh-ico { width: 40px; height: 40px; border-radius: 12px; background: var(--bg-active); display: flex; align-items: center; justify-content: center; color: var(--text-2); }
+.sh-surface[aria-checked="true"] .sh-ico { color: var(--accent-ink); }
+.sh-text { display: flex; flex-direction: column; gap: 2px; }
+.sh-text small { color: var(--text-3); font-size: 12px; }
+.sh-qualities { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; border-radius: 14px; background: var(--bg-2); }
+.sh-quality { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 6px; border: 0; border-radius: 10px; background: transparent; color: var(--text-2); font-size: 14px; transition: background .15s, color .15s; }
+.sh-quality code { font-family: "JetBrains Mono", monospace; font-size: 11px; color: var(--text-3); }
+.sh-quality[aria-checked="true"] { background: var(--text); color: var(--bg-0); }
+.sh-quality[aria-checked="true"] code { color: var(--bg-3); }
+.sh-audio { padding: 12px 14px; border-radius: 14px; background: var(--bg-2); }
+@media (max-width: 560px) { .sh-surfaces { grid-template-columns: 1fr; } .sh-surface { flex-direction: row; align-items: center; } }
