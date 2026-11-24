@@ -1138,3 +1138,38 @@ kbd { font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 70
 .onb-modes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .pcard-bio { font-size: 13px; color: var(--text-2); }
 @media (max-width: 560px) { .onb-card { padding: 22px; } .onb-interests { grid-template-columns: repeat(2, minmax(0, 1fr)); } .onb-head { padding: 16px; } }
+
+/* Conversa 1:1: perfil ao lado */
+.pcard.dmp { margin: -14px -10px 0; border-radius: 0; }
+.dmp .pcard-banner { height: 110px; }
+.dmp .avatar.xl { width: 88px; height: 88px; }
+.dmp-label { font-size: 11px; font-weight: 800; letter-spacing: .08em; color: var(--text-3); padding: 4px 0; }
+.dmp-common { margin: 12px 14px; padding: 12px 14px; border-radius: 14px; background: var(--bg-3); display: flex; flex-direction: column; gap: 6px; }
+.dmp-room { display: flex; align-items: center; gap: 10px; }
+.dmp-room .avatar { width: 26px; height: 26px; border-radius: 8px; font-size: 12px; }
+.dmp-since { padding: 0 14px; font-size: 13px; color: var(--text-3); }
+
+/* Celular (docs/telas/Mobile*.dc.html) */
+.top-room, .call-banner { display: none; }
+@media (max-width: 560px) {
+  .topbar #top-icon, .topbar #top-title, .topbar #top-sub { display: none; }
+  .top-room { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+  .top-room b { font-size: 16px; font-weight: 800; letter-spacing: -.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .top-room small { font-size: 12px; color: var(--text-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .topbar .side-toggle { background: var(--bg-input); border-radius: 12px; width: 44px; height: 44px; }
+  .call-banner { display: flex; align-items: center; gap: 10px; margin: 10px 12px 0; padding: 8px 8px 8px 12px; border-radius: 16px; background: var(--bg-1); }
+  .call-banner[hidden] { display: none; }
+  .call-banner .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: blink 2s ease-in-out infinite; }
+  .call-banner .faces { display: flex; }
+  .call-banner .faces .avatar { width: 30px; height: 30px; margin-left: -8px; border: 2px solid var(--bg-1); box-sizing: content-box; }
+  .call-banner .faces .avatar:first-child { margin-left: 0; }
+  .call-banner b { flex: 1; font-size: 15px; }
+  .call-banner .btn { min-height: 40px; padding: 0 18px; }
+  /* Call: quem não tem vídeo vira bolinha com o nome embaixo */
+  .focus-strip { gap: 14px; padding: 6px 2px 10px; }
+  .focus-strip .tile:not(.cam) { width: 64px; flex: none; aspect-ratio: auto; background: transparent; box-shadow: none; flex-direction: column; justify-content: flex-start; gap: 4px; overflow: visible; }
+  .focus-strip .tile:not(.cam) .avatar.lg { width: 56px; height: 56px; font-size: 20px; }
+  .focus-strip .tile:not(.cam) .label { position: static; background: transparent; padding: 0; color: var(--text-2); max-width: 64px; font-size: 12px; justify-content: center; }
+  .focus-strip .tile:not(.cam).speaking .avatar { box-shadow: 0 0 0 3px var(--green); }
+  .focus-strip .tile:not(.cam) .pin { display: none; }
+}

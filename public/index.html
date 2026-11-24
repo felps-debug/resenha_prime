@@ -205,6 +205,7 @@
         <button class="icon-btn return-call-btn" id="return-call-btn" aria-label="Voltar para a call" title="Voltar para a call" hidden>
           <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="m16 10 5-3v10l-5-3z"/></svg>
         </button>
+        <span id="top-room" class="top-room"><b id="top-room-name"></b><small id="top-room-sub"></small></span>
         <span id="top-icon" class="hash">#</span>
         <span id="top-title" class="top-title">chat</span>
         <span id="top-sub" class="top-sub"></span>
@@ -223,6 +224,7 @@
 
       <div class="main-body">
         <section id="chat-view" class="chat-view">
+          <div id="call-banner" class="call-banner" hidden><span class="live-dot" aria-hidden="true"></span><span id="call-banner-faces" class="faces"></span><b id="call-banner-text"></b><button type="button" class="btn primary" id="call-banner-join">Entrar</button></div>
           <div id="room-banner" class="room-banner" hidden></div>
           <div id="messages" class="messages" aria-live="polite"></div>
           <form id="chat-form" class="chat-form">

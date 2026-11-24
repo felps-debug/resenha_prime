@@ -905,6 +905,59 @@ function canActOn(target, perm) {
 }
 function nameColor(m) { const r = roleOf(m); return r ? r.color : null; }
 
+// Conversa 1:1: o painel da direita mostra o perfil da outra pessoa
+function renderDmProfile(panel) {
+  const other = dmOthers(current)[0];
+  if (!other) return;
+  const id = other.id;
+  const p = profs.get(id) || {};
+  const name = p.display_name || names.get(id) || other.display_name || 'Alguém';
+  const st = statusOf(id);
+  const since = h('div', { class: 'dmp-since' });
+  const common = h('div', { class: 'dmp-common' }, h('div', { class: 'dmp-label' }, 'SALAS EM COMUM'), h('p', { class: 'muted', style: { margin: 0, fontSize: '13px' } }, 'Procurando…'));
+  panel.append(h('div', { class: 'pcard dmp' },
+    h('div', { class: 'pcard-banner', style: { background: p.banner_url ? 'var(--bg-0)' : (p.accent_color || colorFor(id)) } }, p.banner_url ? h('img', { src: p.banner_url, alt: '', referrerpolicy: 'no-referrer' }) : null),
+    h('div', { class: 'pcard-body' },
+      avatarOf(id, name, 'xl', true),
+      h('div', { class: 'pcard-name' }, name),
+      p.bio ? h('div', { class: 'pcard-bio' }, p.bio) : null,
+      h('div', { class: 'pcard-status' }, statusDot(st), STATUS[st].label),
+      badgeSlot(id)),
+    common, since));
+  sb.from('room_members').select('rooms(id, name, color, icon_url, kind)').eq('user_id', id).then(({ data }) => {
+    const shared = (data || []).map((x) => x.rooms).filter((r) => r && r.kind === 'room' && rooms.some((m) => m.id === r.id));
+    common.replaceChildren(h('div', { class: 'dmp-label' }, 'SALAS EM COMUM'),
+      ...(shared.length ? shared.map((r) => h('div', { class: 'dmp-room' }, roomAvatar(r, ''), h('b', null, r.name))) : [h('p', { class: 'muted', style: { margin: 0, fontSize: '13px' } }, 'Nenhuma sala em comum.')]));
+  }, () => {});
+  sb.from('profiles').select('created_at').eq('id', id).maybeSingle().then(({ data }) => {
+    if (data && data.created_at) since.textContent = 'No Resenha desde ' + new Date(data.created_at).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+  }, () => {});
+}
+
+// Cabeçalho do celular: nome da sala e "# canal · N online"
+function paintTopRoom() {
+  const nameEl = $('top-room-name'), subEl = $('top-room-sub');
+  if (!nameEl || !current) return;
+  if (isDm(current)) { nameEl.textContent = dmTitle(current); subEl.textContent = current.kind === 'group' ? `${members.length} pessoas` : (STATUS[statusOf((dmOthers(current)[0] || {}).id)] || STATUS.offline).label; return; }
+  const online = members.filter((m) => statusOf(m.user_id) !== 'offline').length;
+  const where = view === 'call' ? 'Call' : view === 'shop' ? 'Loja' : view === 'updates' ? 'atualizações' : `# ${channel ? channel.name : 'chat'}`;
+  nameEl.textContent = current.name;
+  subEl.textContent = `${where} · ${online} online`;
+}
+
+// Faixa "N na call · Entrar" no topo do chat (celular)
+function paintCallBanner() {
+  const el = $('call-banner');
+  if (!el) return;
+  const inThis = Boolean(call.room && current && call.roomId === current.id && !call.channelId);
+  const people = !current ? [] : inThis ? participants().map((x) => ({ identity: x.identity, name: x.name })) : callPreview;
+  el.hidden = !current || !people.length || view !== 'chat';
+  if (el.hidden) return;
+  $('call-banner-faces').replaceChildren(...people.slice(0, 3).map((x) => avatarOf(x.identity, x.name, 'sm')));
+  $('call-banner-text').textContent = `${people.length} na call`;
+  $('call-banner-join').hidden = inThis;
+}
+
 function renderMembers() {
   const panel = $('members-panel');
   panel.innerHTML = '';
@@ -916,6 +969,8 @@ function renderMembers() {
   sub.innerHTML = '';
   if (!isDm(current)) sub.append(h('span', { class: 'dot', 'aria-hidden': 'true' }), `${online.length} online · ${members.length} ${members.length === 1 ? 'membro' : 'membros'}`);
   else $('top-sub').textContent = current.kind === 'group' ? `${members.length} pessoas` : (STATUS[statusOf((dmOthers(current)[0] || {}).id)] || STATUS.offline).label;
+  paintTopRoom();
+  if (isDm(current) && current.kind === 'dm') { renderDmProfile(panel); return; }
   const owner = online.filter((m) => m.base_role === 'owner');
   const mods = online.filter((m) => m.base_role === 'moderator');
   groups.push(['Dono', owner], ['Moderadores', mods]);
@@ -2075,6 +2130,8 @@ function setView(v) {
   if (v === 'updates') renderUpdates();
   if (v === 'chat' && current) clearUnread(current.id);
   paintChannelActive();
+  paintTopRoom();
+  paintCallBanner();
   renderRail();
   onCallChange();
 }
@@ -2506,6 +2563,7 @@ function startPreviewPolling() {
 
 // Card "Call da sala" na lateral: fica vivo (feixe de luz) quando tem gente
 function renderCallCard() {
+  paintCallBanner();
   const card = $('call-card');
   const join = $('call-card-join');
   card.hidden = !current;
@@ -3494,6 +3552,7 @@ function wireStatic() {
   });
   $('join-call-btn').addEventListener('click', () => enterCall());
   $('call-card-join').addEventListener('click', () => enterCall());
+  $('call-banner-join').addEventListener('click', () => enterCall());
   $('add-text-ch').addEventListener('click', () => createChannelModal('text'));
   $('add-voice-ch').addEventListener('click', () => createChannelModal('voice'));
   $('invite-btn').addEventListener('click', () => {
