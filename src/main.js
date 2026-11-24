@@ -11,12 +11,12 @@ import { COMMANDS, parseCommand, resultCard, BOT_ICON } from './draw.js';
 import { createChatCache } from './chat-cache.js';
 import { initTheme, attachAccount, resolvedTheme, setPrefs } from './theme.js';
 import { openConfig, openShell, closeConfig } from './config.js';
-import { initShopFx, onShopFx, shopRoom, shopLeave, owns, nickFor, isPink, decorateAvatar, getVaquinha, loadVaquinha, fire, CHAT_EFFECTS, SOUNDS, VOICES, makeVoiceProcessor } from './shop-fx.js';
+import { initShopFx, onShopFx, shopRoom, shopLeave, owns, nickFor, isPink, decorateAvatar, getVaquinha, loadVaquinha, fire, CHAT_EFFECTS, SOUNDS, VOICES } from './shop-fx.js';
 import { initMusic, musicJoin, musicLeave, mountMusicPanel, setPanelOpen, setPanelView, setModerator, parseMusic, runChatCommand, musicCard, MUSIC_COMMANDS } from './music.js';
 import { moveFocus } from './focus-navigation.js';
 import {
   call, joinCall, leaveCall, toggleMic, setDeafened, toggleCam, toggleScreen, participants, renderStage,
-  getVolume, setVolume, loadSettings, saveSettings, switchDevice, applyAudioFilters, listDevices, sendZoeira, applyVoice
+  getVolume, setVolume, loadSettings, saveSettings, switchDevice, applyAudioFilters, listDevices, sendZoeira, setVoiceEffect, applyMicChain
 } from './call.js';
 
 // ================= Estado =================
@@ -812,7 +812,7 @@ function soundboardMenu(anchor) {
 let currentVoice = 'normal';
 function voiceMenu(anchor) {
   openMenu(anchor, VOICES.map(([id, label]) => ({ label: (currentVoice === id ? '✓ ' : '') + label, onClick: async () => {
-    if (await applyVoice(id === 'normal' ? null : makeVoiceProcessor(id))) { currentVoice = id; toast(id === 'normal' ? 'Voz normal.' : `Voz: ${label}`); }
+    if (await setVoiceEffect(id)) { currentVoice = id; toast(id === 'normal' ? 'Voz normal.' : `Voz: ${label}`); }
   } })), { above: true });
 }
 
@@ -3603,7 +3603,7 @@ async function settingsModal() {
     sel.addEventListener('change', () => switchDevice(kind, sel.value));
     return field(label, sel);
   };
-  const filters = [['echoCancellation', 'Cancelamento de eco'], ['noiseSuppression', 'Supressão de ruído'], ['autoGainControl', 'Ajuste automático de volume do microfone']]
+  const filters = [['echoCancellation', 'Cancelamento de eco'], ['autoGainControl', 'Ajuste automático de volume do microfone']]
     .map(([k, label]) => {
       const cb = h('input', { type: 'checkbox', checked: s[k] });
       cb.addEventListener('change', async () => {
@@ -3612,6 +3612,32 @@ async function settingsModal() {
       });
       return h('label', { class: 'check' }, cb, label);
     });
+  const noiseSel = h('select', { 'aria-label': 'Supressão de ruído' },
+    h('option', { value: 'rnnoise' }, 'Forte (recomendado): tira ventilador, teclado e barulho de fundo'),
+    h('option', { value: 'browser' }, 'Padrão do navegador'),
+    h('option', { value: 'off' }, 'Desligado'));
+  noiseSel.value = s.noiseMode;
+  noiseSel.addEventListener('change', async () => {
+    const cur = loadSettings(); cur.noiseMode = noiseSel.value; saveSettings(cur);
+    await applyAudioFilters();
+    if (testing) { await stopTest(); await startTest(); }
+  });
+  let testing = null;
+  const testMsg = h('p', { class: 'hint' }, 'O teste toca a sua voz já filtrada no seu fone. Use fone de ouvido para não dar eco.');
+  const testBtn = h('button', { type: 'button', class: 'btn secondary' }, 'Ouvir meu microfone com o filtro');
+  async function stopTest() { if (testing) { const t = testing; testing = null; await t.stop(); } testBtn.textContent = 'Ouvir meu microfone com o filtro'; testBtn.classList.remove('on'); }
+  async function startTest() {
+    testBtn.disabled = true;
+    try {
+      const cur = loadSettings();
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: { deviceId: cur.audioinput || undefined, echoCancellation: false, noiseSuppression: cur.noiseMode === 'browser', autoGainControl: false } });
+      const { startMicTest } = await import('./mic.js');
+      testing = await startMicTest(stream, { noise: cur.noiseMode === 'rnnoise', voice: 'normal' }, (lvl) => { meter.firstChild.style.width = Math.round(lvl * 100) + '%'; });
+      testBtn.textContent = 'Parar o teste'; testBtn.classList.add('on');
+    } catch (err) { testMsg.textContent = 'Não consegui abrir o teste: ' + (err && err.message ? err.message : 'sem acesso ao microfone.'); }
+    testBtn.disabled = false;
+  }
+  testBtn.addEventListener('click', () => (testing ? stopTest() : startTest()));
   const mirror = h('input', { type: 'checkbox', checked: s.mirrorCam });
   mirror.addEventListener('change', () => {
     const cur = loadSettings(); cur.mirrorCam = mirror.checked; saveSettings(cur);
@@ -3624,6 +3650,7 @@ async function settingsModal() {
     await mk('audiooutput', 'Saída de áudio'),
     await mk('videoinput', 'Câmera'),
     h('label', { class: 'check' }, mirror, 'Espelhar minha câmera (só para você; os outros veem normal)'),
+    h('div', { class: 'field' }, h('span', { class: 'label' }, 'Supressão de ruído'), noiseSel, h('div', { class: 'ns-test' }, testBtn), testMsg),
     h('div', { class: 'field' }, h('span', { class: 'label' }, 'Processamento de voz'), ...filters),
     h('p', { class: 'hint' }, 'Se os nomes dos dispositivos não aparecerem, permita o microfone no navegador e abra de novo.')
   ];

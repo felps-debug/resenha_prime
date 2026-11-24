@@ -23,6 +23,7 @@ export const call = {
   muted: false,
   deafened: false,
   focusKey: null,
+  voiceEffect: 'normal', // voz zoada da Loja (normal | robo | radio)
   pinned: [],          // quadros fixados, do mais antigo para o mais novo (até 4)
   layout: 'spotlight', // spotlight | side | float
   floatCorner: 'br',   // br | bl | tl | tr
@@ -33,9 +34,15 @@ export const call = {
 };
 
 // ---------- Preferências (dispositivos, filtros, volumes) ----------
+// noiseMode: off | browser (filtro do navegador) | rnnoise (rede neural, mais forte)
 export function loadSettings() {
   const def = { audioinput: '', audiooutput: '', videoinput: '', echoCancellation: true, noiseSuppression: true, autoGainControl: true, mirrorCam: true, zoeiraOnMe: true, zoeiraSound: true, screenQuality: 'nitida', screenAudio: true, screenSurface: 'window' };
-  try { return { ...def, ...JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}') }; } catch (_) { return def; }
+  try {
+    const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+    const out = { ...def, ...saved };
+    if (!['off', 'browser', 'rnnoise'].includes(saved.noiseMode)) out.noiseMode = saved.noiseSuppression === false ? 'off' : 'rnnoise';
+    return out;
+  } catch (_) { return def; }
 }
 export function saveSettings(s) { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
 
@@ -69,7 +76,7 @@ function audioOptions(s) {
   return {
     deviceId: s.audioinput || undefined,
     echoCancellation: s.echoCancellation,
-    noiseSuppression: s.noiseSuppression,
+    noiseSuppression: s.noiseMode === 'browser',
     autoGainControl: s.autoGainControl
   };
 }
@@ -115,6 +122,7 @@ export async function joinCall(roomId, roomName, getToken, channelId = null, cha
       toast('Não consegui acessar seu microfone. Você está só ouvindo.');
     }
     await syncAttributes();
+    await applyMicChain();
     applyAllVolumes();
     preloadZoeira();
     beep(660, 880);
@@ -142,6 +150,7 @@ export async function leaveCall(silent) {
   call.roomId = null;
   call.channelId = null;
   call.focusKey = null;
+  call.voiceEffect = 'normal';
   call.pinned = [];
   stopAllZoeira();
   $('audio-bin').innerHTML = '';
@@ -358,6 +367,7 @@ export async function applyAudioFilters() {
     await lp.setMicrophoneEnabled(true, audioOptions(loadSettings()));
     if (call.muted) await lp.setMicrophoneEnabled(false);
   } catch (_) {}
+  await applyMicChain();
   call.onChange();
 }
 
@@ -592,12 +602,37 @@ export function renderStage() {
   }
 }
 
-// Voz zoada: processa o microfone antes de sair para a call (proc = null volta ao normal)
-export async function applyVoice(proc) {
+// Cadeia do microfone: RNNoise (modo "Forte") e/ou voz zoada. Roda no navegador, antes de a voz sair para a call.
+let chainFailed = false;
+export async function applyMicChain() {
   if (!call.room) return false;
   const pub = call.room.localParticipant.getTrackPublication(Track.Source.Microphone);
   const track = pub && pub.audioTrack;
-  if (!track) { toast('Ligue o microfone para usar a voz zoada.'); return false; }
-  try { if (proc) await track.setProcessor(proc); else await track.stopProcessor(); return true; }
-  catch (_) { toast('Não consegui aplicar a voz agora.'); return false; }
+  if (!track) return false;
+  const noise = loadSettings().noiseMode === 'rnnoise' && !chainFailed;
+  const voice = call.voiceEffect || 'normal';
+  try {
+    if (noise || voice !== 'normal') {
+      const { makeMicProcessor } = await import('./mic.js');
+      await track.setProcessor(makeMicProcessor({ noise, voice }));
+    } else if (track.getProcessor && track.getProcessor()) {
+      await track.stopProcessor();
+    }
+    return true;
+  } catch (err) {
+    console.error('microfone', err);
+    if (noise) {
+      // O filtro forte não carregou: cai para o do navegador para você não ficar sem filtro
+      chainFailed = true;
+      toast('Não consegui ligar o filtro de ruído forte. Usando o do navegador.', 4500);
+      const cur = loadSettings(); cur.noiseMode = 'browser'; saveSettings(cur);
+      await applyAudioFilters();
+    } else toast('Não consegui aplicar a voz agora.');
+    return false;
+  }
+}
+
+export async function setVoiceEffect(kind) {
+  call.voiceEffect = kind || 'normal';
+  return applyMicChain();
 }

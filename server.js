@@ -74,7 +74,7 @@ app.use((req, res, next) => {
   res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
   res.setHeader('Permissions-Policy', 'camera=(self), microphone=(self), display-capture=(self)');
   res.setHeader('Content-Security-Policy', [
-    "default-src 'self'", "script-src 'self' https://www.youtube.com https://s.ytimg.com", "frame-src https://www.youtube.com https://www.youtube-nocookie.com",
+    "default-src 'self'", "script-src 'self' 'wasm-unsafe-eval' https://www.youtube.com https://s.ytimg.com", "frame-src https://www.youtube.com https://www.youtube-nocookie.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com", "font-src 'self' https://fonts.gstatic.com",
     "img-src 'self' data: blob: https:", "media-src 'self' blob: https:", `connect-src ${connectSources}`,
     "worker-src 'self' blob:", "object-src 'none'", "base-uri 'self'", "frame-ancestors 'none'"

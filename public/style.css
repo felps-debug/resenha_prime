@@ -1314,3 +1314,7 @@ kbd { font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 70
 .vaq-meta code { font-family: "JetBrains Mono", monospace; color: var(--text); }
 .vaq-top { color: var(--text-2); }
 @media (prefers-reduced-motion: reduce) { .fx-shake, .vaq-mascot, .avatar.fx-frame { animation: none; } }
+
+/* Áudio e vídeo: teste do filtro de ruído */
+.ns-test { margin-top: 8px; }
+.ns-test .btn.on { background: var(--accent-soft); color: var(--accent-ink); }
