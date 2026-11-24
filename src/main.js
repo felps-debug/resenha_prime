@@ -1013,7 +1013,7 @@ function can(perm) {
   if (m.base_role === 'owner' || m.base_role === 'moderator') return true;
   const r = roleOf(m);
   if (!r) return false;
-  return { kick: r.can_kick, ban: r.can_ban, manage_roles: r.can_manage_roles, delete_messages: r.can_delete_messages }[perm] || false;
+  return { kick: r.can_kick, ban: r.can_ban, manage_roles: r.can_manage_roles, delete_messages: r.can_delete_messages, manage_channels: r.can_manage_channels }[perm] || false;
 }
 function canActOn(target, perm) {
   const mine = myMember();
@@ -2350,7 +2350,7 @@ const channelKey = (roomId, ch) => (ch ? `${roomId}:${ch.id}` : roomId);
 const msgKey = (m) => (m.channel_id ? `${m.room_id}:${m.channel_id}` : m.room_id);
 function canManageChannels() {
   const m = myMember();
-  return Boolean(current && !isDm(current) && m && (m.base_role === 'owner' || m.base_role === 'moderator'));
+  return Boolean(current && !isDm(current) && m && can('manage_channels'));
 }
 
 async function loadChannels() {
@@ -3243,7 +3243,7 @@ function rolesModal() {
     list.innerHTML = '';
     if (!roles.length) list.append(h('p', { class: 'muted', style: { margin: 0 } }, 'Nenhum cargo ainda. Crie um para organizar a galera.'));
     for (const r of roles) {
-      const perms = [r.can_kick && 'expulsar', r.can_ban && 'banir', r.can_manage_roles && 'gerenciar cargos', r.can_delete_messages && 'apagar mensagens'].filter(Boolean);
+      const perms = [r.can_manage_channels && 'gerenciar canais', r.can_kick && 'expulsar', r.can_ban && 'banir', r.can_manage_roles && 'gerenciar cargos', r.can_delete_messages && 'apagar mensagens'].filter(Boolean);
       const count = members.filter((m) => m.role_id === r.id).length;
       const edit = h('button', { class: 'btn secondary' }, 'Editar');
       edit.addEventListener('click', () => roleEditModal(r));
@@ -3286,6 +3286,7 @@ function roleEditModal(role) {
   const pb = perm('Banir membros', 'can_ban', 'ban');
   const pm = perm('Gerenciar cargos', 'can_manage_roles', 'manage_roles');
   const pd = perm('Apagar mensagens dos outros', 'can_delete_messages', 'delete_messages');
+  const pc = perm('Gerenciar canais (criar e apagar)', 'can_manage_channels', 'manage_channels');
   const save = h('button', { class: 'btn primary' }, role ? 'Salvar' : 'Criar');
   const actions = [h('button', { class: 'btn secondary', onClick: rolesModal }, 'Voltar'), save];
   if (role) {
@@ -3299,15 +3300,17 @@ function roleEditModal(role) {
   openModal({
     title: role ? `Editar ${role.name}` : 'Novo cargo',
     body: [field('Nome do cargo', name), h('div', { class: 'field' }, h('span', { class: 'label' }, 'Cor'), row),
-      h('div', { class: 'field' }, h('span', { class: 'label' }, 'Permissões'), h('div', { class: 'perm-grid' }, pk.el, pb.el, pm.el, pd.el))],
+      h('div', { class: 'field' }, h('span', { class: 'label' }, 'Permissões'), h('div', { class: 'perm-grid' }, pk.el, pb.el, pm.el, pd.el, pc.el))],
     actions
   });
   save.addEventListener('click', async () => {
     if (!name.value.trim()) { toast('Dê um nome para o cargo.'); return; }
     const args = { p_name: name.value.trim(), p_color: color, p_kick: pk.cb.checked, p_ban: pb.cb.checked, p_manage: pm.cb.checked, p_delete: pd.cb.checked };
     try {
+      let saved = role;
       if (role) await rpc('update_role', { p_role: role.id, ...args });
-      else await rpc('create_role', { p_room: current.id, ...args });
+      else saved = await rpc('create_role', { p_room: current.id, ...args });
+      if (saved && saved.id && pc.cb.checked !== Boolean(role && role.can_manage_channels)) await rpc('set_role_channels', { p_role: saved.id, p_value: pc.cb.checked });
       await loadMembers();
       rolesModal();
       toast(role ? 'Cargo salvo.' : 'Cargo criado.');

@@ -289,6 +289,62 @@ app.get('/api/youtube-search', rateLimit(30, 60000), async (req, res) => {
   }
 });
 
+// Links do Spotify, Deezer, Apple Music e SoundCloud: lê título e artista e devolve o texto para achar a mesma música no YouTube
+// (o áudio dessas plataformas não toca aqui; toca a versão do YouTube, como nos bots de música do Discord)
+const metaTag = (html, prop) => {
+  const m = html.match(new RegExp(`<meta[^>]+property=["']${prop}["'][^>]+content=["']([^"']*)["']`, 'i')) || html.match(new RegExp(`<meta[^>]+content=["']([^"']*)["'][^>]+property=["']${prop}["']`, 'i'));
+  return m ? m[1].replace(/&amp;/g, '&').replace(/&#39;|&#x27;/g, "'").replace(/&quot;/g, '"') : '';
+};
+const getText = async (url, ms = 6000) => {
+  const r = await fetch(url, { signal: AbortSignal.timeout(ms), redirect: 'follow', headers: { 'User-Agent': 'Mozilla/5.0 (compatible; ResenhaBot/1.0)', 'Accept-Language': 'pt-BR,pt;q=0.9,en;q=0.8' } });
+  if (!r.ok) throw new Error('http ' + r.status);
+  return r.text();
+};
+app.get('/api/track-info', rateLimit(40, 60000), async (req, res) => {
+  try {
+    const auth = await getUser(req);
+    if (!auth) return res.status(401).json({ error: 'Faça login de novo.' });
+    let u;
+    try { u = new URL(String(req.query.url || '')); } catch (_) { return res.status(400).json({ error: 'Link inválido.' }); }
+    if (u.protocol !== 'https:') return res.status(400).json({ error: 'Use um link https.' });
+    const host = u.hostname.replace(/^www\./, '');
+    let query = '';
+    if (host === 'open.spotify.com' || host === 'spotify.link') {
+      const html = await getText(u.href);
+      const title = metaTag(html, 'og:title');
+      const desc = metaTag(html, 'og:description');
+      const artist = desc.split('·')[0].trim();
+      if (!title) throw new Error('sem título');
+      if (/\/(playlist|album|artist|show|episode)\//.test(u.pathname)) return res.status(400).json({ error: 'Por enquanto só links de música. Cole o link de uma faixa.' });
+      query = `${artist} ${title}`.trim();
+    } else if (host === 'deezer.com' || host === 'link.deezer.com' || host === 'deezer.page.link') {
+      let url = u.href;
+      if (host !== 'deezer.com') { const r = await fetch(url, { redirect: 'follow', signal: AbortSignal.timeout(6000) }); url = r.url; }
+      const m = new URL(url).pathname.match(/\/track\/(\d+)/);
+      if (!m) return res.status(400).json({ error: 'Por enquanto só links de música. Cole o link de uma faixa.' });
+      const r = await fetch(`https://api.deezer.com/track/${m[1]}`, { signal: AbortSignal.timeout(6000) });
+      const j = await r.json();
+      if (!j || !j.title) throw new Error('sem faixa');
+      query = `${(j.artist && j.artist.name) || ''} ${j.title}`.trim();
+    } else if (host === 'music.apple.com' || host === 'itunes.apple.com') {
+      let title = '';
+      try { title = metaTag(await getText(u.href), 'og:title').replace(/\s+on Apple Music.*$/i, '').replace(/\s+no Apple Music.*$/i, ''); } catch (_) {}
+      if (!title) { const slug = u.pathname.split('/').filter(Boolean).find((x, i, a) => a[i - 1] === 'song' || a[i - 1] === 'album'); title = (slug || '').replace(/-/g, ' '); }
+      if (!title) throw new Error('sem título');
+      query = title.replace(/\s+by\s+/i, ' ');
+    } else if (host === 'soundcloud.com' || host === 'on.soundcloud.com') {
+      const r = await fetch(`https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(u.href)}`, { signal: AbortSignal.timeout(6000) });
+      const j = await r.json();
+      query = String(j.title || '').replace(/^.* by /i, (m) => m).trim();
+      if (!query) throw new Error('sem título');
+    } else return res.status(400).json({ error: 'Esse link eu não conheço. Aceito YouTube, Spotify, Deezer, Apple Music e SoundCloud.' });
+    res.json({ query: query.slice(0, 120) });
+  } catch (err) {
+    console.error('track-info', err && err.message);
+    res.status(502).json({ error: 'Não consegui ler esse link agora. Tente outro ou escreva o nome da música.' });
+  }
+});
+
 // Quem está na call agora (para mostrar antes de entrar)
 app.get('/api/call-participants', rateLimit(60, 60000), async (req, res) => {
   try {

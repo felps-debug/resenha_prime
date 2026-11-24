@@ -108,14 +108,20 @@ export function youtubeId(text) {
 }
 
 export async function resolveTrack(input) {
-  const id = youtubeId(input);
-  const info = id ? await st.api(`/api/youtube-info?id=${encodeURIComponent(id)}`) : await st.api(`/api/youtube-search?q=${encodeURIComponent(input)}`);
+  let text = String(input || '').trim();
+  let id = youtubeId(text);
+  // Link do Spotify, Deezer, Apple Music ou SoundCloud: descobre a música e toca a versão do YouTube
+  if (!id && /^https?:\/\//i.test(text)) {
+    const meta = await st.api(`/api/track-info?url=${encodeURIComponent(text)}`);
+    text = meta.query;
+  }
+  const info = id ? await st.api(`/api/youtube-info?id=${encodeURIComponent(id)}`) : await st.api(`/api/youtube-search?q=${encodeURIComponent(text)}`);
   return { id: info.id, title: info.title, author: info.author, thumb: info.thumb };
 }
 
 export async function addTrack(input, mode) {
   const text = String(input || '').trim();
-  if (!text) throw new Error('Cole um link do YouTube ou escreva o nome.');
+  if (!text) throw new Error('Escreva o nome da música ou cole um link.');
   const track = await resolveTrack(text);
   return musicCommand('play', { ...track, mode: mode || (st.state && st.state.mode) || 'music' });
 }
@@ -264,7 +270,7 @@ export function mountMusicPanel(parent) {
         <div class="cd-reactions" id="cd-reactions" hidden></div>
       </div>
       <form class="ap-add" id="ap-add"><label class="label" for="ap-input">Pedir música</label>
-        <div class="ap-add-row"><input id="ap-input" placeholder="Cole um link do YouTube ou busque pelo nome" autocomplete="off"><button class="btn primary" type="submit" id="ap-add-btn">Adicionar</button></div>
+        <div class="ap-add-row"><input id="ap-input" placeholder="Nome da música ou link (YouTube, Spotify, Deezer…)" autocomplete="off"><button class="btn primary" type="submit" id="ap-add-btn">Adicionar</button></div>
         <p class="hint" id="ap-hint">No chat também funciona: m!play nome da música</p></form>
       <div class="ap-queue"><div class="ap-queue-title" id="ap-queue-title">PRÓXIMAS</div><div id="ap-queue"></div></div>
     </div>`;

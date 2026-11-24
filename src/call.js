@@ -416,6 +416,9 @@ function videoFor(key, track) {
     if (v._track) { try { v._track.detach(v); } catch (_) {} }
     track.attach(v);
     v._track = track;
+  } else if (!v.isConnected) {
+    // O quadro saiu da tela (você foi para outra sala) e está voltando: reconecta a faixa para o vídeo não ficar congelado
+    try { track.attach(v); } catch (_) {}
   }
   return v;
 }
@@ -593,6 +596,8 @@ export function renderStage() {
     list.forEach((x) => strip.append(withPin(personTile(x), `${x.identity}:cam`)));
     stage.append(strip);
   }
+  // Vídeo que voltou para a tela depois de sair dela fica pausado: retoma
+  requestAnimationFrame(() => { for (const v of videoEls.values()) if (v.isConnected && v.paused) v.play().catch(() => {}); });
   // Remove vídeos que não estão mais na tela
   for (const [key, v] of videoEls) {
     if (!v.isConnected) {
