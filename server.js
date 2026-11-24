@@ -190,12 +190,16 @@ app.post('/api/checkout', rateLimit(20, 60000), async (req, res) => {
   }
 });
 
+// Nome da call no LiveKit: a sala é a call padrão; cada canal de voz é uma call separada.
+const livekitRoom = (roomId, channelId) => (channelId ? `${roomId}:${channelId}` : roomId);
+
 // Token para entrar na call
 app.post('/api/livekit-token', rateLimit(30, 60000), async (req, res) => {
   try {
     if (!requireLivekit(res)) return;
     const roomId = String((req.body && req.body.roomId) || '');
-    if (!UUID.test(roomId)) return res.status(400).json({ error: 'Sala inválida.' });
+    const channelId = req.body && req.body.channelId ? String(req.body.channelId) : null;
+    if (!UUID.test(roomId) || (channelId && !UUID.test(channelId))) return res.status(400).json({ error: 'Sala inválida.' });
     const auth = await getUser(req);
     if (!auth) return res.status(401).json({ error: 'Faça login de novo.' });
 
@@ -203,6 +207,11 @@ app.post('/api/livekit-token', rateLimit(30, 60000), async (req, res) => {
     if (error) throw error;
     const access = Array.isArray(data) ? data[0] : null;
     if (!access) return res.status(403).json({ error: 'Você não é membro desta sala.' });
+    if (channelId) {
+      // Canal de voz: cada um é uma call separada. A leitura passa pela regra do banco (canal privado só aparece para quem pode).
+      const ch = await auth.db.from('room_channels').select('id').eq('id', channelId).eq('room_id', roomId).eq('kind', 'voice').maybeSingle();
+      if (!ch.data) return res.status(403).json({ error: 'Você não pode entrar neste canal.' });
+    }
 
     const at = new AccessToken(LIVEKIT_API_KEY, LIVEKIT_API_SECRET, {
       identity: auth.user.id,
@@ -212,7 +221,7 @@ app.post('/api/livekit-token', rateLimit(30, 60000), async (req, res) => {
     });
     at.addGrant({
       roomJoin: true,
-      room: roomId,
+      room: livekitRoom(roomId, channelId),
       canPublish: true,
       canSubscribe: true,
       canPublishData: true,
@@ -235,9 +244,18 @@ app.get('/api/call-participants', rateLimit(60, 60000), async (req, res) => {
     if (!auth) return res.status(401).json({ error: 'Faça login de novo.' });
     const { data } = await auth.db.rpc('call_access', { p_room: roomId });
     if (!Array.isArray(data) || !data.length) return res.status(403).json({ error: 'Você não é membro desta sala.' });
-    let list = [];
-    try { list = await roomService.listParticipants(roomId); } catch (_) { list = []; }
-    res.json({ participants: list.map((p) => ({ identity: p.identity, name: p.name })) });
+    const who = async (name) => {
+      try { return (await roomService.listParticipants(name)).map((p) => ({ identity: p.identity, name: p.name })); } catch (_) { return []; }
+    };
+    const channelId = req.query.channelId ? String(req.query.channelId) : null;
+    if (channelId && !UUID.test(channelId)) return res.status(400).json({ error: 'Canal inválido.' });
+    if (channelId) return res.json({ participants: await who(livekitRoom(roomId, channelId)) });
+    const out = { participants: await who(roomId), channels: {} };
+    if (req.query.all) {
+      const chans = await auth.db.from('room_channels').select('id').eq('room_id', roomId).eq('kind', 'voice');
+      await Promise.all((chans.data || []).map(async (c) => { out.channels[c.id] = await who(livekitRoom(roomId, c.id)); }));
+    }
+    res.json(out);
   } catch (err) {
     console.error('call-participants', err);
     res.status(500).json({ error: 'Erro ao listar a call.' });
@@ -261,6 +279,10 @@ app.post('/api/moderate', rateLimit(30, 60000), async (req, res) => {
 
     if (roomService) {
       try { await roomService.removeParticipant(roomId, userId); } catch (_) { /* não estava na call */ }
+      const chans = await auth.db.from('room_channels').select('id').eq('room_id', roomId).eq('kind', 'voice');
+      for (const c of chans.data || []) {
+        try { await roomService.removeParticipant(livekitRoom(roomId, c.id), userId); } catch (_) { /* não estava neste canal */ }
+      }
     }
     res.json({ ok: true });
   } catch (err) {

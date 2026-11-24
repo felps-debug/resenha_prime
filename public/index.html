@@ -123,13 +123,14 @@
 
       <div class="channels" id="channels">
         <div id="room-channels" class="room-channels">
-          <div class="cat">Texto</div>
+          <div class="cat cat-row">Texto<button class="icon-btn" id="add-text-ch" title="Criar canal de texto" aria-label="Criar canal de texto" hidden><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button></div>
           <button class="channel" id="ch-updates">
             <svg class="ic-mega" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
             atualizações
             <span class="new-badge" id="updates-badge" hidden>NOVO</span>
           </button>
           <button class="channel" id="ch-chat"><span class="hash ic-hash">#</span> chat</button>
+          <div id="text-channels" class="sub-channels"></div>
           <button class="channel shop-channel" id="ch-shop" aria-label="Abrir a Loja">
             <svg class="ic-bag" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path class="draw" pathLength="1" d="M20 7H4l1.5 12.5a2 2 0 0 0 2 1.5h9a2 2 0 0 0 2-1.5z"/><path class="draw" pathLength="1" d="M8 7V6a4 4 0 0 1 8 0v1"/></svg> loja <span class="chip">APOIE</span>
           </button>
@@ -149,7 +150,7 @@
           <div id="dm-list" class="dm-list"></div>
         </div>
 
-        <div class="cat voice-cat" id="voice-cat">Voz</div>
+        <div class="cat cat-row voice-cat" id="voice-cat">Voz<button class="icon-btn" id="add-voice-ch" title="Criar canal de voz" aria-label="Criar canal de voz" hidden><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button></div>
         <div class="call-card" id="call-card">
           <button class="channel" id="ch-call">
             <span class="live-ind" aria-hidden="true"></span>
@@ -161,6 +162,7 @@
             Entrar na call
           </button>
         </div>
+        <div id="voice-channels" class="sub-channels"></div>
       </div>
 
       <div id="voice-bar" class="voice-bar" hidden>

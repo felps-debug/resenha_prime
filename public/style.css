@@ -977,3 +977,37 @@ kbd { font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 70
   .tile .pin { padding: 0 9px; }
 }
 @media (prefers-reduced-motion: reduce) { .float-cam { transition: none; } }
+
+/* =====================================================================
+   Canais de texto e voz (docs/telas/CriarCanal.dc.html)
+   ===================================================================== */
+.sub-channels { display: flex; flex-direction: column; gap: 2px; }
+.sub-channels:empty { display: none; }
+.ch-wrap { position: relative; display: flex; align-items: center; }
+.ch-wrap .channel { flex: 1; min-width: 0; }
+.channel .ch-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
+.channel .hash { width: 18px; text-align: center; font-size: 18px; color: var(--text-3); font-weight: 500; }
+.channel .ch-ico { display: inline-flex; color: var(--text-3); }
+.channel .ch-lock { display: inline-flex; color: var(--text-3); }
+.channel .ch-count { margin-left: auto; font-size: 12px; color: var(--text-3); }
+.channel .ch-count.on { color: var(--green); font-weight: 700; }
+.ch-del { position: absolute; right: 6px; width: 24px; height: 24px; border: 0; border-radius: 7px; background: var(--bg-active); color: var(--text-2); display: none; align-items: center; justify-content: center; }
+.ch-wrap:hover .ch-del, .ch-del:focus-visible { display: flex; }
+.ch-wrap:hover .ch-count { visibility: hidden; }
+.ch-del:hover { color: #FF7377; }
+.channel.ch-new { animation: chNew 2.2s var(--ease) both; }
+@keyframes chNew { 0% { opacity: 0; transform: translateX(-12px); background: var(--accent-soft); } 25% { opacity: 1; transform: none; background: var(--accent-soft); } 100% { background: transparent; } }
+
+.ch-opts { display: flex; flex-direction: column; gap: 10px; }
+.ch-opt { display: flex; align-items: center; gap: 14px; padding: 12px 14px; border: 0; border-radius: 16px; background: var(--bg-2); box-shadow: 0 0 0 1px var(--line); text-align: left; color: var(--text); transition: box-shadow .18s, transform .15s; }
+.ch-opt:hover { transform: translateY(-1px); }
+.ch-opt[aria-checked="true"] { box-shadow: 0 0 0 2px var(--accent); }
+.ch-opt-ico { width: 44px; height: 44px; border-radius: 12px; background: var(--bg-active); display: flex; align-items: center; justify-content: center; flex: none; color: var(--text-2); }
+.ch-opt[aria-checked="true"] .ch-opt-ico { color: var(--accent-ink); }
+.ch-opt-text { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.ch-opt-text small { color: var(--text-3); font-size: 13px; }
+.ch-opt-radio { width: 20px; height: 20px; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--text-3); flex: none; transition: box-shadow .18s; }
+.ch-opt[aria-checked="true"] .ch-opt-radio { box-shadow: inset 0 0 0 6px var(--accent); }
+.role-pick { display: flex; flex-direction: column; gap: 6px; padding: 12px; border-radius: 12px; background: var(--bg-2); }
+.role-pick .check { margin: 0; }
+@media (prefers-reduced-motion: reduce) { .channel.ch-new { animation: none; background: var(--accent-soft); } }

@@ -18,6 +18,7 @@ export const call = {
   room: null,
   roomId: null,
   roomName: '',
+  channelId: null,     // canal de voz em que estou (null = call padrão da sala)
   connecting: false,
   muted: false,
   deafened: false,
@@ -74,17 +75,18 @@ function audioOptions(s) {
 }
 
 // ---------- Entrar e sair ----------
-export async function joinCall(roomId, roomName, getToken) {
+export async function joinCall(roomId, roomName, getToken, channelId = null, channelName = '') {
   if (call.connecting) return;
-  if (call.room && call.roomId === roomId) return;
+  if (call.room && call.roomId === roomId && (call.channelId || null) === (channelId || null)) return;
   if (call.room) await leaveCall(true);
 
   call.connecting = true;
   call.roomId = roomId;
-  call.roomName = roomName;
+  call.channelId = channelId || null;
+  call.roomName = channelName ? `${roomName} · ${channelName}` : roomName;
   call.onChange();
   try {
-    const [{ token, url }] = await Promise.all([getToken(roomId), ensureLiveKit()]);
+    const [{ token, url }] = await Promise.all([getToken(roomId, channelId || null), ensureLiveKit()]);
     const s = loadSettings();
     const room = new Room({
       adaptiveStream: true,
@@ -121,6 +123,7 @@ export async function joinCall(roomId, roomName, getToken) {
     if (call.room) { try { await call.room.disconnect(); } catch (_) {} }
     call.room = null;
     call.roomId = null;
+    call.channelId = null;
     const msg = String((err && err.message) || '');
     toast(/dynamically imported module|loading chunk/i.test(msg)
       ? 'Não consegui carregar a call. Recarregue o aplicativo e tente novamente.'
@@ -137,6 +140,7 @@ export async function leaveCall(silent) {
   const room = call.room;
   call.room = null;
   call.roomId = null;
+  call.channelId = null;
   call.focusKey = null;
   call.pinned = [];
   stopAllZoeira();

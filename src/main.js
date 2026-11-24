@@ -809,11 +809,12 @@ async function openRoom(id) {
   if (!current || current.id !== id) {
     const input = $('chat-input');
     if (current) {
-      textDrafts.set(current.id, input.value || '');
+      textDrafts.set(channelKey(current.id, channel), input.value || '');
       members = []; roles = []; callPreview = []; oldestId = null; lastMsg = null;
       $('members-panel').replaceChildren();
       $('messages').replaceChildren(h('div', { class: 'empty-chat' }, 'Carregando mensagens…'));
     }
+    channel = null; channels = []; voicePeople = {};
     input.value = textDrafts.get(id) || '';
     switchImageDraft(current && current.id, id);
   }
@@ -829,12 +830,13 @@ async function openRoom(id) {
   localStorage.setItem(dm ? 'resenha:last-dm' : 'resenha:last-room', id);
   if (!dm) $('room-title').textContent = r.name;
   $('chat-input').disabled = false;
-  $('chat-input').placeholder = dm ? `Mensagem para ${dmTitle(r)}` : `Conversar em #chat`;
+  $('chat-input').placeholder = dm ? `Mensagem para ${dmTitle(r)}` : `Conversar em #${channel ? channel.name : 'chat'}`;
   renderRail();
   renderDmList();
   setView(call.room && call.roomId === id ? 'call' : 'chat');
-  await Promise.all([loadMembers(), loadMessages(true)]);
+  await Promise.all([loadMembers(), loadMessages(true), loadChannels()]);
   if (!current || current.id !== id || roomRevision !== revision) return;
+  renderChannels();
   subscribeRoom(id);
   loadPins(id);
   if (cfg.shopReady) loadRoomBanner(id);
@@ -1018,6 +1020,7 @@ function subscribeRoom(id) {
   roomChannel = sb.channel('sala-' + id)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'room_members', filter: `room_id=eq.${id}` }, () => loadMembers())
     .on('postgres_changes', { event: '*', schema: 'public', table: 'room_roles', filter: `room_id=eq.${id}` }, () => loadMembers())
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'room_channels', filter: `room_id=eq.${id}` }, (p) => { if (current && current.id === id) onChannelEvent(p); })
     .on('postgres_changes', { event: '*', schema: 'public', table: 'room_pins', filter: `room_id=eq.${id}` }, () => {
       if (current && current.id === id) { loadPins(id); if (pinsModal && pinsModal.isConnected) refreshPinsModal(id); }
     })
@@ -1111,7 +1114,7 @@ function renderUnread() {
 
 async function onIncoming(m) {
   if (!m) return;
-  if (chatCache) chatCache.append(m.room_id, m).catch(() => {});
+  if (chatCache) chatCache.append(msgKey(m), m).catch(() => {});
   if (!findChat(m.room_id)) {
     // Pode ser uma conversa nova que alguém abriu comigo
     await loadDms();
@@ -1122,7 +1125,7 @@ async function onIncoming(m) {
   if (current && current.id === m.room_id) appendMessage(m, true);
   if (m.user_id === me.id) return;
   const mention = mentionsMe(m.content) || isDm(findChat(m.room_id));
-  const seeing = seeingRoom(m.room_id);
+  const seeing = seeingRoom(m.room_id) && (m.channel_id || null) === (channel ? channel.id : null);
   if (!seeing) addUnread(m.room_id, mention);
   await ensureNames([m.user_id]);
   notifyMessage(m, mention, seeing);
@@ -1403,7 +1406,7 @@ function openDrawModal(kind, count) {
 }
 
 // ---------- Chat ----------
-const MSG_FIELDS = 'id, room_id, user_id, content, created_at, attachment_path, attachment_type, kind, payload, reply_to';
+const MSG_FIELDS = 'id, room_id, user_id, content, created_at, attachment_path, attachment_type, kind, payload, reply_to, channel_id';
 async function renderCachedMessages(list, id, isFresh) {
   if (!list.length || isFresh() || !current || current.id !== id) return;
   const box = $('messages');
@@ -1420,17 +1423,19 @@ async function loadMessages(reset, throughId = null) {
   const id = current.id;
   const revision = roomRevision;
   let fresh = false;
-  if (reset && !throughId && chatCache) chatCache.read(id).then((list) => {
+  const ck = channelKey(id, channel);
+  if (reset && !throughId && chatCache) chatCache.read(ck).then((list) => {
     if (list) return renderCachedMessages(list, id, () => fresh || roomRevision !== revision);
   }).catch(() => {});
-  let q = sb.from('messages').select(MSG_FIELDS).eq('room_id', id).order('id', { ascending: false }).limit(50);
+  let q = sb.from('messages').select(MSG_FIELDS).eq('room_id', id);
+  q = (channel ? q.eq('channel_id', channel.id) : q.is('channel_id', null)).order('id', { ascending: false }).limit(50);
   if (reset && throughId) q = q.lte('id', throughId);
   if (!reset && oldestId) q = q.lt('id', oldestId);
   const { data, error } = await q;
   if (error || !current || current.id !== id || roomRevision !== revision) return;
   fresh = true;
   const list = (data || []).reverse();
-  if (reset && !throughId && chatCache) chatCache.write(id, list).catch(() => {});
+  if (reset && !throughId && chatCache) chatCache.write(ck, list).catch(() => {});
   const mentioned = [];
   for (const m of list) for (const x of String(m.content || '').matchAll(MENTION_RE)) mentioned.push(x[1].toLowerCase());
   await ensureNames([...list.map((m) => m.user_id), ...mentioned]);
@@ -1488,8 +1493,9 @@ function openMessageSearch() {
     results.replaceChildren(h('p', { class: 'muted' }, 'Buscando…'));
     timer = setTimeout(async () => {
       const escaped = term.replace(/[\\%_]/g, '\\$&');
-      const { data, error } = await sb.from('messages').select('id,user_id,content,created_at')
-        .eq('room_id', roomId).ilike('content', `%${escaped}%`).order('id', { ascending: false }).limit(30);
+      let sq = sb.from('messages').select('id,user_id,content,created_at').eq('room_id', roomId);
+      sq = channel ? sq.eq('channel_id', channel.id) : sq.is('channel_id', null);
+      const { data, error } = await sq.ilike('content', `%${escaped}%`).order('id', { ascending: false }).limit(30);
       if (!modal.isConnected || requestId !== sequence || !current || current.id !== roomId) return;
       if (error) { results.replaceChildren(h('p', { class: 'muted' }, 'Não foi possível buscar agora.')); return; }
       await ensureNames((data || []).map((m) => m.user_id));
@@ -1838,7 +1844,8 @@ function sendTyping() {
 
 async function appendMessage(m, live) {
   if (!current || current.id !== m.room_id) return;
-  if (chatCache) chatCache.append(m.room_id, m).catch(() => {});
+  if (chatCache) chatCache.append(msgKey(m), m).catch(() => {});
+  if ((m.channel_id || null) !== (channel ? channel.id : null)) return;
   if (document.querySelector(`[data-mid="${m.id}"]`)) return;
   const mentioned = [...String(m.content || '').matchAll(MENTION_RE)].map((x) => x[1].toLowerCase());
   await ensureNames([m.user_id, ...mentioned]);
@@ -1977,6 +1984,7 @@ function wireChat() {
     sending = true;
     const roomId = current.id;
     const row = { room_id: roomId, user_id: me.id, content: encodeMentions(raw).slice(0, 2000) };
+    if (channel && !isDm(current)) row.channel_id = channel.id;
     const replying = replyTo;
     if (replying) row.reply_to = replying.id;
     clearReply();
@@ -2019,9 +2027,8 @@ function wireChat() {
 function setView(v) {
   view = v;
   $('ch-updates').classList.toggle('active', v === 'updates');
-  $('ch-chat').classList.toggle('active', v === 'chat');
   $('ch-shop').classList.toggle('active', v === 'shop');
-  $('ch-call').classList.toggle('active', v === 'call');
+  $('ch-call').classList.toggle('active', v === 'call' && !call.channelId);
   $('updates-view').hidden = v !== 'updates';
   $('chat-view').hidden = v !== 'chat';
   $('call-view').hidden = v !== 'call';
@@ -2031,7 +2038,7 @@ function setView(v) {
   $('pins-btn').hidden = v !== 'chat' || !current;
   $('members-toggle').hidden = v === 'shop';
   const icons = { updates: ICON.megaphone, chat: '#', call: ICON.mic, shop: '♧' };
-  const titles = { updates: 'atualizações', chat: 'chat', call: 'Call', shop: 'Loja' };
+  const titles = { updates: 'atualizações', chat: channel ? channel.name : 'chat', call: 'Call', shop: 'Loja' };
   const dm = isDm(current);
   $('top-icon').innerHTML = dm && v !== 'updates' ? '@' : icons[v];
   $('top-title').textContent = dm && v !== 'updates' ? dmTitle(current) + (v === 'call' ? ' · ligação' : '') : titles[v];
@@ -2041,6 +2048,7 @@ function setView(v) {
   $('side-toggle').setAttribute('aria-expanded', 'false');
   if (v === 'updates') renderUpdates();
   if (v === 'chat' && current) clearUnread(current.id);
+  paintChannelActive();
   renderRail();
   onCallChange();
 }
@@ -2079,15 +2087,185 @@ function renderUpdates() {
   }
 }
 
+// ---------- Canais de texto e de voz ----------
+let channels = [];          // canais que eu vejo na sala aberta
+let channel = null;         // canal de texto aberto (null = o chat padrão da sala)
+let voicePeople = {};       // id do canal de voz -> quem está nele (prévia)
+let newChannelId = null;    // canal recém-criado, para o destaque animado
+const HASH_LOCK = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>';
+const SPEAKER = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 6a9 9 0 0 1 0 12"/></svg>';
+
+const channelKey = (roomId, ch) => (ch ? `${roomId}:${ch.id}` : roomId);
+const msgKey = (m) => (m.channel_id ? `${m.room_id}:${m.channel_id}` : m.room_id);
+function canManageChannels() {
+  const m = myMember();
+  return Boolean(current && !isDm(current) && m && (m.base_role === 'owner' || m.base_role === 'moderator'));
+}
+
+async function loadChannels() {
+  if (!current || isDm(current)) { channels = []; channel = null; voicePeople = {}; renderChannels(); return; }
+  const id = current.id;
+  const revision = roomRevision;
+  const { data } = await sb.from('room_channels').select('id, room_id, kind, name, is_private, role_ids, created_by, created_at').eq('room_id', id).order('created_at');
+  if (!current || current.id !== id || roomRevision !== revision) return;
+  channels = data || [];
+  renderChannels();
+  // O canal aberto sumiu (apagado ou ficou privado para mim): volta para o chat padrão
+  if (channel && !channels.some((c) => c.id === channel.id)) selectTextChannel(null);
+}
+
+function paintChannelActive() {
+  $('ch-chat').classList.toggle('active', view === 'chat' && !channel);
+  for (const b of document.querySelectorAll('#text-channels [data-channel]')) b.classList.toggle('active', view === 'chat' && channel && b.dataset.channel === channel.id);
+  for (const b of document.querySelectorAll('#voice-channels [data-channel]')) b.classList.toggle('active', Boolean(call.room && call.roomId === (current && current.id) && call.channelId === b.dataset.channel));
+}
+
+function channelPeople(c) {
+  if (call.room && current && call.roomId === current.id && call.channelId === c.id) return participants().map((p) => ({ identity: p.identity, name: p.name }));
+  return voicePeople[c.id] || [];
+}
+
+function renderChannels() {
+  const manage = canManageChannels();
+  $('add-text-ch').hidden = !manage;
+  $('add-voice-ch').hidden = !manage;
+  const del = (c) => {
+    const b = h('button', { class: 'ch-del', title: 'Apagar canal', 'aria-label': `Apagar o canal ${c.name}`, html: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>' });
+    b.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      if (!(await confirmModal({ title: `Apagar ${c.kind === 'text' ? '#' : ''}${c.name}?`, text: c.kind === 'text' ? 'As mensagens deste canal também são apagadas. Não dá para desfazer.' : 'Quem estiver na call do canal sai dela.', confirm: 'Apagar', danger: true }))) return;
+      try { await rpc('delete_channel', { p_channel: c.id }); toast('Canal apagado.'); loadChannels(); } catch (err) { toast(err.message); }
+    });
+    return b;
+  };
+  const row = (c, inner, onClick) => {
+    const b = h('button', { class: 'channel' + (newChannelId === c.id ? ' ch-new' : ''), 'data-channel': c.id }, ...inner);
+    b.addEventListener('click', onClick);
+    return h('div', { class: 'ch-wrap' }, b, manage ? del(c) : null);
+  };
+  $('text-channels').replaceChildren(...channels.filter((c) => c.kind === 'text').map((c) => row(c,
+    [h('span', { class: 'hash ic-hash' }, '#'), h('span', { class: 'ch-name' }, c.name), c.is_private ? h('span', { class: 'ch-lock', html: HASH_LOCK, title: 'Canal privado' }) : null],
+    () => selectTextChannel(c))));
+  $('voice-channels').replaceChildren(...channels.filter((c) => c.kind === 'voice').map((c) => {
+    const people = channelPeople(c);
+    return row(c,
+      [h('span', { class: 'ch-ico', html: SPEAKER }), h('span', { class: 'ch-name' }, c.name), c.is_private ? h('span', { class: 'ch-lock', html: HASH_LOCK, title: 'Canal privado' }) : null,
+        h('span', { class: 'ch-count' + (people.length ? ' on' : '') }, people.length ? String(people.length) : 'vazio')],
+      () => (call.room && call.roomId === current.id && call.channelId === c.id ? setView('call') : enterCall(c)));
+  }));
+  paintChannelActive();
+  if (newChannelId) { const id = newChannelId; setTimeout(() => { if (newChannelId === id) { newChannelId = null; for (const b of document.querySelectorAll('.ch-new')) b.classList.remove('ch-new'); } }, 2400); }
+}
+
+async function selectTextChannel(c) {
+  if (!current || isDm(current)) return;
+  const same = (channel && channel.id) === (c && c.id);
+  if (!same) {
+    const input = $('chat-input');
+    textDrafts.set(channelKey(current.id, channel), input.value || '');
+    channel = c;
+    input.value = textDrafts.get(channelKey(current.id, channel)) || '';
+    roomRevision += 1;
+    oldestId = null; lastMsg = null;
+    clearReply();
+    $('messages').replaceChildren(h('div', { class: 'empty-chat' }, 'Carregando mensagens…'));
+    $('chat-input').placeholder = `Conversar em #${c ? c.name : 'chat'}`;
+  }
+  setView('chat');
+  if (!same) await loadMessages(true);
+}
+
+function onChannelEvent(p) {
+  if (p.eventType === 'INSERT' && p.new) {
+    newChannelId = p.new.id;
+    if (p.new.created_by !== me.id) toast(`Canal ${p.new.kind === 'text' ? '#' : ''}${p.new.name} criado`);
+  }
+  loadChannels();
+}
+
+function createChannelModal(kind = 'text') {
+  if (!canManageChannels()) { toast('Só o dono e os moderadores criam canais.'); return; }
+  let picked = kind;
+  const msg = h('p', { class: 'msg' });
+  const name = h('input', { maxlength: '40', placeholder: 'Ex.: memes', autocomplete: 'off' });
+  const hint = h('p', { class: 'hint' });
+  const priv = h('input', { type: 'checkbox', class: 'cfg-switch', 'aria-label': 'Canal privado' });
+  const roleBox = h('div', { class: 'role-pick', hidden: true });
+  const chosen = new Set();
+  const opt = (id, icon, title, desc) => {
+    const b = h('button', { type: 'button', class: 'ch-opt', role: 'radio', 'data-kind': id },
+      h('span', { class: 'ch-opt-ico', html: icon }), h('span', { class: 'ch-opt-text' }, h('b', null, title), h('small', null, desc)), h('span', { class: 'ch-opt-radio' }));
+    b.addEventListener('click', () => { picked = id; paint(); name.focus(); });
+    return b;
+  };
+  const opts = [
+    opt('text', '<span style="font-size:22px;font-weight:800">#</span>', 'Texto', 'Mensagens, imagens, GIFs e enquetes. Fica salvo.'),
+    opt('voice', SPEAKER, 'Voz', 'Call com voz, câmera, tela, música e vídeo junto.')
+  ];
+  const norm = (v) => v.trim().toLowerCase().replace(/[\s_]+/g, '-').replace(/[^a-z0-9à-ÿ-]/g, '').replace(/-{2,}/g, '-').replace(/^-|-$/g, '');
+  const paint = () => {
+    for (const b of opts) b.setAttribute('aria-checked', String(b.dataset.kind === picked));
+    name.placeholder = picked === 'text' ? 'Ex.: memes' : 'Ex.: Cinema, Jogatina, Estudo';
+    const n = norm(name.value);
+    hint.textContent = picked === 'text' ? (n ? `Vai ficar #${n}` : 'Sem espaços: vira minúsculo com hífen.') : 'Ex.: Cinema, Jogatina, Estudo';
+  };
+  name.addEventListener('input', paint);
+  priv.addEventListener('change', () => {
+    roleBox.hidden = !priv.checked;
+    if (priv.checked) {
+      roleBox.replaceChildren(roles.length
+        ? h('div', { class: 'hint' }, 'Quem tem estes cargos também vê (dono e moderadores sempre veem):')
+        : h('div', { class: 'hint' }, 'Só dono e moderadores veem. Crie cargos em "Cargos" para liberar outras pessoas.'),
+      ...roles.map((r) => {
+        const cb = h('input', { type: 'checkbox' });
+        cb.addEventListener('change', () => { if (cb.checked) chosen.add(r.id); else chosen.delete(r.id); });
+        return h('label', { class: 'check' }, cb, h('span', { style: { color: r.color } }, r.name));
+      }));
+    }
+  });
+  const ok = h('button', { class: 'btn primary' }, 'Criar canal');
+  const cancel = h('button', { class: 'btn secondary', onClick: closeModal }, 'Cancelar');
+  openModal({
+    title: 'Criar canal',
+    body: [h('p', { class: 'muted', style: { margin: '-6px 0 0' } }, 'Pode criar quantos quiser.'),
+      h('div', { class: 'ch-opts', role: 'radiogroup', 'aria-label': 'Tipo de canal' }, ...opts),
+      field('Nome do canal', name), hint,
+      h('label', { class: 'cfg-row' }, h('span', { class: 'cfg-row-text' }, h('b', null, 'Canal privado'), h('small', null, 'Só quem tem os cargos que você escolher vê e entra.')), priv),
+      roleBox, msg],
+    actions: [cancel, ok]
+  });
+  paint();
+  const submit = async () => {
+    if (!norm(name.value) && picked === 'text') { msg.textContent = 'Dê um nome ao canal.'; return; }
+    if (!name.value.trim()) { msg.textContent = 'Dê um nome ao canal.'; return; }
+    ok.disabled = true; ok.textContent = 'Criando…'; msg.textContent = '';
+    try {
+      const row = await rpc('create_channel', { p_room: current.id, p_kind: picked, p_name: name.value, p_private: priv.checked, p_roles: [...chosen] });
+      newChannelId = row.id;
+      closeModal();
+      await loadChannels();
+      toast(`Canal ${row.kind === 'text' ? '#' : ''}${row.name} criado`);
+      if (row.kind === 'text') selectTextChannel(channels.find((c) => c.id === row.id) || null);
+    } catch (err) { msg.textContent = err.message; ok.disabled = false; ok.textContent = 'Criar canal'; }
+  };
+  ok.addEventListener('click', submit);
+  name.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submit(); } });
+}
+
 // ---------- Call: prévia de quem está lá ----------
 function startPreviewPolling() {
   clearInterval(previewTimer);
   const tick = async () => {
-    if (!current || (call.room && call.roomId === current.id) || !cfg.livekitReady) { callPreview = []; renderCallList(); return; }
+    if (!current || !cfg.livekitReady) { callPreview = []; voicePeople = {}; renderCallList(); renderChannels(); return; }
     try {
       const id = current.id;
-      const { participants: list } = await api(`/api/call-participants?roomId=${id}`);
-      if (current && current.id === id) { callPreview = list || []; renderCallList(); renderCallEmpty(); }
+      const out = await api(`/api/call-participants?roomId=${id}${isDm(current) ? '' : '&all=1'}`);
+      if (current && current.id === id) {
+        const inDefault = Boolean(call.room && call.roomId === id && !call.channelId);
+        callPreview = inDefault ? [] : (out.participants || []);
+        voicePeople = out.channels || {};
+        renderCallList(); renderCallEmpty(); renderChannels();
+      }
     } catch (_) {}
   };
   tick();
@@ -2101,7 +2279,7 @@ function renderCallCard() {
   card.hidden = !current;
   $('voice-cat').hidden = !current || mode === 'dms';
   if (!current) { card.classList.remove('live'); join.hidden = true; return; }
-  const inThis = Boolean(call.room && call.roomId === current.id);
+  const inThis = Boolean(call.room && call.roomId === current.id && !call.channelId);
   const count = inThis ? participants().length : callPreview.length;
   card.classList.toggle('live', count > 0);
   const dm = isDm(current);
@@ -2117,7 +2295,7 @@ function renderCallList() {
   renderCallCard();
   updateMemberActivity();
   if (!current) return;
-  const inThis = call.room && call.roomId === current.id;
+  const inThis = call.room && call.roomId === current.id && !call.channelId;
   if (inThis) {
     for (const x of participants()) {
       const li = h('li', { 'data-identity': x.identity, class: x.speaking ? 'speaking' : '' },
@@ -2222,6 +2400,7 @@ function onCallChange() {
     $('stage').innerHTML = '';
     $('stage-nav').hidden = true;
   }
+  if (channels.length) renderChannels();
   renderRail();
 }
 
@@ -2234,11 +2413,11 @@ function moveStageFocus(direction) {
   renderStage();
 }
 
-async function enterCall() {
+async function enterCall(ch = null) {
   if (!current) return;
   if (!cfg.livekitReady) { toast('A call ainda não foi configurada no servidor.'); return; }
   setView('call');
-  await joinCall(current.id, current.name, (roomId) => api('/api/livekit-token', { roomId }));
+  await joinCall(current.id, current.name, (roomId, channelId) => api('/api/livekit-token', { roomId, channelId }), ch ? ch.id : null, ch ? ch.name : '');
   startPreviewPolling();
 }
 
@@ -2837,16 +3016,18 @@ function wireStatic() {
   $('explore-btn').addEventListener('click', exploreModal);
   $('room-menu-btn').addEventListener('click', roomMenu);
   $('me-btn').addEventListener('click', meMenu);
-  $('ch-chat').addEventListener('click', () => current && setView('chat'));
+  $('ch-chat').addEventListener('click', () => current && selectTextChannel(null));
   $('ch-updates').addEventListener('click', () => setView('updates'));
   loadUpdates();
   $('ch-call').addEventListener('click', () => {
     if (!current) return;
-    if (call.room && call.roomId === current.id) setView('call');
+    if (call.room && call.roomId === current.id && !call.channelId) setView('call');
     else enterCall();
   });
-  $('join-call-btn').addEventListener('click', enterCall);
-  $('call-card-join').addEventListener('click', enterCall);
+  $('join-call-btn').addEventListener('click', () => enterCall());
+  $('call-card-join').addEventListener('click', () => enterCall());
+  $('add-text-ch').addEventListener('click', () => createChannelModal('text'));
+  $('add-voice-ch').addEventListener('click', () => createChannelModal('voice'));
   $('invite-btn').addEventListener('click', () => {
     if (mode === 'dms') { newDmModal(); return; }
     if (current) inviteModal(); else toast('Entre numa sala primeiro.');
