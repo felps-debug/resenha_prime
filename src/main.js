@@ -9,7 +9,7 @@ import { openEmojiPicker } from './emoji.js';
 import { badgeIcon, badgeRow, RARITY_LABEL } from './badges.js';
 import { COMMANDS, parseCommand, resultCard, BOT_ICON } from './draw.js';
 import { createChatCache } from './chat-cache.js';
-import { initTheme, attachAccount } from './theme.js';
+import { initTheme, attachAccount, resolvedTheme, setPrefs } from './theme.js';
 import { openConfig, openShell, closeConfig } from './config.js';
 import { moveFocus } from './focus-navigation.js';
 import {
@@ -121,8 +121,16 @@ function showAuth(mode) {
   const isSignup = mode === 'signup';
   const isForgot = mode === 'forgot';
   const isReset = mode === 'reset';
-  $('auth-title').textContent = isSignup ? 'Criar conta' : isForgot ? 'Recuperar senha' : isReset ? 'Nova senha' : 'Bem-vindo de volta!';
-  $('auth-sub').textContent = isSignup ? 'É rapidinho.' : isForgot ? 'Vamos te mandar um link por e-mail.' : isReset ? 'Escolha uma senha nova.' : 'Entre para ver suas salas.';
+  $('auth-screen').classList.toggle('auth-solo', isForgot || isReset);
+  $('auth-title').textContent = isSignup ? 'Criar conta' : isForgot ? 'Esqueceu a senha?' : isReset ? 'Nova senha' : 'Bem-vindo de volta';
+  $('auth-sub').textContent = isSignup ? 'É de graça e leva 30 segundos.' : isForgot ? 'Acontece. Coloca seu e-mail que a gente manda um link pra criar outra.' : isReset ? 'Escolha uma senha nova.' : 'Entre para ver suas salas.';
+  $('auth-email-label').textContent = isForgot ? 'E-mail da conta' : 'E-mail';
+  $('google-label').textContent = isSignup ? 'Criar com Google' : 'Entrar com Google';
+  $('pass-meter').hidden = !(isSignup || isReset);
+  $('auth-pass').minLength = isSignup || isReset ? 8 : 6;
+  $('auth-pass').placeholder = isSignup || isReset ? 'Pelo menos 8 caracteres' : 'Sua senha';
+  $('auth-pass').type = 'password';
+  $('pass-eye').setAttribute('aria-pressed', 'false');
   $('name-field').hidden = !isSignup;
   $('auth-name').required = isSignup;
   $('email-field').hidden = isReset;
@@ -132,9 +140,9 @@ function showAuth(mode) {
   $('auth-pass').autocomplete = isSignup || isReset ? 'new-password' : 'current-password';
   $('forgot-link').hidden = mode !== 'login';
   $('oauth-box').hidden = isForgot || isReset;
-  $('auth-submit').textContent = isSignup ? 'Criar conta' : isForgot ? 'Enviar link' : isReset ? 'Salvar senha' : 'Entrar';
+  $('auth-submit').textContent = isSignup ? 'Criar conta' : isForgot ? 'Mandar link' : isReset ? 'Salvar senha' : 'Entrar';
   $('switch-text').textContent = isSignup ? 'Já tem conta?' : isForgot || isReset ? '' : 'Ainda não tem conta?';
-  $('switch-btn').textContent = isSignup || isForgot || isReset ? 'Voltar para o login' : 'Criar conta';
+  $('switch-btn').textContent = isSignup ? 'Entrar' : isForgot || isReset ? 'Voltar pro login' : 'Criar conta';
   $('auth-msg').textContent = '';
   $('auth-msg').className = 'msg';
 }
@@ -147,6 +155,21 @@ function showRecovery() {
 
 $('switch-btn').addEventListener('click', () => showAuth(authMode === 'login' ? 'signup' : 'login'));
 $('forgot-link').addEventListener('click', () => showAuth('forgot'));
+$('pass-eye').addEventListener('click', () => {
+  const shown = $('auth-pass').type === 'text';
+  $('auth-pass').type = shown ? 'password' : 'text';
+  $('pass-eye').setAttribute('aria-pressed', String(!shown));
+  $('pass-eye').setAttribute('aria-label', shown ? 'Mostrar a senha' : 'Esconder a senha');
+});
+$('auth-pass').addEventListener('input', () => {
+  const v = $('auth-pass').value;
+  let score = 0;
+  if (v.length >= 8) score += 1;
+  if (v.length >= 12) score += 1;
+  if (/[a-z]/.test(v) && /[A-Z]/.test(v)) score += 1;
+  if (/\d/.test(v) && /[^A-Za-z0-9]/.test(v)) score += 1;
+  $('pass-meter').dataset.score = String(v ? score : 0);
+});
 
 $('google-btn').addEventListener('click', async () => {
   const { error } = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin } });
@@ -234,7 +257,7 @@ async function startApp() {
   const uid = session.user.id;
   let prof = null;
   for (let i = 0; i < 5 && !prof; i++) {
-    const { data } = await sb.from('profiles').select('id, display_name, avatar_url, banner_url').eq('id', uid).maybeSingle();
+    const { data } = await sb.from('profiles').select('id, display_name, avatar_url, banner_url, bio, accent_color').eq('id', uid).maybeSingle();
     prof = data;
     if (!prof) await new Promise((r) => setTimeout(r, 400));
   }
@@ -277,6 +300,7 @@ async function startApp() {
   if (checkoutStatus === 'cancelado') toast('Compra cancelada.');
   if (checkoutStatus) { const u = new URL(location.href); u.searchParams.delete('loja'); history.replaceState(null, '', u.pathname + u.search + u.hash); }
   onCallChange();
+  maybeOnboard();
 }
 
 function setProf(p) {
@@ -288,7 +312,9 @@ function setProf(p) {
 }
 function avatarOf(id, name, cls, withStatus) {
   const p = profs.get(id) || {};
-  return avatar(id, name || p.display_name || names.get(id), cls, p.avatar_url, withStatus ? statusOf(id) : null);
+  const a = avatar(id, name || p.display_name || names.get(id), cls, p.avatar_url, withStatus ? statusOf(id) : null);
+  if (!p.avatar_url && p.accent_color) a.style.background = p.accent_color;
+  return a;
 }
 
 function renderMe() {
@@ -849,7 +875,7 @@ async function loadMembers() {
   const id = current.id;
   const revision = roomRevision;
   const [m, rl] = await Promise.all([
-    sb.from('room_members').select('user_id, base_role, role_id, joined_at, profiles(display_name, avatar_url, banner_url)').eq('room_id', id),
+    sb.from('room_members').select('user_id, base_role, role_id, joined_at, profiles(display_name, avatar_url, banner_url, bio, accent_color)').eq('room_id', id),
     sb.from('room_roles').select('*').eq('room_id', id).order('created_at')
   ]);
   if (!current || current.id !== id || roomRevision !== revision) return;
@@ -1570,7 +1596,7 @@ async function refreshPinsModal(roomId) {
 async function ensureNames(ids) {
   const missing = [...new Set(ids)].filter((id) => !names.has(id));
   if (!missing.length) return;
-  const { data } = await sb.from('profiles').select('id, display_name, avatar_url, banner_url').in('id', missing);
+  const { data } = await sb.from('profiles').select('id, display_name, avatar_url, banner_url, bio, accent_color').in('id', missing);
   for (const p of data || []) setProf(p);
 }
 
@@ -2316,6 +2342,148 @@ function shareModal() {
   });
 }
 
+// ---------- Onboarding (primeiro acesso) ----------
+const ONB_COLORS = ['#7FB2F0', '#F2A65A', '#8BD3A8', '#C9A7F5', '#F28FAA', '#FFD166', '#FF6B3D'];
+const ONB_INTERESTS = [['Jogos', 'jogos'], ['Estudo', 'estudo'], ['Música', 'musica'], ['Papo', 'papo'], ['Filmes', 'papo'], ['Esportes', 'papo'], ['Código', 'estudo'], ['Arte', 'musica']];
+let onbEl = null;
+
+async function markOnboarded() {
+  try { await sb.auth.updateUser({ data: { resenha_onboarded: true } }); } catch (_) {}
+}
+
+function maybeOnboard() {
+  const meta = (session && session.user && session.user.user_metadata) || {};
+  if (meta.resenha_onboarded) return;
+  if (rooms.length || dms.length) { markOnboarded(); return; } // quem já usa o app não precisa
+  showOnboarding();
+}
+
+function showOnboarding() {
+  if (onbEl) return;
+  const state = { step: 0, color: me.accent_color || ONB_COLORS[0], bio: me.bio || '', likes: new Set(), joined: new Set(), list: null };
+  const LAST = 5;
+  const card = h('div', { class: 'onb-card beam' });
+  const ring = h('div', { class: 'onb-ring', role: 'img' });
+  const skip = h('button', { class: 'onb-skip', type: 'button' }, 'Pular tudo');
+  onbEl = h('div', { class: 'onb', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Boas-vindas' },
+    h('header', { class: 'onb-head' },
+      h('span', { class: 'onb-brand' }, h('span', { class: 'logo-mark', html: '<svg viewBox="0 0 48 48" width="22" height="22"><circle cx="24" cy="24" r="13" fill="none" stroke="currentColor" stroke-width="4"/><circle cx="24" cy="11" r="5.5" fill="currentColor"/><circle cx="35.3" cy="30.5" r="5.5" fill="currentColor"/><circle cx="12.7" cy="30.5" r="5.5" fill="currentColor"/></svg>' }), h('b', null, 'resenha')),
+      h('span', { class: 'onb-head-right' }, skip, ring)),
+    h('div', { class: 'onb-stage' }, card));
+  document.body.append(onbEl);
+  $('app').setAttribute('inert', '');
+
+  const finish = async (openAdd) => {
+    await markOnboarded();
+    onbEl.remove(); onbEl = null;
+    $('app').removeAttribute('inert');
+    await loadRooms();
+    if (rooms[0]) await openRoom(rooms[0].id); else renderEmpty();
+    if (openAdd) addRoomModal();
+  };
+  skip.addEventListener('click', () => finish(false));
+
+  const paintRing = () => {
+    const pct = state.step / LAST;
+    const C = 2 * Math.PI * 16;
+    ring.setAttribute('aria-label', `Progresso: ${Math.round(pct * 100)}%`);
+    ring.innerHTML = `<svg viewBox="0 0 40 40" width="44" height="44"><circle cx="20" cy="20" r="16" fill="none" stroke="var(--bg-active)" stroke-width="3"/><circle cx="20" cy="20" r="16" fill="none" stroke="var(--accent)" stroke-width="3" stroke-linecap="round" stroke-dasharray="${C.toFixed(2)}" stroke-dashoffset="${(C * (1 - pct)).toFixed(2)}" transform="rotate(-90 20 20)"/></svg><span>${Math.round(pct * 100)}%</span>`;
+    skip.hidden = state.step >= LAST;
+  };
+
+  const saveProfile = async () => {
+    const patch = { accent_color: state.color, bio: state.bio.trim().slice(0, 60) || null };
+    const { error } = await sb.from('profiles').update(patch).eq('id', me.id);
+    if (!error) { Object.assign(me, patch); setProf(me); renderMe(); }
+  };
+
+  const draw = async () => {
+    paintRing();
+    const s = state.step;
+    const next = h('button', { class: 'btn primary onb-next', type: 'button' }, ['Bora começar', 'Continuar', 'Continuar', 'Continuar', 'Concluir'][s] || 'Entrar no Resenha');
+    const back = s > 0 && s < LAST ? h('button', { class: 'btn secondary onb-back', type: 'button', onClick: () => { state.step -= 1; draw(); } }, 'Voltar') : null;
+    let body;
+    if (s === 0) {
+      body = [h('h1', null, `Bem-vindo, ${me.display_name}!`), h('p', { class: 'muted' }, 'Sua conta está pronta. Em um minuto a gente deixa tudo com a sua cara.'),
+        h('div', { class: 'onb-points' },
+          ...[['Chat que fica salvo', 'Nada some. Dá pra buscar e fixar o que importa.'], ['Call com voz, câmera e tela', 'Fixe quem você quer ver e transmita com som.'], ['Sorteador que ninguém rouba', 'Times, ordem e dado feitos no servidor.']]
+            .map(([t, d]) => h('div', { class: 'onb-point' }, h('b', null, t), h('span', null, d))))];
+    } else if (s === 1) {
+      const prev = h('div', { class: 'onb-preview' });
+      const bio = h('input', { maxlength: '60', value: state.bio, placeholder: 'Ex.: goleiro reserva e DJ de churrasco' });
+      const paintPrev = () => {
+        prev.replaceChildren(h('div', { class: 'onb-prev-banner', style: { background: state.color } }),
+          h('div', { class: 'onb-prev-body' }, h('span', { class: 'onb-prev-av', style: { background: state.color } }, (me.display_name || '?').trim().charAt(0).toUpperCase()),
+            h('span', { class: 'onb-prev-text' }, h('b', null, me.display_name), h('small', null, state.bio.trim() || 'Sem recado ainda'))));
+        swatches.replaceChildren(...ONB_COLORS.map((hex) => h('button', { type: 'button', class: 'cfg-swatch', role: 'radio', 'aria-label': `Cor ${hex}`, 'aria-checked': String(state.color === hex), style: { background: hex, '--ring': hex, width: '34px', height: '34px' }, onClick: () => { state.color = hex; paintPrev(); } },
+          h('span', { html: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg>' }))));
+      };
+      const swatches = h('div', { class: 'cfg-swatches', role: 'radiogroup', 'aria-label': 'Cor' });
+      bio.addEventListener('input', () => { state.bio = bio.value; paintPrev(); });
+      paintPrev();
+      body = [h('h1', null, 'Bota sua cara'), h('p', { class: 'muted' }, 'É assim que a galera vai te ver.'), prev, swatches, field('Uma frase sobre você', bio)];
+    } else if (s === 2) {
+      const grid = h('div', { class: 'onb-interests' });
+      const paintI = () => grid.replaceChildren(...ONB_INTERESTS.map(([name]) => {
+        const on = state.likes.has(name);
+        const b = h('button', { type: 'button', class: 'onb-interest', 'aria-pressed': String(on) }, name);
+        b.addEventListener('click', () => { if (on) state.likes.delete(name); else state.likes.add(name); paintI(); });
+        return b;
+      }));
+      paintI();
+      body = [h('h1', null, 'Do que você curte?'), h('p', { class: 'muted' }, 'A gente usa pra achar salas pra você.'), grid];
+    } else if (s === 3) {
+      const opts = h('div', { class: 'cfg-modes onb-modes', role: 'radiogroup', 'aria-label': 'Tema' });
+      const paintT = () => {
+        const mode = resolvedTheme();
+        opts.replaceChildren(...[['dark', 'Escuro', 'cfg-prev dark'], ['light', 'Claro', 'cfg-prev light']].map(([id, name, cls]) =>
+          h('button', { type: 'button', class: 'cfg-mode', role: 'radio', 'aria-checked': String(mode === id), onClick: () => { setPrefs({ mode: id }); paintT(); } },
+            h('span', { class: cls }, h('i'), h('span', null, h('u'), h('u'), h('em'))), h('b', null, name))));
+      };
+      paintT();
+      body = [h('h1', null, 'Escuro ou claro?'), h('p', { class: 'muted' }, 'Clica e vê a mudança. Dá pra trocar quando quiser nas Configurações.'), opts];
+    } else if (s === 4) {
+      const listEl = h('div', { class: 'onb-rooms' }, h('p', { class: 'muted' }, 'Procurando salas…'));
+      body = [h('h1', null, 'Salas pra você'), h('p', { class: 'muted' }, 'Entre nas que quiser. Dá pra entrar em mais depois, em Explorar.'), listEl];
+      if (!state.list) {
+        try { state.list = (await rpc('explore_rooms')) || []; } catch (_) { state.list = []; }
+        const likedCats = new Set(ONB_INTERESTS.filter(([n]) => state.likes.has(n)).map(([, c]) => c));
+        state.list = state.list.slice().sort((a, b) => (likedCats.has(b.category) ? 1 : 0) - (likedCats.has(a.category) ? 1 : 0));
+      }
+      const paintR = () => {
+        if (!state.list.length) { listEl.replaceChildren(h('p', { class: 'muted' }, 'Ainda não há salas públicas. Você pode criar a sua ou entrar com um convite.')); return; }
+        listEl.replaceChildren(...state.list.slice(0, 8).map((r) => {
+          const joined = state.joined.has(r.id);
+          const b = h('button', { type: 'button', class: 'btn ' + (joined ? 'secondary' : 'primary'), disabled: joined }, joined ? 'Entrou ✓' : 'Entrar');
+          b.addEventListener('click', async () => {
+            b.disabled = true;
+            try { await rpc('join_room', { p_room: r.id, p_code: null }); state.joined.add(r.id); paintR(); } catch (err) { toast(err.message); b.disabled = false; }
+          });
+          return h('div', { class: 'onb-room' }, roomAvatar(r, 'lg'), h('span', { class: 'onb-room-text' }, h('b', null, r.name), h('small', null, `${r.member_count} ${Number(r.member_count) === 1 ? 'membro' : 'membros'}${r.category ? ' · ' + catLabel(r.category) : ''}`)), b);
+        }));
+      };
+      paintR();
+      const more = h('button', { type: 'button', class: 'link', onClick: () => finish(true) }, 'Tenho um convite ou quero criar minha sala');
+      body.push(more);
+    } else {
+      next.textContent = 'Entrar no Resenha';
+      body = [h('div', { class: 'onb-done' },
+        h('span', { class: 'onb-prev-av big', style: { background: state.color } }, (me.display_name || '?').trim().charAt(0).toUpperCase()),
+        h('h1', null, 'Tudo pronto!'), h('p', { class: 'muted' }, state.joined.size ? `Você entrou em ${state.joined.size} ${state.joined.size === 1 ? 'sala' : 'salas'}. Bora resenhar.` : 'Sua conta está do seu jeito. Crie uma sala ou entre com um convite para começar.'))];
+    }
+    card.replaceChildren(h('div', { class: 'onb-step' }, ...body), h('div', { class: 'onb-actions' }, back, h('span', { style: { flex: '1' } }), next));
+    next.addEventListener('click', async () => {
+      next.disabled = true;
+      if (state.step === 1) await saveProfile();
+      if (state.step === LAST) { await finish(false); return; }
+      state.step += 1;
+      draw();
+    });
+    const f = card.querySelector('input'); if (f) f.focus();
+  };
+  draw();
+}
+
 // ---------- Call: prévia de quem está lá ----------
 function startPreviewPolling() {
   clearInterval(previewTimer);
@@ -2938,14 +3106,15 @@ async function bansModal() {
 function profileCard(userId, name, m) {
   const p = profs.get(userId) || {};
   const st = statusOf(userId);
-  const banner = h('div', { class: 'pcard-banner', style: { background: p.banner_url ? 'var(--bg-0)' : colorFor(userId) } },
+  const banner = h('div', { class: 'pcard-banner', style: { background: p.banner_url ? 'var(--bg-0)' : (p.accent_color || colorFor(userId)) } },
     p.banner_url ? h('img', { src: p.banner_url, alt: '', referrerpolicy: 'no-referrer' }) : null);
   const role = m ? `${ROLE_LABEL[m.base_role]}${roleOf(m) ? ' · ' + roleOf(m).name : ''}` : null;
   return h('div', { class: 'pcard' },
     banner,
     h('div', { class: 'pcard-body' },
-      avatar(userId, name, 'xl', p.avatar_url, st),
+      (() => { const a = avatar(userId, name, 'xl', p.avatar_url, st); if (!p.avatar_url && p.accent_color) a.style.background = p.accent_color; return a; })(),
       h('div', { class: 'pcard-name', style: { color: m ? nameColor(m) || '' : '' } }, name),
+      p.bio ? h('div', { class: 'pcard-bio' }, p.bio) : null,
       h('div', { class: 'pcard-status' }, statusDot(st), STATUS[st].label),
       role ? h('div', { class: 'pcard-role' }, role) : null,
       badgeSlot(userId)));
@@ -3038,6 +3207,9 @@ function profileModal() {
   const remove = { avatar: false, banner: false };
   const urls = [];
   const name = h('input', { maxlength: '32', value: me.display_name });
+  const bio = h('input', { maxlength: '60', value: me.bio || '', placeholder: 'Ex.: goleiro reserva e DJ de churrasco' });
+  let accent = me.accent_color || null;
+  const colorRow = h('div', { class: 'cfg-swatches', role: 'radiogroup', 'aria-label': 'Cor do cartão' });
   const preview = h('div', { class: 'pcard pcard-preview' });
   const msg = h('p', { class: 'msg' });
 
@@ -3046,13 +3218,18 @@ function profileModal() {
     const av = pending.avatar ? pending.avatar.url : remove.avatar ? null : draft.avatar_url;
     const bn = pending.banner ? pending.banner.url : remove.banner ? null : draft.banner_url;
     preview.append(
-      h('div', { class: 'pcard-banner', style: { background: bn ? 'var(--bg-0)' : colorFor(me.id) } }, bn ? h('img', { src: bn, alt: '' }) : null),
+      h('div', { class: 'pcard-banner', style: { background: bn ? 'var(--bg-0)' : (accent || colorFor(me.id)) } }, bn ? h('img', { src: bn, alt: '' }) : null),
       h('div', { class: 'pcard-body' },
-        avatar(me.id, name.value || me.display_name, 'xl', av, statusOf(me.id)),
+        (() => { const a = avatar(me.id, name.value || me.display_name, 'xl', av, statusOf(me.id)); if (!av && accent) a.style.background = accent; return a; })(),
         h('div', { class: 'pcard-name' }, name.value || me.display_name),
+        bio.value.trim() ? h('div', { class: 'pcard-bio' }, bio.value.trim()) : null,
         h('div', { class: 'pcard-status' }, statusDot(statusOf(me.id)), STATUS[statusOf(me.id)].label)));
   };
   name.addEventListener('input', render);
+  bio.addEventListener('input', render);
+  const paintColors = () => colorRow.replaceChildren(...ONB_COLORS.map((hex) => h('button', { type: 'button', class: 'cfg-swatch', role: 'radio', 'aria-label': `Cor ${hex}`, 'aria-checked': String((accent || '').toLowerCase() === hex.toLowerCase()), style: { background: hex, '--ring': hex, width: '32px', height: '32px' }, onClick: () => { accent = (accent || '').toLowerCase() === hex.toLowerCase() ? null : hex; paintColors(); render(); } },
+    h('span', { html: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg>' }))));
+  paintColors();
 
   const picker = (kind) => {
     const input = h('input', { type: 'file', accept: 'image/png,image/jpeg,image/webp,image/gif', hidden: true });
@@ -3089,6 +3266,8 @@ function profileModal() {
       btnRow('Banner', bnIn, 'banner'),
       h('p', { class: 'hint' }, 'PNG, JPG, WebP ou GIF. Foto até 4 MB e banner até 8 MB. GIF continua animado.'),
       field('Nome de exibição', name),
+      field('Recado', bio),
+      h('div', { class: 'field' }, h('span', { class: 'label' }, 'Cor do cartão'), colorRow),
       allBadgesSection(),
       msg
     ],
@@ -3102,7 +3281,7 @@ function profileModal() {
     save.disabled = true;
     save.textContent = 'Salvando…';
     msg.textContent = '';
-    const patch = { display_name: v };
+    const patch = { display_name: v, bio: bio.value.trim().slice(0, 60) || null, accent_color: accent };
     const toDelete = [];
     try {
       for (const kind of ['avatar', 'banner']) {
