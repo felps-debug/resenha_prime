@@ -97,7 +97,7 @@ app.get(['/health', '/api/health'], (req, res) => res.send('ok'));
 app.get('/lista', (req, res) => res.sendFile(path.join(__dirname, 'public', 'lista.html')));
 
 app.get(['/config', '/api/config'], (req, res) => {
-  res.json({ supabaseUrl: SUPABASE_URL, supabaseKey: SUPABASE_KEY, livekitUrl: LIVEKIT_URL, livekitReady, shopReady });
+  res.json({ supabaseUrl: SUPABASE_URL, supabaseKey: SUPABASE_KEY, livekitUrl: LIVEKIT_URL, livekitReady, shopReady, shopMonthlyCostCents: Number.parseInt(process.env.SHOP_MONTHLY_COST_CENTS || '', 10) || 0 });
 });
 
 // ---------- Limite simples de requisições por IP ----------

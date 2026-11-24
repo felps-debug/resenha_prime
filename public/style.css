@@ -1253,3 +1253,29 @@ kbd { font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 70
 .mc-text { white-space: pre-wrap; font-size: 14px; color: var(--text-2); }
 @media (max-width: 700px) { .act-panel { width: 100%; } .stage-bar .act-tab.on span { max-width: 0; margin-left: 0; opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .act-panel.playing .cd-disc { animation: none; } .reaction-float { animation: none; opacity: 0; } }
+
+/* Loja: anel de custos, compra em janela e celular (docs/telas/Loja, LojaCompra, MobileLoja) */
+.shop-ring2 { position: relative; width: 108px; height: 108px; flex: none; }
+.shop-ring2 span { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.shop-ring2 b { font-size: 24px; font-weight: 800; letter-spacing: -.03em; }
+.shop-ring2 small { font-size: 11px; color: var(--text-3); }
+.shop-cost code { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--text); }
+.shop-modal-price { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin: 4px 0 12px; }
+.shop-modal-price .muted { font-size: 14px; line-height: 1.45; }
+.shop-modal-price .shop-price { font-family: "JetBrains Mono", monospace; font-size: 18px; color: var(--accent-ink); white-space: nowrap; }
+.modal .shop-art { min-height: 150px; width: 100%; margin-bottom: 8px; }
+@media (max-width: 720px) {
+  .shop-detail-column { display: none; }
+  .shop-content { grid-template-columns: minmax(0, 1fr); margin-top: 18px; }
+  .shop-catalog { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .shop-card { padding: 0; border: 0; gap: 4px; background: var(--bg-1); border-radius: 16px; overflow: hidden; }
+  .shop-card .shop-art { min-height: 92px; border-radius: 0; }
+  .shop-card-desc { display: none; }
+  .shop-card-name, .shop-price { padding: 0 12px; }
+  .shop-card .shop-price { padding-bottom: 12px; font-family: "JetBrains Mono", monospace; color: var(--accent-ink); }
+  .shop-fund { padding: 16px; gap: 0; }
+  .shop-fund h2, .shop-eyebrow, .shop-cost { display: none; }
+  .shop-fund p { font-size: 14px; }
+  .shop-rule { display: none; }
+  .shop-tabs { margin-inline: -14px; padding-inline: 14px; }
+}

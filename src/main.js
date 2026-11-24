@@ -646,10 +646,60 @@ async function loadRoomBanner(id) {
   bannerTimer = setTimeout(() => loadRoomBanner(id), Math.max(1000, new Date(data.expires_at).getTime() - Date.now() + 1000));
 }
 
+let shopMonthTotal = null;   // arrecadado no mês (centavos), vindo do banco
+let shopOwnedCount = null;   // quantos itens pagos eu tenho
 function openShop() {
   if (view !== 'shop') shopReturnView = view;
   setView('shop');
   renderShop();
+  sb.rpc('shop_month_total').then(({ data }) => { if (typeof data === 'number' || typeof data === 'string') { shopMonthTotal = Number(data); if (view === 'shop') renderShop(); } }, () => {});
+  sb.from('purchases').select('id', { count: 'exact', head: true }).eq('buyer_id', me.id).eq('status', 'paid').then(({ count }) => { if (count != null) { shopOwnedCount = count; if (view === 'shop') renderShop(); } }, () => {});
+}
+
+// Anel de custos do mês: só mostra número quando o custo mensal foi informado no servidor
+function shopCostRing() {
+  const cost = cfg.shopMonthlyCostCents || 0;
+  if (!cost || shopMonthTotal == null) {
+    return h('div', { class: 'shop-cost' }, h('div', { class: 'shop-cost-ring', 'aria-label': 'Custos do mês em breve' }, '—'),
+      h('div', null, h('strong', null, 'Custos deste mês'), h('span', null, 'Os valores da comunidade aparecem aqui quando estiverem disponíveis.')));
+  }
+  const pct = Math.max(0, Math.min(100, Math.round((shopMonthTotal / cost) * 100)));
+  const C = 2 * Math.PI * 46;
+  const ring = h('div', { class: 'shop-ring2', role: 'img', 'aria-label': `${pct}% dos custos do mês cobertos`,
+    html: `<svg viewBox="0 0 108 108" width="108" height="108"><circle cx="54" cy="54" r="46" fill="none" stroke="var(--bg-active)" stroke-width="8"/><circle cx="54" cy="54" r="46" fill="none" stroke="var(--green)" stroke-width="8" stroke-linecap="round" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C * (1 - pct / 100)).toFixed(1)}" transform="rotate(-90 54 54)"/></svg><span><b>${pct}%</b><small>do mês</small></span>` });
+  return h('div', { class: 'shop-cost' }, ring,
+    h('div', null, h('strong', null, 'Custos deste mês'), h('code', null, `${shopMoney(shopMonthTotal)} de ${shopMoney(cost)}`), h('span', null, 'Servidor, banco e call. Atualiza sozinho.')));
+}
+
+// Compra em janela (celular e quando a coluna do item não aparece)
+function openShopItemModal(item) {
+  let targetId = shopTargetId;
+  const people = members.filter((m) => m.user_id !== me?.id);
+  const art = shopArt(item);
+  const buy = h('button', { class: 'btn primary block shop-buy', type: 'button' });
+  const pills = h('div', { class: 'shop-recipients' });
+  const paint = () => {
+    const target = people.find((m) => m.user_id === targetId) || people[0];
+    if (target) targetId = target.user_id;
+    pills.replaceChildren(...people.map((person) => {
+      const pill = h('button', { class: 'shop-recipient' + (target && target.user_id === person.user_id ? ' active' : ''), type: 'button', 'aria-pressed': String(Boolean(target && target.user_id === person.user_id)) }, avatarOf(person.user_id, person.name, 'sm'), person.name);
+      pill.addEventListener('click', () => { targetId = person.user_id; shopTargetId = targetId; paint(); });
+      return pill;
+    }));
+    buy.textContent = item.target === 'member' ? `Zoar ${target ? target.name : ''} por ${shopMoney(item.cents)}` : item.id === 'telao' ? `Destacar por ${shopMoney(item.cents)}` : `Escolher por ${shopMoney(item.cents)}`;
+  };
+  paint();
+  buy.addEventListener('click', () => {
+    if (item.id === 'telao') { closeModal(); if (!current || isDm(current)) { toast('Entre em uma sala para personalizar o Telão.'); return; } openTelaoPurchase({ name: item.name, price_cents: item.cents }); return; }
+    toast('Pagamento ainda não configurado; nenhuma cobrança foi feita.');
+  });
+  openModal({
+    title: item.name,
+    body: [art, h('div', { class: 'shop-modal-price' }, h('span', { class: 'muted' }, item.description), h('strong', { class: 'shop-price' }, shopMoney(item.cents))),
+      item.target === 'member' ? h('div', { class: 'field' }, h('span', { class: 'label' }, 'Quem vai ser zoado?'), people.length ? pills : h('span', { class: 'shop-empty' }, 'Entre em uma sala para escolher alguém.')) : null,
+      buy,
+      h('p', { class: 'shop-payment-note' }, cfg.shopReady ? 'Pagamento único.' : 'O pagamento ainda não está configurado: nenhuma cobrança é feita.')]
+  });
 }
 
 function renderShop() {
@@ -661,16 +711,14 @@ function renderShop() {
     h('button', { class: 'btn secondary shop-back', onClick: () => setView(shopReturnView) }, '‹ Voltar'),
     h('h1', null, 'Loja'),
     h('span', { class: 'shop-head-spacer' }),
-    h('button', { class: 'btn secondary', onClick: openMyShopItems }, '♧ Meus itens'));
+    h('button', { class: 'btn secondary', onClick: openMyShopItems }, `♧ Meus itens${shopOwnedCount != null ? ' · ' + shopOwnedCount : ''}`));
 
   const fund = h('section', { class: 'shop-fund' },
     h('div', { class: 'shop-fund-copy' },
       h('span', { class: 'shop-eyebrow' }, 'VALORES SIMBÓLICOS'),
       h('h2', null, 'Zoar os amigos custa trocado'),
       h('p', null, 'O Resenha é feito por amigos e continua de graça. Tudo aqui é opcional: quem compra ajuda a pagar o servidor e a call enquanto o projeto cresce. Nada dá vantagem, é só diversão. Paga uma vez, sem assinatura.')),
-    h('div', { class: 'shop-cost' },
-      h('div', { class: 'shop-cost-ring', 'aria-label': 'Custos do mês em breve' }, '—'),
-      h('div', null, h('strong', null, 'Custos deste mês'), h('span', null, 'Os valores da comunidade aparecem aqui quando estiverem disponíveis.'))));
+    shopCostRing());
 
   const tabs = h('nav', { class: 'shop-tabs', 'aria-label': 'Categorias da Loja' });
   for (const category of SHOP_CATEGORIES) {
@@ -693,7 +741,7 @@ function renderShop() {
       h('span', { class: 'shop-card-name' }, item.name),
       h('span', { class: 'shop-card-desc' }, item.description),
       h('strong', { class: 'shop-price' }, shopMoney(item.cents)));
-    card.addEventListener('click', () => { shopSelectedId = item.id; renderShop(); });
+    card.addEventListener('click', () => { shopSelectedId = item.id; if (innerWidth <= 720) { openShopItemModal(item); return; } renderShop(); });
     list.append(card);
   }
   const content = h('div', { class: 'shop-content' },
