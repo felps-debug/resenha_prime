@@ -22,6 +22,10 @@ export const call = {
   muted: false,
   deafened: false,
   focusKey: null,
+  pinned: [],          // quadros fixados, do mais antigo para o mais novo (até 4)
+  layout: 'spotlight', // spotlight | side | float
+  floatCorner: 'br',   // br | bl | tl | tr
+  floatSize: 2,        // 1 pequeno, 2 médio, 3 grande
   avatarUrl: null,
   onPersonClick: null,
   onChange: () => {}
@@ -134,6 +138,7 @@ export async function leaveCall(silent) {
   call.room = null;
   call.roomId = null;
   call.focusKey = null;
+  call.pinned = [];
   stopAllZoeira();
   $('audio-bin').innerHTML = '';
   for (const v of videoEls.values()) { if (v._track) { try { v._track.detach(v); } catch (_) {} } }
@@ -428,11 +433,109 @@ function personTile(item) {
   return tile;
 }
 
+const MAX_PINS = 4;
+const PIN_ICON = '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 17v5M9 3h6l-1 6 4 4H6l4-4z"/></svg>';
+const LAYOUTS = [
+  ['spotlight', 'Destaque', '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><rect x="2" y="3" width="20" height="12" rx="2.5"/><rect x="2" y="17.5" width="20" height="3" rx="1.5" opacity=".55"/></svg>'],
+  ['side', 'Lado a lado', '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><rect x="2" y="4" width="9.5" height="16" rx="2.5"/><rect x="12.5" y="4" width="9.5" height="16" rx="2.5"/></svg>'],
+  ['float', 'Câmera flutuante', '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><rect x="2" y="3" width="20" height="18" rx="2.5" opacity=".55"/><rect x="12" y="12" width="9" height="7" rx="2"/></svg>']
+];
+const CORNERS = ['br', 'bl', 'tl', 'tr'];
+
+// Troca o layout com uma transição suave. Os vídeos são os mesmos elementos, não recarregam.
+function morph(fn) {
+  const reduce = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!document.startViewTransition || reduce) { fn(); return; }
+  try { document.startViewTransition(fn); } catch (_) { fn(); }
+}
+
+export function togglePin(key) {
+  morph(() => {
+    if (call.pinned.includes(key)) call.pinned = call.pinned.filter((k) => k !== key);
+    else call.pinned = [...call.pinned, key].slice(-MAX_PINS); // o quinto solta o mais antigo
+    renderStage();
+  });
+}
+export function setLayout(layout) {
+  if (call.layout === layout) return;
+  morph(() => { call.layout = layout; renderStage(); });
+}
+
+function pinButton(key) {
+  const on = call.pinned.includes(key);
+  const b = h('button', { class: 'pin' + (on ? ' on' : ''), 'aria-pressed': String(on), title: on ? 'Desafixar' : 'Fixar', 'aria-label': on ? 'Desafixar este quadro' : 'Fixar este quadro', html: PIN_ICON + `<span>${on ? 'Fixado' : 'Fixar'}</span>` });
+  b.addEventListener('click', (e) => { e.stopPropagation(); togglePin(key); });
+  return b;
+}
+function named(tile, key) {
+  tile.style.viewTransitionName = 'q-' + key.replace(/[^a-zA-Z0-9_-]/g, '_');
+  return tile;
+}
+function withPin(tile, key) {
+  tile.append(pinButton(key));
+  return named(tile, key);
+}
+function frameTile(f) {
+  return withPin(f.kind === 'screen' ? screenTile(f.item, true) : personTile(f.item), f.key);
+}
+
+function renderLayoutBar() {
+  let bar = $('layout-bar');
+  if (!bar) {
+    bar = h('div', { class: 'layout-bar', id: 'layout-bar', role: 'radiogroup', 'aria-label': 'Layout da call' });
+    $('stage').before(bar);
+  }
+  bar.hidden = !call.room;
+  const n = call.pinned.length;
+  bar.replaceChildren(
+    h('span', { class: 'layout-hint' }, n ? `${n} fixado${n > 1 ? 's' : ''}` : 'Passe o mouse num quadro e fixe quem você quer no principal'),
+    ...LAYOUTS.map(([id, label, icon]) => {
+      const b = h('button', { class: 'layout-opt', role: 'radio', 'aria-checked': String(call.layout === id), title: label }, h('span', { html: icon }), h('b', null, label));
+      b.addEventListener('click', () => setLayout(id));
+      return b;
+    }));
+}
+
+function floatControls() {
+  const mk = (label, text, fn) => {
+    const b = h('button', { type: 'button', 'aria-label': label, title: label }, text);
+    b.addEventListener('click', (e) => { e.stopPropagation(); fn(); });
+    return b;
+  };
+  return h('div', { class: 'float-controls' },
+    mk('Mudar de canto', 'Canto', () => { call.floatCorner = CORNERS[(CORNERS.indexOf(call.floatCorner) + 1) % CORNERS.length]; renderStage(); }),
+    mk('Diminuir', '−', () => { call.floatSize = Math.max(1, call.floatSize - 1); renderStage(); }),
+    mk('Aumentar', '+', () => { call.floatSize = Math.min(3, call.floatSize + 1); renderStage(); }),
+    mk('Trocar tela e câmera', 'Trocar', () => morph(() => { call.pinned = [call.pinned[1], call.pinned[0], ...call.pinned.slice(2)]; renderStage(); })));
+}
+
+function renderPinned(stage, frames, byKey, base) {
+  const pins = call.pinned.map((k) => byKey.get(k));
+  const others = frames.filter((f) => !call.pinned.includes(f.key));
+  let strip = [];
+  if (call.layout === 'side' && pins.length > 1) {
+    stage.className = 'stage focus side-layout' + base;
+    stage.append(h('div', { class: 'side-grid n' + pins.length }, ...pins.map(frameTile)));
+    strip = others;
+  } else {
+    stage.className = 'stage focus' + base;
+    const main = h('div', { class: 'focus-main' }, frameTile(pins[0]));
+    if (call.layout === 'float' && pins.length > 1) {
+      main.append(h('div', { class: `float-cam corner-${call.floatCorner} size-${call.floatSize}` }, frameTile(pins[1]), floatControls()));
+      strip = [...pins.slice(2), ...others];
+    } else strip = [...pins.slice(1), ...others];
+    stage.append(main);
+  }
+  if (strip.length) stage.append(h('div', { class: 'focus-strip' }, ...strip.map(frameTile)));
+}
+
 export function renderStage() {
   const stage = $('stage');
+  const first = !stage.firstChild;
   stage.innerHTML = '';
   const list = participants();
-  if (!list.length) return;
+  if (!list.length) { const bar = $('layout-bar'); if (bar) bar.hidden = true; return; }
+  const base = first ? '' : ' still';
   const screens = list.filter((x) => liveTrack(x.screen));
   // Até 4 câmeras em destaque; o resto aparece como avatar (economiza banda)
   let camCount = 0;
@@ -442,18 +545,26 @@ export function renderStage() {
       if (camCount > 4 && !x.local) x.camera = null;
     }
   }
-  if (!screens.length) {
-    stage.className = 'stage grid';
-    list.forEach((x) => stage.append(personTile(x)));
+  const frames = [];
+  for (const x of screens) frames.push({ key: `${x.identity}:screen`, kind: 'screen', item: x });
+  for (const x of list) frames.push({ key: `${x.identity}:cam`, kind: 'person', item: x });
+  const byKey = new Map(frames.map((f) => [f.key, f]));
+  call.pinned = call.pinned.filter((k) => byKey.has(k));
+  renderLayoutBar();
+  if (call.pinned.length) {
+    renderPinned(stage, frames, byKey, base);
+  } else if (!screens.length) {
+    stage.className = 'stage grid' + base;
+    frames.filter((f) => f.kind === 'person').forEach((f) => stage.append(withPin(personTile(f.item), f.key)));
   } else {
     const keys = screens.map((x) => `${x.identity}:screen`);
     if (!keys.includes(call.focusKey)) call.focusKey = keys[0];
     const main = screens.find((x) => `${x.identity}:screen` === call.focusKey);
-    stage.className = 'stage focus';
-    stage.append(h('div', { class: 'focus-main' }, screenTile(main, true)));
+    stage.className = 'stage focus' + base;
+    stage.append(h('div', { class: 'focus-main' }, withPin(screenTile(main, true), `${main.identity}:screen`)));
     const strip = h('div', { class: 'focus-strip' });
-    screens.filter((x) => x !== main).forEach((x) => strip.append(screenTile(x, false)));
-    list.forEach((x) => strip.append(personTile(x)));
+    screens.filter((x) => x !== main).forEach((x) => strip.append(withPin(screenTile(x, false), `${x.identity}:screen`)));
+    list.forEach((x) => strip.append(withPin(personTile(x), `${x.identity}:cam`)));
     stage.append(strip);
   }
   // Remove vídeos que não estão mais na tela
