@@ -2274,10 +2274,21 @@ function wireChat() {
 
 // Painel de música/assistir junto: só aparece na visão da call, mas o som continua em qualquer tela
 let actOpen = false;
+let membersHiddenByAct = false;
 function applyAct() {
   const open = actOpen && view === 'call' && Boolean(call.room);
+  const wasOpen = $('call-view').classList.contains('act-open');
   setPanelOpen(open);
   $('call-view').classList.toggle('act-open', open);
+  // O painel de música cobre a lista de membros: some com ela enquanto estiver aberto (senão o espaço do palco é descontado duas vezes)
+  const mp = $('members-panel');
+  if (innerWidth > 1100 && mp) {
+    if (open && !wasOpen && !mp.classList.contains('closed')) {
+      mp.classList.add('closed'); membersHiddenByAct = true; $('members-toggle').classList.remove('pressed');
+    } else if (!open && wasOpen && membersHiddenByAct) {
+      mp.classList.remove('closed'); membersHiddenByAct = false; $('members-toggle').classList.add('pressed');
+    }
+  }
 }
 
 // ---------- Visões (chat / call) ----------
