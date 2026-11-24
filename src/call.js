@@ -591,3 +591,13 @@ export function renderStage() {
     }
   }
 }
+
+// Voz zoada: processa o microfone antes de sair para a call (proc = null volta ao normal)
+export async function applyVoice(proc) {
+  if (!call.room) return false;
+  const pub = call.room.localParticipant.getTrackPublication(Track.Source.Microphone);
+  const track = pub && pub.audioTrack;
+  if (!track) { toast('Ligue o microfone para usar a voz zoada.'); return false; }
+  try { if (proc) await track.setProcessor(proc); else await track.stopProcessor(); return true; }
+  catch (_) { toast('Não consegui aplicar a voz agora.'); return false; }
+}

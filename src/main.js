@@ -2,7 +2,7 @@
 import { createClient } from '@supabase/supabase-js';
 import {
   $, h, ICON, avatar, colorFor, toast, openMenu, closeMenu, openModal, closeModal, confirmModal,
-  field, linkify, fmtTime, STATUS, statusDot, setBeepsMuted, beep, initRipple, setupThemeToggle
+  field, linkify, fmtTime, STATUS, statusDot, setBeepsMuted, beep, initRipple, setupThemeToggle, fxHook
 } from './ui.js';
 import { prepareImage, prepareChatImage, storagePath } from './profile.js';
 import { openEmojiPicker } from './emoji.js';
@@ -11,11 +11,12 @@ import { COMMANDS, parseCommand, resultCard, BOT_ICON } from './draw.js';
 import { createChatCache } from './chat-cache.js';
 import { initTheme, attachAccount, resolvedTheme, setPrefs } from './theme.js';
 import { openConfig, openShell, closeConfig } from './config.js';
+import { initShopFx, onShopFx, shopRoom, shopLeave, owns, nickFor, isPink, decorateAvatar, getVaquinha, loadVaquinha, fire, CHAT_EFFECTS, SOUNDS, VOICES, makeVoiceProcessor } from './shop-fx.js';
 import { initMusic, musicJoin, musicLeave, mountMusicPanel, setPanelOpen, setPanelView, setModerator, parseMusic, runChatCommand, musicCard, MUSIC_COMMANDS } from './music.js';
 import { moveFocus } from './focus-navigation.js';
 import {
   call, joinCall, leaveCall, toggleMic, setDeafened, toggleCam, toggleScreen, participants, renderStage,
-  getVolume, setVolume, loadSettings, saveSettings, switchDevice, applyAudioFilters, listDevices, sendZoeira
+  getVolume, setVolume, loadSettings, saveSettings, switchDevice, applyAudioFilters, listDevices, sendZoeira, applyVoice
 } from './call.js';
 
 // ================= Estado =================
@@ -38,7 +39,8 @@ let oldestId = null;
 let lastMsg = null;
 let previewTimer = null;
 let callPreview = [];       // quem está na call (antes de eu entrar)
-const names = new Map();    // id -> display_name
+class NickMap extends Map { get(id) { return nickFor(id) || super.get(id); } } // apelido forçado (Loja) vale em todo lugar
+const names = new NickMap();    // id -> display_name
 const profs = new Map();    // id -> { display_name, avatar_url, banner_url }
 let myStatus = 'online';    // escolhido: online | idle | dnd | invisible
 let autoIdle = false;       // ausente automático por inatividade
@@ -281,6 +283,9 @@ async function startApp() {
   }, 60000);
 
   call.onChange = onCallChange;
+  fxHook.avatar = decorateAvatar;
+  initShopFx({ sb, me });
+  onShopFx(() => { if (members.length) renderMembers(); if (view === 'shop') renderShop(); paintCallTools(); });
   initMusic({ sb, api, me, participants: () => participants().map((x) => ({ identity: x.identity, name: x.name })), nameOf: (id) => names.get(id) || (profs.get(id) || {}).display_name || 'alguém' });
   mountMusicPanel(document.body);
   call.avatarUrl = (id) => (profs.get(id) || {}).avatar_url || null;
@@ -421,7 +426,7 @@ async function loadRooms() {
     if (loading && list && list.length) { cachedRailRooms = list; renderRail(); }
   }).catch(() => {});
   const { data, error } = await sb.from('room_members')
-    .select('joined_at, rooms(id, name, is_public, invite_code, owner_id, kind, description, category, color, icon_url)')
+    .select('joined_at, rooms(id, name, is_public, invite_code, owner_id, kind, description, category, color, icon_url, vaquinha_goal_cents)')
     .eq('user_id', me.id)
     .order('joined_at', { ascending: true });
   loading = false;
@@ -648,6 +653,17 @@ async function loadRoomBanner(id) {
 
 let shopMonthTotal = null;   // arrecadado no mês (centavos), vindo do banco
 let shopOwnedCount = null;   // quantos itens pagos eu tenho
+async function startCheckout(item, extra = {}) {
+  if (!cfg.shopReady) { toast('Pagamento ainda não configurado; nenhuma cobrança foi feita.'); return; }
+  if (!current || isDm(current)) { toast('Entre em uma sala primeiro.'); return; }
+  try {
+    const { url } = await api('/api/checkout', { roomId: current.id, itemId: item.id, ...extra });
+    location.assign(url);
+  } catch (err) { toast(err.message, 4500); }
+}
+let shopNickText = '';
+const OWNABLE = (item) => !['chapeu', 'nome-rosa', 'apelido', 'fantasma', 'telao', 'mascote'].includes(item.id);
+
 function openShop() {
   if (view !== 'shop') shopReturnView = view;
   setView('shop');
@@ -691,11 +707,14 @@ function openShopItemModal(item) {
   paint();
   buy.addEventListener('click', () => {
     if (item.id === 'telao') { closeModal(); if (!current || isDm(current)) { toast('Entre em uma sala para personalizar o Telão.'); return; } openTelaoPurchase({ name: item.name, price_cents: item.cents }); return; }
-    toast('Pagamento ainda não configurado; nenhuma cobrança foi feita.');
+    if (OWNABLE(item) && owns(item.id)) { toast('Você já tem esse item.'); return; }
+    closeModal();
+    startCheckout(item, { recipientId: item.target === 'member' ? targetId : undefined, text: item.id === 'apelido' ? shopNickText : undefined });
   });
   openModal({
     title: item.name,
     body: [art, h('div', { class: 'shop-modal-price' }, h('span', { class: 'muted' }, item.description), h('strong', { class: 'shop-price' }, shopMoney(item.cents))),
+      item.id === 'apelido' ? field('Qual apelido?', Object.assign(h('input', { maxlength: '20', placeholder: 'Pé-frio', value: shopNickText }), { oninput(e) { shopNickText = e.target.value; } })) : null,
       item.target === 'member' ? h('div', { class: 'field' }, h('span', { class: 'label' }, 'Quem vai ser zoado?'), people.length ? pills : h('span', { class: 'shop-empty' }, 'Entre em uma sala para escolher alguém.')) : null,
       buy,
       h('p', { class: 'shop-payment-note' }, cfg.shopReady ? 'Pagamento único.' : 'O pagamento ainda não está configurado: nenhuma cobrança é feita.')]
@@ -740,7 +759,7 @@ function renderShop() {
       shopArt(item),
       h('span', { class: 'shop-card-name' }, item.name),
       h('span', { class: 'shop-card-desc' }, item.description),
-      h('strong', { class: 'shop-price' }, shopMoney(item.cents)));
+      OWNABLE(item) && owns(item.id) ? h('strong', { class: 'shop-price shop-owned' }, 'Já é seu') : h('strong', { class: 'shop-price' }, shopMoney(item.cents)));
     card.addEventListener('click', () => { shopSelectedId = item.id; if (innerWidth <= 720) { openShopItemModal(item); return; } renderShop(); });
     list.append(card);
   }
@@ -756,6 +775,45 @@ function shopArt(item) {
     item.period ? h('small', { class: 'shop-period' }, item.period) : null,
     item.badge ? h('small', { class: 'shop-art-badge' }, item.badge) : null,
     h('span', { class: 'shop-art-label' }, item.art));
+}
+
+// Vaquinha da sala: mascote, barra da meta e quem mais ajudou
+function vaquinhaBlock() {
+  const box = h('div', { class: 'vaq' });
+  const v = getVaquinha();
+  if (!v) { box.append(h('p', { class: 'shop-empty' }, current && !isDm(current) ? 'Carregando a vaquinha…' : 'Entre em uma sala para ver a vaquinha.')); if (current && !isDm(current)) loadVaquinha(); return box; }
+  const pct = Math.round((v.progress / v.goal) * 100);
+  box.append(h('div', { class: 'vaq-mascot', 'aria-hidden': 'true' }, '🐝'),
+    h('div', { class: 'vaq-bar', role: 'progressbar', 'aria-valuenow': String(pct), 'aria-valuemin': '0', 'aria-valuemax': '100' }, h('i', { style: { width: pct + '%' } })),
+    h('div', { class: 'vaq-meta' }, h('code', null, `${shopMoney(v.progress)} de ${shopMoney(v.goal)}`), h('span', null, v.level ? `${v.level}x batida` : 'Ajude a bater a meta')),
+    ...(v.top || []).slice(0, 3).map((t) => h('small', { class: 'vaq-top' }, `${t.name} · ${shopMoney(t.cents)}`)));
+  return box;
+}
+
+// Soundboard e voz zoada na barra da call (só para quem comprou)
+function paintCallTools() {
+  const bar = $('stage-bar');
+  if (!bar) return;
+  let sb_ = $('sb-btn'), vz = $('voice-btn');
+  const ensure = (id, label, html, onClick) => {
+    let b = $(id);
+    if (!b) { b = h('button', { class: 'round', id, 'aria-label': label, title: label, html }); b.addEventListener('click', onClick); $('screen-btn-2').after(b); }
+    return b;
+  };
+  sb_ = ensure('sb-btn', 'Soundboard', '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 6a9 9 0 0 1 0 12"/></svg>', () => soundboardMenu($('sb-btn')));
+  vz = ensure('voice-btn', 'Voz zoada', '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10v1a7 7 0 0 1-14 0v-1M12 18v4M8 22h8"/></svg>', () => voiceMenu($('voice-btn')));
+  sb_.hidden = !owns('soundboard');
+  vz.hidden = !owns('voz');
+}
+function soundboardMenu(anchor) {
+  const items = SOUNDS.map(([id, label]) => ({ label, onClick: () => fire(call.roomId, 'soundboard', { sound: id }).catch((err) => toast(err.message, 3000)) }));
+  openMenu(anchor, items, { above: true });
+}
+let currentVoice = 'normal';
+function voiceMenu(anchor) {
+  openMenu(anchor, VOICES.map(([id, label]) => ({ label: (currentVoice === id ? '✓ ' : '') + label, onClick: async () => {
+    if (await applyVoice(id === 'normal' ? null : makeVoiceProcessor(id))) { currentVoice = id; toast(id === 'normal' ? 'Voz normal.' : `Voz: ${label}`); }
+  } })), { above: true });
 }
 
 function renderShopDetail(item) {
@@ -791,8 +849,16 @@ function renderShopDetail(item) {
       openTelaoPurchase({ name: item.name, price_cents: item.cents });
       return;
     }
-    toast('Pagamento ainda não configurado; nenhuma cobrança foi feita.');
+    if (item.id === 'apelido' && !shopNickText.trim()) { toast('Escreva o apelido primeiro.'); return; }
+    if (OWNABLE(item) && owns(item.id)) { toast('Você já tem esse item.'); return; }
+    startCheckout(item, { recipientId: item.target === 'member' ? shopTargetId : undefined, text: item.id === 'apelido' ? shopNickText : undefined });
   });
+  if (item.id === 'apelido') {
+    const nick = h('input', { maxlength: '20', placeholder: 'Pé-frio', value: shopNickText, 'aria-label': 'Apelido' });
+    nick.addEventListener('input', () => { shopNickText = nick.value; });
+    detail.append(h('strong', { class: 'shop-field-title' }, 'Qual apelido?'), nick);
+  }
+  if (item.category === 'Sala · vaquinha') detail.append(vaquinhaBlock());
   detail.append(buy, h('p', { class: 'shop-payment-note' }, item.target === 'member' ? `Aparece “zoeira de ${me?.display_name || 'você'}” junto. Pagamento único por Pix.` : 'Pagamento único. O pagamento ainda não está configurado.'));
   return detail;
 }
@@ -915,6 +981,7 @@ async function openRoom(id) {
   if (!current || current.id !== id || roomRevision !== revision) return;
   renderChannels();
   subscribeRoom(id);
+  shopRoom(dm ? null : id);
   loadPins(id);
   if (cfg.shopReady) loadRoomBanner(id);
   startPreviewPolling();
@@ -954,7 +1021,7 @@ function canActOn(target, perm) {
   if (target.base_role === 'owner') return false;
   return RANK[mine.base_role] > RANK[target.base_role] || target.base_role === 'member';
 }
-function nameColor(m) { const r = roleOf(m); return r ? r.color : null; }
+function nameColor(m) { if (m && isPink(m.user_id)) return '#FF69B4'; const r = roleOf(m); return r ? r.color : null; }
 
 // Conversa 1:1: o painel da direita mostra o perfil da outra pessoa
 function renderDmProfile(panel) {
@@ -1039,7 +1106,7 @@ function renderMembers() {
       const b = h('button', { class: 'mem' + (st === 'offline' ? ' offline' : ''), 'data-uid': m.user_id, style: cascade() },
         avatarOf(m.user_id, m.name, '', true),
         h('span', { class: 'mem-text' },
-          h('span', { class: 'name', style: { color: nameColor(m) || '' } }, m.name),
+          h('span', { class: 'name', style: { color: nameColor(m) || '' } }, nickFor(m.user_id) || m.name),
           h('span', { class: 'mem-act' }, activityOf(m.user_id) || (STATUS[st] || STATUS.offline).label)),
         m.base_role === 'owner' ? h('span', { class: 'crown', html: ICON.crown, title: 'Dono' }) : null,
         m.base_role === 'moderator' ? h('span', { class: 'crown', html: ICON.shield, title: 'Moderador', style: { color: 'var(--accent)' } }) : null);
@@ -2119,6 +2186,14 @@ function wireChat() {
     const raw = input.value.trim();
     const img = pendingImage;
     if (!raw && !img) return;
+    const effectItem = !img && CHAT_EFFECTS[raw.toLowerCase().split(/\s+/)[0]];
+    if (effectItem) {
+      input.value = ''; autosize(); closeMentionPopup();
+      if (isDm(current)) { toast('Efeitos de tela só funcionam em salas.'); return; }
+      if (!owns(effectItem)) { toast('Esse efeito está na Loja. Compre para usar.', 4500); return; }
+      fire(current.id, effectItem).catch((err) => toast(err.message, 4000));
+      return;
+    }
     if (/^m!/i.test(raw) && !img) {
       const mreq = parseMusic(raw);
       input.value = '';
@@ -2768,6 +2843,7 @@ function onCallChange() {
   }
   if (connected) { setModerator(can('delete_messages') || can('kick')); musicJoin(call.roomId, call.channelId); } else { musicLeave(); actOpen = false; for (const o of document.querySelectorAll('.act-tab')) o.classList.toggle('on', o.dataset.act === 'call'); }
   applyAct();
+  paintCallTools();
   const inThis = connected && call.roomId === current?.id;
   $('return-call-btn').hidden = !(inThis && view !== 'call');
   $('call-chat-btn').hidden = !inThis || view !== 'call';
@@ -2804,6 +2880,7 @@ async function enterCall(ch = null) {
   setView('call');
   await joinCall(current.id, current.name, (roomId, channelId) => api('/api/livekit-token', { roomId, channelId }), ch ? ch.id : null, ch ? ch.name : '');
   startPreviewPolling();
+  if (call.room && owns('entrada')) fire(current.id, 'entrada').catch(() => {});
 }
 
 // ---------- Modais ----------
@@ -3042,6 +3119,7 @@ function paintRoomOverview(body) {
   const cat = h('select', null, h('option', { value: '' }, 'Sem categoria'), ...CATEGORIES.map(([id, label]) => h('option', { value: id }, label)));
   cat.value = r.category || '';
   const pub = h('input', { type: 'checkbox', class: 'cfg-switch', 'aria-label': 'Sala pública', checked: r.is_public });
+  const goal = h('input', { type: 'number', min: '5', max: '10000', step: '1', value: String(Math.round((r.vaquinha_goal_cents || 2000) / 100)), 'aria-label': 'Meta da vaquinha em reais' });
   const msg = h('p', { class: 'msg' });
   const iconBox = h('div', { class: 'rs-icon' });
   const colors = h('div', { class: 'cfg-swatches' });
@@ -3082,6 +3160,7 @@ function paintRoomOverview(body) {
         icon = sb.storage.from('perfis').getPublicUrl(path).data.publicUrl;
       }
       await rpc('update_room', { p_room: r.id, p_name: name.value.trim(), p_public: pub.checked });
+      await rpc('set_vaquinha_goal', { p_room: r.id, p_goal: Math.round(Number(goal.value || 20) * 100) });
       await rpc('set_room_profile', { p_room: r.id, p_description: desc.value, p_category: cat.value || null, p_color: draft.color, p_icon: icon });
       if (draft.pendingIcon) URL.revokeObjectURL(draft.pendingIcon.url);
       draft.icon = icon; draft.pendingIcon = null; draft.removeIcon = false;
@@ -3113,6 +3192,7 @@ function paintRoomOverview(body) {
         h('div', { class: 'rs-fields' }, field('Nome da sala', name), field('Descrição', desc), field('Categoria em Explorar', cat),
           h('div', { class: 'field' }, h('span', { class: 'label' }, 'Cor da sala'), colors))),
       msg, save),
+    h('section', { class: 'cfg-card' }, h('label', { class: 'cfg-row' }, h('span', { class: 'cfg-row-text' }, h('b', null, 'Meta da vaquinha (R$)'), h('small', null, 'Quando a barra enche, a sala inteira vê a explosão.')), goal)),
     h('section', { class: 'cfg-card' }, h('label', { class: 'cfg-row' }, h('span', { class: 'cfg-row-text' }, h('b', null, 'Sala pública'), h('small', null, 'Aparece em Explorar. Qualquer pessoa entra sem convite.')), pub)),
     h('section', { class: 'cfg-card' }, h('div', { class: 'cfg-row' }, h('span', { class: 'cfg-row-text' }, h('b', null, 'Excluir sala'), h('small', null, 'Apaga mensagens, canais e cargos de todo mundo. Não tem volta.')), del)));
   void preview;

@@ -30,7 +30,7 @@ test('uma abertura atrasada não substitui a assinatura da conversa atual', asyn
   const chats = [{ id: 'a', kind: 'dm' }, { id: 'b', kind: 'dm' }];
   const subscribed = [];
   const element = { classList: { toggle() {}, add() {} }, replaceChildren() {} };
-  const context = { channel: null, channels: [], voicePeople: {}, channelKey: (room) => room, loadChannels: () => Promise.resolve(), renderChannels() {}, findChat: (id) => chats.find((c) => c.id === id), current: null, roomRevision: 0, textDrafts: new Map(), switchImageDraft() {}, pinnedIds: new Set(), loadPins() {}, cfg: { shopReady: false }, clearReply() {}, typing: new Map(), renderTyping() {},
+  const context = { channel: null, channels: [], voicePeople: {}, channelKey: (room) => room, loadChannels: () => Promise.resolve(), renderChannels() {}, shopRoom() {}, findChat: (id) => chats.find((c) => c.id === id), current: null, roomRevision: 0, textDrafts: new Map(), switchImageDraft() {}, pinnedIds: new Set(), loadPins() {}, cfg: { shopReady: false }, clearReply() {}, typing: new Map(), renderTyping() {},
     isDm: () => true, mode: 'dms', localStorage: { setItem() {} }, $: () => element, dmTitle: () => 'Pessoa',
     h: () => ({}), renderRail() {}, renderDmList() {}, loadMembers: () => wait, loadMessages: () => wait,
     subscribeRoom: (id) => subscribed.push(id), startPreviewPolling() {}, setView() {}, onCallChange() {}, call: {} };
@@ -49,7 +49,7 @@ test('carregamento atrasado da conversa não altera a visão escolhida depois', 
   const wait = new Promise((resolve) => { resume = resolve; });
   const views = [];
   const element = { classList: { toggle() {}, add() {} } };
-  const context = { channel: null, channels: [], voicePeople: {}, channelKey: (room) => room, loadChannels: () => Promise.resolve(), renderChannels() {}, findChat: () => ({ id: 'a', kind: 'dm' }), current: null, roomRevision: 0, textDrafts: new Map(), switchImageDraft() {}, pinnedIds: new Set(), loadPins() {}, cfg: { shopReady: false }, clearReply() {}, typing: new Map(), renderTyping() {},
+  const context = { channel: null, channels: [], voicePeople: {}, channelKey: (room) => room, loadChannels: () => Promise.resolve(), renderChannels() {}, shopRoom() {}, findChat: () => ({ id: 'a', kind: 'dm' }), current: null, roomRevision: 0, textDrafts: new Map(), switchImageDraft() {}, pinnedIds: new Set(), loadPins() {}, cfg: { shopReady: false }, clearReply() {}, typing: new Map(), renderTyping() {},
     isDm: () => true, mode: 'dms', localStorage: { setItem() {} }, $: () => element, dmTitle: () => 'Pessoa',
     renderRail() {}, renderDmList() {}, loadMembers: () => wait, loadMessages: () => wait,
     subscribeRoom() {}, startPreviewPolling() {}, setView: (v) => views.push(v), onCallChange() {}, call: {} };
@@ -114,7 +114,7 @@ test('troca de sala limpa mensagens e membros anteriores imediatamente', async (
     if (!elements.has(id)) elements.set(id, { value: '', classList: { toggle() {}, add() {} }, replaceChildren() { cleared.push(id); } });
     return elements.get(id);
   };
-  const context = { channel: null, channels: [], voicePeople: {}, channelKey: (room) => room, loadChannels: () => Promise.resolve(), renderChannels() {}, findChat: () => ({ id: 'b', kind: 'room', name: 'B' }), current: { id: 'a' }, roomRevision: 0,
+  const context = { channel: null, channels: [], voicePeople: {}, channelKey: (room) => room, loadChannels: () => Promise.resolve(), renderChannels() {}, shopRoom() {}, findChat: () => ({ id: 'b', kind: 'room', name: 'B' }), current: { id: 'a' }, roomRevision: 0,
     members: [{ user_id: 'old' }], roles: [{ id: 'old' }], callPreview: [{ identity: 'old' }],
     textDrafts: new Map(), switchImageDraft() {}, pinnedIds: new Set(), loadPins() {}, cfg: { shopReady: false },
     clearReply() {}, typing: new Map(), renderTyping() {}, isDm: () => false, mode: 'rooms',

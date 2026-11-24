@@ -1279,3 +1279,38 @@ kbd { font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 70
   .shop-rule { display: none; }
   .shop-tabs { margin-inline: -14px; padding-inline: 14px; }
 }
+
+/* Loja: efeitos de tela, zoeiras, moldura e vaquinha */
+.fx-layer { position: fixed; inset: 0; z-index: 60; pointer-events: none; overflow: hidden; }
+.fx-shake { animation: fxShake .12s linear infinite; }
+@keyframes fxShake { 0% { transform: translate(0, 0); } 25% { transform: translate(-6px, 4px); } 50% { transform: translate(5px, -5px); } 75% { transform: translate(-4px, -3px); } 100% { transform: translate(4px, 5px); } }
+.fx-banner { position: absolute; left: 50%; top: 38%; transform: translate(-50%, -50%); font-size: clamp(48px, 12vw, 140px); font-weight: 900; letter-spacing: -.04em; text-shadow: 0 6px 30px rgba(0, 0, 0, .6); animation: fxPop 2.8s var(--ease) both; white-space: nowrap; }
+@keyframes fxPop { 0% { transform: translate(-50%, -50%) scale(.3); opacity: 0; } 15% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; } 80% { opacity: 1; } 100% { transform: translate(-50%, -60%) scale(1); opacity: 0; } }
+.fx-confetti { position: absolute; top: -12px; width: 9px; height: 14px; border-radius: 2px; animation: fxFall linear forwards; }
+@keyframes fxFall { to { transform: translateY(105vh) rotate(720deg); } }
+.fx-balloon { position: absolute; bottom: -90px; width: 46px; height: 58px; border-radius: 50% 50% 48% 48%; animation: fxRise 4.6s ease-in forwards; }
+.fx-balloon::after { content: ""; position: absolute; left: 50%; top: 100%; width: 1px; height: 36px; background: rgba(255, 255, 255, .5); }
+@keyframes fxRise { to { transform: translateY(-120vh) translateX(30px); } }
+.fx-flower { position: absolute; top: -30px; font-size: 28px; color: #F28FAA; animation: fxFall 4s linear forwards; }
+.fx-entrance { position: absolute; left: 50%; top: 30%; transform: translateX(-50%); padding: 28px 54px; border-radius: 24px; background: linear-gradient(135deg, #2b2113, #14161B); border: 2px solid #FFD166; text-align: center; box-shadow: 0 0 80px rgba(255, 209, 102, .45); display: flex; flex-direction: column; gap: 4px; overflow: hidden; animation: fxPop 3.6s var(--ease) both; }
+.fx-entrance b { font-size: 36px; font-weight: 900; color: #FFD166; }
+.fx-entrance small { letter-spacing: .2em; font-weight: 800; color: #ECEDEF; }
+.fx-beam { position: absolute; inset: -60% 30% auto; height: 220%; background: linear-gradient(180deg, rgba(255, 224, 140, .5), transparent); transform: rotate(14deg); filter: blur(10px); }
+.avatar.fx-chapeu { position: relative; overflow: visible; }
+.avatar.fx-chapeu::before { content: ""; position: absolute; left: 50%; top: -34%; width: 0; height: 0; transform: translateX(-50%) rotate(-8deg); border-left: .42em solid transparent; border-right: .42em solid transparent; border-bottom: .95em solid #E5484D; filter: drop-shadow(0 1px 0 #FFD166); z-index: 2; font-size: inherit; }
+.avatar.fx-chapeu::after { content: ""; position: absolute; left: 50%; top: -42%; width: .22em; height: .22em; background: #fff; border-radius: 50%; transform: translateX(-50%); z-index: 2; }
+.avatar.fx-fantasma { background: #E9E8E4 !important; color: transparent !important; position: relative; }
+.avatar.fx-fantasma > img { visibility: hidden; }
+.avatar.fx-fantasma::before { content: "👻"; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: .9em; color: initial; }
+.avatar.fx-frame { box-shadow: 0 0 0 2px #FFD166, 0 0 14px 2px rgba(255, 209, 102, .6); animation: fxGlow 2.4s ease-in-out infinite; }
+@keyframes fxGlow { 50% { box-shadow: 0 0 0 2px #FFE08A, 0 0 22px 4px rgba(255, 224, 138, .8); } }
+.shop-price.shop-owned { color: var(--green); font-family: inherit; }
+.shop-detail input { width: 100%; background: var(--bg-input); border: 0; border-radius: 10px; padding: 10px 12px; color: var(--text); outline: 0; }
+.vaq { margin: 12px 0 0; padding: 14px; border-radius: 14px; background: var(--bg-3); display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
+.vaq-mascot { font-size: 54px; line-height: 1; animation: hop 2.2s ease-in-out infinite; }
+.vaq-bar { width: 100%; height: 12px; border-radius: 6px; background: var(--bg-active); overflow: hidden; }
+.vaq-bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), #FFD166); border-radius: 6px; transition: width .6s var(--ease); }
+.vaq-meta { display: flex; justify-content: space-between; width: 100%; font-size: 12px; color: var(--text-3); }
+.vaq-meta code { font-family: "JetBrains Mono", monospace; color: var(--text); }
+.vaq-top { color: var(--text-2); }
+@media (prefers-reduced-motion: reduce) { .fx-shake, .vaq-mascot, .avatar.fx-frame { animation: none; } }

@@ -141,8 +141,10 @@ export function avatar(id, name, cls, url, status) {
     a.append(initial(name));
   }
   if (status) a.append(h('span', { class: 'status-dot st-' + status, title: (STATUS[status] || STATUS.offline).label }));
+  if (fxHook.avatar) fxHook.avatar(a, id);
   return a;
 }
+export const fxHook = { avatar: null };
 
 export function statusDot(status) {
   return h('span', { class: 'status-dot inline st-' + status, 'aria-hidden': 'true' });

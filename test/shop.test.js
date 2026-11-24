@@ -83,3 +83,44 @@ test('webhook rejeita eventos em modo de produção ou moeda diferente', async (
   await assert.rejects(handleWebhook(Buffer.from('{}'), 'valid', { ...f, secret: 'whsec_test' }));
   assert.equal(f.state.fulfilled.length, 0);
 });
+
+const friendId = '00000000-0000-0000-0000-0000000000aa';
+test('zoeira precisa de outra pessoa da sala e usa o preço do banco', async () => {
+  const f = fixtures();
+  f.store.item = async () => ({ id: 'chapeu', name: 'Chapéu de palhaço', price_cents: 99, active: true, target: 'member', duration_minutes: 1440 });
+  f.store.isMemberOf = async () => true;
+  const origin = 'https://example.com';
+  await assert.rejects(createCheckout({ roomId, itemId: 'chapeu' }, { ...f, userId: 'user-1', origin }), ShopInputError);
+  await assert.rejects(createCheckout({ roomId, itemId: 'chapeu', recipientId: 'user-1' }, { ...f, userId: 'user-1', origin }), ShopInputError);
+  await createCheckout({ roomId, itemId: 'chapeu', recipientId: friendId, price: 1 }, { ...f, userId: 'user-1', origin });
+  assert.equal(f.state.pending[0].recipient_id, friendId);
+  assert.equal(f.state.pending[0].price_cents, 99);
+  f.store.isMemberOf = async () => false;
+  await assert.rejects(createCheckout({ roomId, itemId: 'chapeu', recipientId: friendId }, { ...f, userId: 'user-1', origin }), ShopInputError);
+});
+
+test('apelido exige texto curto e sem palavrão', async () => {
+  const f = fixtures();
+  f.store.item = async () => ({ id: 'apelido', name: 'Apelido forçado', price_cents: 99, active: true, target: 'member', duration_minutes: 60 });
+  f.store.isMemberOf = async () => true;
+  const base = { roomId, itemId: 'apelido', recipientId: friendId };
+  const ctx = { ...f, userId: 'user-1', origin: 'https://example.com' };
+  await assert.rejects(createCheckout({ ...base, text: '' }, ctx), ShopInputError);
+  await assert.rejects(createCheckout({ ...base, text: 'x'.repeat(21) }, ctx), ShopInputError);
+  await assert.rejects(createCheckout({ ...base, text: 'seu porra' }, ctx), ShopInputError);
+  await createCheckout({ ...base, text: 'Pé-frio' }, ctx);
+  assert.equal(f.state.pending[0].extra.text, 'Pé-frio');
+});
+
+test('item que fica seu não é comprado duas vezes, nem efeito já incluso no pacote', async () => {
+  const f = fixtures();
+  f.store.item = async () => ({ id: 'gol', name: '/gol', price_cents: 99, active: true, target: 'room', duration_minutes: null });
+  const ctx = { ...f, userId: 'user-1', origin: 'https://example.com' };
+  f.store.owns = async (_user, id) => id === 'gol';
+  await assert.rejects(createCheckout({ roomId, itemId: 'gol' }, ctx), ShopInputError);
+  f.store.owns = async (_user, id) => id === 'pacote-efeitos';
+  await assert.rejects(createCheckout({ roomId, itemId: 'gol' }, ctx), ShopInputError);
+  f.store.owns = async () => false;
+  await createCheckout({ roomId, itemId: 'gol' }, ctx);
+  assert.equal(f.state.sessions.length, 1);
+});
