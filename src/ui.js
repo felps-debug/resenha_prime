@@ -182,6 +182,7 @@ export function openMenu(anchor, items, opts = {}) {
   let x = opts.side === 'right' ? r.right + 8 : r.left;
   let y = opts.side === 'right' ? r.top : r.bottom + 6;
   if (opts.above) y = r.top - mh - 6;
+  if (opts.at) { x = opts.at.x; y = opts.at.y; } // botão direito: abre no ponteiro
   x = Math.max(8, Math.min(x, innerWidth - mw - 8));
   y = Math.max(8, Math.min(y, innerHeight - mh - 8));
   menu.style.left = x + 'px';

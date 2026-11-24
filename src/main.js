@@ -1136,7 +1136,7 @@ function updateMemberActivity() {
   }
 }
 
-function memberMenu(anchor, userId) {
+function memberMenu(anchor, userId, at) {
   const m = members.find((x) => x.user_id === userId);
   const name = m ? m.name : names.get(userId) || 'Alguém';
   const items = [{ node: profileCard(userId, name, m) }];
@@ -1180,7 +1180,7 @@ function memberMenu(anchor, userId) {
     if (canActOn(m, 'ban')) mod.push({ label: `Banir ${name}`, danger: true, onClick: () => moderate(userId, name, 'ban') });
     if (mod.length) items.push('sep', ...mod);
   }
-  openMenu(anchor, items, { side: anchor.closest('.members-panel') ? undefined : 'right' });
+  openMenu(anchor, items, at ? { at } : { side: anchor.closest('.members-panel') ? undefined : 'right' });
 }
 
 async function doRpc(name, args, okMsg) {
@@ -2005,7 +2005,7 @@ function messageEl(m, prev) {
   if (m.reply_to) body.append(replyRef(m));
   if (!cont) {
     body.append(h('div', { class: 'msg-meta' },
-      h('span', { class: 'msg-name', style: { color: nameColor(mem) || '' } }, name),
+      h('span', { class: 'msg-name', 'data-uid': m.user_id, style: { color: nameColor(mem) || '' } }, name),
       h('span', { class: 'msg-time' }, fmtTime(m.created_at))));
   }
   if (m.content) {
@@ -2021,7 +2021,7 @@ function messageEl(m, prev) {
     body.append(img);
   }
   body.append(h('div', { class: 'reactions', 'data-rx': String(m.id), hidden: true }));
-  const row = h('div', { class: 'msg-row' + (cont ? ' cont' : '') + (mentionsMe(m.content) ? ' mentioned' : ''), 'data-mid': String(m.id) }, avatarOf(m.user_id, name), body);
+  const row = h('div', { class: 'msg-row' + (cont ? ' cont' : '') + (mentionsMe(m.content) ? ' mentioned' : ''), 'data-mid': String(m.id) }, (() => { const av = avatarOf(m.user_id, name); av.dataset.uid = m.user_id; return av; })(), body);
   row.append(msgTools(m, row, false));
   const nameEl = row.querySelector('.msg-name');
   if (nameEl) { nameEl.style.cursor = 'pointer'; nameEl.addEventListener('click', () => memberMenu(nameEl, m.user_id)); }
@@ -3837,6 +3837,16 @@ function wireStatic() {
     if (!actions[k]) return;
     event.preventDefault();
     actions[k]();
+  });
+  // Botão direito em uma pessoa (lista de membros, call, nome ou foto no chat): abre o menu dela, com expulsar e banir
+  document.addEventListener('contextmenu', (e) => {
+    if (!current || !e.target.closest) return;
+    const t = e.target.closest('[data-uid], [data-identity]');
+    if (!t) return;
+    const id = t.dataset.uid || t.dataset.identity;
+    if (!id || !(profs.has(id) || names.has(id) || members.some((x) => x.user_id === id))) return;
+    e.preventDefault();
+    memberMenu(t, id, { x: e.clientX, y: e.clientY });
   });
   $('vb-sub').addEventListener('click', () => { if (call.roomId) { openRoom(call.roomId); } });
   window.addEventListener('beforeunload', () => { if (call.room) call.room.disconnect(); });
