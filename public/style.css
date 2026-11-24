@@ -1029,3 +1029,33 @@ kbd { font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 70
 .sh-quality[aria-checked="true"] code { color: var(--bg-3); }
 .sh-audio { padding: 12px 14px; border-radius: 14px; background: var(--bg-2); }
 @media (max-width: 560px) { .sh-surfaces { grid-template-columns: 1fr; } .sh-surface { flex-direction: row; align-items: center; } }
+
+/* Explorar salas e criar sala (docs/telas/Explorar.dc.html) */
+.explore { display: block; z-index: 31; }
+.ex-main { max-width: 1280px; margin: 0 auto; padding: 28px 32px 48px; display: flex; flex-direction: column; gap: 18px; }
+.ex-head { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 14px; padding-right: 56px; }
+.ex-title { flex: 1 1 260px; display: flex; flex-direction: column; gap: 6px; }
+.ex-title .cfg-desc { margin: 0; }
+.ex-search { display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 14px; border-radius: 12px; background: var(--bg-1); color: var(--text-3); width: 280px; }
+.ex-search input { border: 0; background: transparent; outline: 0; color: var(--text); width: 100%; font-size: 15px; }
+.ex-head .btn { min-height: 44px; }
+.ex-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.ex-tab { height: 38px; padding: 0 16px; border: 0; border-radius: 10px; background: var(--bg-1); color: var(--text-2); font-weight: 700; font-size: 14px; transition: background .15s, color .15s; }
+.ex-tab:hover { color: var(--text); }
+.ex-tab[aria-pressed="true"] { background: var(--text); color: var(--bg-0); }
+.ex-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; align-items: start; }
+.ex-card { padding: 18px; border-radius: 20px; background: var(--bg-1); display: flex; flex-direction: column; gap: 12px; animation: rise .4s var(--ease) both; animation-delay: calc(var(--i, 0) * 40ms); transition: transform .2s var(--ease); }
+.ex-card:hover { transform: translateY(-2px); }
+.ex-card-top { display: flex; align-items: center; gap: 12px; }
+.ex-card-top .avatar { width: 48px; height: 48px; border-radius: 14px; font-size: 20px; }
+.ex-card-title { display: flex; flex-direction: column; min-width: 0; }
+.ex-card-title b { font-size: 16px; font-weight: 800; letter-spacing: -.01em; }
+.ex-card-title small { color: var(--text-3); font-size: 12px; }
+.ex-card-desc { margin: 0; color: var(--text-2); font-size: 14px; line-height: 1.45; }
+.ex-card-meta { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text-3); flex-wrap: wrap; }
+.ex-card-meta .live-badge { margin-left: auto; }
+.tpl-opts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.tpl-opt { padding: 12px 8px; border: 0; border-radius: 14px; background: var(--bg-2); box-shadow: 0 0 0 1px var(--line); color: var(--text); display: flex; flex-direction: column; align-items: center; gap: 4px; transition: box-shadow .18s; }
+.tpl-opt small { font-size: 11px; color: var(--text-3); text-align: center; }
+.tpl-opt[aria-checked="true"] { box-shadow: 0 0 0 2px var(--accent); }
+@media (max-width: 640px) { .ex-main { padding: 18px 16px 32px; } .ex-search { width: 100%; } .ex-head .btn { width: 100%; } }

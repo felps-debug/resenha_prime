@@ -234,6 +234,23 @@ app.post('/api/livekit-token', rateLimit(30, 60000), async (req, res) => {
   }
 });
 
+// Salas com call ao vivo (para a tela Explorar): ids das salas que têm alguém em alguma call
+app.get('/api/live-rooms', rateLimit(30, 60000), async (req, res) => {
+  try {
+    if (!livekitReady) return res.json({ rooms: [] });
+    const auth = await getUser(req);
+    if (!auth) return res.status(401).json({ error: 'Faça login de novo.' });
+    let list = [];
+    try { list = await roomService.listRooms(); } catch (_) { list = []; }
+    const ids = new Set();
+    for (const r of list) if (r.numParticipants > 0) ids.add(String(r.name).split(':')[0]);
+    res.json({ rooms: [...ids].filter((id) => UUID.test(id)) });
+  } catch (err) {
+    console.error('live-rooms', err);
+    res.status(500).json({ error: 'Erro ao listar as calls.' });
+  }
+});
+
 // Quem está na call agora (para mostrar antes de entrar)
 app.get('/api/call-participants', rateLimit(60, 60000), async (req, res) => {
   try {

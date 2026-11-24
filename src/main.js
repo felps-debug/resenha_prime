@@ -2486,47 +2486,147 @@ async function enterCall(ch = null) {
 }
 
 // ---------- Modais ----------
-function createRoomModal() {
-  const name = h('input', { maxlength: '50', placeholder: 'Ex.: Resenha dos amigos', required: true });
-  const pub = h('input', { type: 'checkbox' });
-  const msg = h('p', { class: 'msg' });
-  const ok = h('button', { class: 'btn primary' }, 'Criar sala');
-  openModal({
-    title: 'Criar uma sala',
-    body: [field('Nome da sala', name), h('label', { class: 'check' }, pub, 'Sala pública (aparece em Explorar)'), msg],
-    actions: [h('button', { class: 'btn secondary', onClick: closeModal }, 'Cancelar'), ok]
-  });
-  const submit = async () => {
-    if (!name.value.trim()) { msg.textContent = 'Dê um nome para a sala.'; return; }
-    ok.disabled = true;
-    try {
-      const room = await rpc('create_room', { p_name: name.value.trim(), p_public: pub.checked });
-      closeModal();
-      await loadRooms();
-      await openRoom(room.id);
-      inviteModal();
-    } catch (err) { msg.textContent = err.message; ok.disabled = false; }
-  };
-  ok.addEventListener('click', submit);
-  name.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
+// ---------- Explorar salas e criar sala ----------
+const CATEGORIES = [['jogos', 'Jogos'], ['estudo', 'Estudo'], ['musica', 'Música'], ['papo', 'Papo']];
+const catLabel = (id) => (CATEGORIES.find((c) => c[0] === id) || [])[1] || '';
+let exploreEl = null;
+function closeExplore() {
+  if (!exploreEl) return;
+  exploreEl.remove();
+  exploreEl = null;
+  document.removeEventListener('keydown', exploreKey, true);
+  $('app').removeAttribute('inert');
+}
+function exploreKey(e) {
+  if (e.key === 'Escape' && !document.querySelector('#modal-layer .modal-bg')) { e.stopPropagation(); closeExplore(); }
 }
 
 async function exploreModal() {
-  const list = h('div', { class: 'list' }, h('p', { class: 'muted' }, 'Carregando…'));
-  openModal({ title: 'Salas públicas', body: list });
-  const { data } = await sb.from('rooms').select('id, name').eq('is_public', true).order('created_at', { ascending: false }).limit(50);
-  list.innerHTML = '';
-  const others = (data || []).filter((r) => !rooms.some((x) => x.id === r.id));
-  if (!others.length) { list.append(h('p', { class: 'muted' }, 'Nenhuma sala pública nova por enquanto.')); return; }
-  for (const r of others) {
-    const b = h('button', { class: 'btn primary' }, 'Entrar');
-    b.addEventListener('click', async () => {
-      b.disabled = true;
-      try { await rpc('join_room', { p_room: r.id, p_code: null }); closeModal(); await loadRooms(); openRoom(r.id); }
-      catch (err) { toast(err.message); b.disabled = false; }
-    });
-    list.append(h('div', { class: 'list-item' }, avatar(r.id, r.name), h('div', { class: 'grow' }, h('div', { class: 'title' }, r.name)), b));
-  }
+  closeExplore();
+  const state = { cat: 'all', term: '' };
+  const grid = h('div', { class: 'ex-grid' }, h('p', { class: 'muted' }, 'Carregando…'));
+  const search = h('input', { placeholder: 'Buscar sala', 'aria-label': 'Buscar sala', autocomplete: 'off' });
+  const tabs = h('nav', { class: 'ex-tabs', 'aria-label': 'Categorias' });
+  const create = h('button', { class: 'btn primary', onClick: () => createRoomModal() }, '+ Criar sala');
+  const close = h('button', { class: 'cfg-close', 'aria-label': 'Fechar', title: 'Fechar (Esc)', onClick: closeExplore, html: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>' });
+  exploreEl = h('div', { class: 'cfg explore', role: 'dialog', 'aria-modal': 'true', 'aria-label': 'Explorar salas' },
+    h('div', { class: 'ex-main' },
+      h('header', { class: 'ex-head' },
+        h('div', { class: 'ex-title' }, h('h1', { class: 'cfg-title' }, 'Explorar salas'), h('p', { class: 'cfg-desc' }, 'Salas públicas da galera do Resenha. Entra quem quiser.')),
+        h('label', { class: 'ex-search' }, h('span', { html: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>' }), search),
+        create),
+      tabs, grid),
+    close);
+  document.body.append(exploreEl);
+  document.addEventListener('keydown', exploreKey, true);
+  $('app').setAttribute('inert', '');
+
+  let list = [];
+  let live = new Set();
+  const paintTabs = () => tabs.replaceChildren(...[['all', 'Todas'], ...CATEGORIES].map(([id, label]) => {
+    const b = h('button', { class: 'ex-tab', 'aria-pressed': String(state.cat === id) }, label);
+    b.addEventListener('click', () => { state.cat = id; paintTabs(); paintGrid(); });
+    return b;
+  }));
+  const paintGrid = () => {
+    const term = state.term.trim().toLowerCase();
+    const shown = list.filter((r) => (state.cat === 'all' || r.category === state.cat) && (!term || r.name.toLowerCase().includes(term) || (r.description || '').toLowerCase().includes(term)));
+    if (!shown.length) { grid.replaceChildren(h('p', { class: 'muted' }, list.length ? 'Nenhuma sala encontrada.' : 'Nenhuma sala pública por enquanto. Que tal criar a primeira?')); return; }
+    grid.replaceChildren(...shown.map((r, i) => {
+      const joined = rooms.some((x) => x.id === r.id);
+      const btn = h('button', { class: 'btn secondary block' }, joined ? 'Abrir' : 'Entrar');
+      btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        try {
+          if (!joined) { await rpc('join_room', { p_room: r.id, p_code: null }); await loadRooms(); }
+          closeExplore();
+          openRoom(r.id);
+        } catch (err) { toast(err.message); btn.disabled = false; }
+      });
+      return h('article', { class: 'ex-card', style: { '--i': String(Math.min(i, 12)) } },
+        h('div', { class: 'ex-card-top' }, avatar(r.id, r.name, 'lg'), h('div', { class: 'ex-card-title' }, h('b', null, r.name), r.category ? h('small', null, catLabel(r.category)) : null)),
+        r.description ? h('p', { class: 'ex-card-desc' }, r.description) : null,
+        h('div', { class: 'ex-card-meta' }, h('span', null, `${r.member_count} ${Number(r.member_count) === 1 ? 'membro' : 'membros'}`), live.has(r.id) ? h('span', { class: 'live-badge' }, 'CALL AO VIVO') : null),
+        btn);
+    }));
+  };
+  search.addEventListener('input', () => { state.term = search.value; paintGrid(); });
+  paintTabs();
+  search.focus();
+  try { list = (await rpc('explore_rooms')) || []; } catch (err) { grid.replaceChildren(h('p', { class: 'muted' }, 'Não deu para carregar as salas: ' + err.message)); return; }
+  paintGrid();
+  api('/api/live-rooms').then((out) => { live = new Set(out.rooms || []); if (exploreEl) paintGrid(); }).catch(() => {});
+}
+
+// Modelos de sala: já criam os canais (usa create_channel)
+const ROOM_TEMPLATES = [
+  { id: 'galera', name: 'Galera', desc: 'Papo e call', category: 'papo', has: '#memes e a voz Resenha', channels: [['text', 'memes'], ['voice', 'Resenha']] },
+  { id: 'jogos', name: 'Jogos', desc: 'Times e partidas', category: 'jogos', has: '#clipes e duas vozes de time', channels: [['text', 'clipes'], ['voice', 'Time 1'], ['voice', 'Time 2']] },
+  { id: 'estudo', name: 'Estudo', desc: 'Foco e calma', category: 'estudo', has: '#dúvidas e a voz Estudo silencioso', channels: [['text', 'dúvidas'], ['voice', 'Estudo silencioso']] }
+];
+
+function createRoomModal() {
+  let tpl = ROOM_TEMPLATES[0];
+  const name = h('input', { maxlength: '50', placeholder: 'Ex.: Resenha dos amigos', required: true });
+  const pub = h('input', { type: 'checkbox', class: 'cfg-switch', 'aria-label': 'Aparecer em Explorar' });
+  const msg = h('p', { class: 'msg' });
+  const has = h('p', { class: 'hint' });
+  const ok = h('button', { class: 'btn primary block' }, 'Criar e pegar o convite');
+  const opts = ROOM_TEMPLATES.map((t) => {
+    const b = h('button', { type: 'button', class: 'tpl-opt', role: 'radio' }, h('b', null, t.name), h('small', null, t.desc));
+    b.addEventListener('click', () => { tpl = t; paint(); });
+    b._t = t;
+    return b;
+  });
+  const paint = () => { for (const b of opts) b.setAttribute('aria-checked', String(b._t === tpl)); has.textContent = 'Já vem com: ' + tpl.has; };
+  openModal({
+    title: 'Criar sala',
+    body: [h('p', { class: 'muted', style: { margin: '-6px 0 0' } }, 'Escolha um ponto de partida. Dá pra mudar tudo depois.'),
+      h('div', { class: 'tpl-opts', role: 'radiogroup', 'aria-label': 'Tipo de sala' }, ...opts),
+      field('Nome da sala', name), has,
+      h('label', { class: 'cfg-row' }, h('span', { class: 'cfg-row-text' }, h('b', null, 'Aparecer em Explorar'), h('small', null, 'Sem marcar, só entra quem tiver o convite')), pub),
+      msg],
+    actions: [ok]
+  });
+  paint();
+  const submit = async () => {
+    if (!name.value.trim()) { msg.textContent = 'Dê um nome para a sala.'; return; }
+    ok.disabled = true; ok.textContent = 'Criando…'; msg.textContent = '';
+    try {
+      const room = await rpc('create_room', { p_name: name.value.trim(), p_public: pub.checked });
+      // Perfil e canais do modelo: se algo falhar aqui a sala já existe, então só avisa.
+      try { await rpc('set_room_profile', { p_room: room.id, p_description: null, p_category: tpl.category }); } catch (_) {}
+      for (const [kind, nm] of tpl.channels) { try { await rpc('create_channel', { p_room: room.id, p_kind: kind, p_name: nm, p_private: false, p_roles: [] }); } catch (_) {} }
+      closeModal();
+      closeExplore();
+      await loadRooms();
+      await openRoom(room.id);
+      inviteModal();
+    } catch (err) { msg.textContent = err.message; ok.disabled = false; ok.textContent = 'Criar e pegar o convite'; }
+  };
+  ok.addEventListener('click', submit);
+  name.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submit(); } });
+}
+
+// "+ adicionar sala": criar uma nova ou entrar com convite
+function addRoomModal() {
+  const code = h('input', { placeholder: 'Cole o link ou o código do convite', autocomplete: 'off' });
+  const msg = h('p', { class: 'msg' });
+  const go = h('button', { class: 'btn primary block' }, 'Entrar com convite');
+  const enter = () => {
+    const raw = code.value.trim();
+    const m = raw.match(/convite=([a-z0-9]+)/i);
+    const c = m ? m[1] : raw;
+    if (!c) { msg.textContent = 'Cole o convite primeiro.'; return; }
+    closeModal();
+    handleInvite(c);
+  };
+  go.addEventListener('click', enter);
+  code.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); enter(); } });
+  const create = h('button', { type: 'button', class: 'ch-opt', onClick: () => { closeModal(); createRoomModal(); } },
+    h('span', { class: 'ch-opt-ico', html: '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>' }),
+    h('span', { class: 'ch-opt-text' }, h('b', null, 'Criar uma sala'), h('small', null, 'Comece do zero ou de um modelo.')));
+  openModal({ title: 'Adicionar sala', body: [create, h('div', { class: 'divider' }, h('span', null, 'OU')), field('Tem um convite?', code), go, msg] });
 }
 
 function inviteLink() { return `${location.origin}/?convite=${current.invite_code}`; }
@@ -3076,7 +3176,7 @@ function meMenu() {
 // ---------- Botões fixos ----------
 function wireStatic() {
   wireChat();
-  $('create-room-btn').addEventListener('click', createRoomModal);
+  $('create-room-btn').addEventListener('click', addRoomModal);
   $('explore-btn').addEventListener('click', exploreModal);
   $('room-menu-btn').addEventListener('click', roomMenu);
   $('me-btn').addEventListener('click', meMenu);
