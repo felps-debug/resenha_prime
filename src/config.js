@@ -283,7 +283,7 @@ export function openShell(opts) {
     drawNav();
     const s = opts.sections.find((x) => x.id === id);
     const body = h('div', { class: 'cfg-body' });
-    main.replaceChildren(h('h1', { class: 'cfg-title' }, s.title || s.name), s.desc ? h('p', { class: 'cfg-desc' }, s.desc) : null, body);
+    main.replaceChildren(...[h('h1', { class: 'cfg-title' }, s.title || s.name), s.desc ? h('p', { class: 'cfg-desc' }, s.desc) : null, body].filter(Boolean));
     main.scrollTop = 0;
     s.paint(body);
   }

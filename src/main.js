@@ -3121,6 +3121,8 @@ function paintRoomOverview(body) {
   const pub = h('input', { type: 'checkbox', class: 'cfg-switch', 'aria-label': 'Sala pública', checked: r.is_public });
   const goal = h('input', { type: 'number', min: '5', max: '10000', step: '1', value: String(Math.round((r.vaquinha_goal_cents || 2000) / 100)), 'aria-label': 'Meta da vaquinha em reais' });
   const msg = h('p', { class: 'msg' });
+  const dirtyLabel = h('span', { class: 'cfg-dirty', hidden: true }, 'Alterações não salvas');
+  const markDirty = () => { dirtyLabel.hidden = false; dirtyLabel.textContent = 'Alterações não salvas'; dirtyLabel.classList.remove('ok'); };
   const iconBox = h('div', { class: 'rs-icon' });
   const colors = h('div', { class: 'cfg-swatches' });
   let preview = null;
@@ -3129,7 +3131,7 @@ function paintRoomOverview(body) {
     iconBox.replaceChildren(roomAvatar(view, 'xl'));
     colors.replaceChildren(...ROOM_COLORS.map((hex) => h('button', {
       type: 'button', class: 'cfg-swatch', role: 'radio', 'aria-label': `Cor ${hex}`, 'aria-checked': String((draft.color || '').toLowerCase() === hex.toLowerCase()),
-      style: { background: hex, '--ring': hex, width: '32px', height: '32px' }, onClick: () => { draft.color = hex; paint(); }
+      style: { background: hex, '--ring': hex, width: '32px', height: '32px' }, onClick: () => { draft.color = hex; markDirty(); paint(); }
     }, h('span', { html: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg>' }))));
   };
   name.addEventListener('input', paint);
@@ -3142,12 +3144,13 @@ function paintRoomOverview(body) {
       const out = await prepareImage(f, 'avatar');
       draft.pendingIcon = { ...out, url: URL.createObjectURL(out.blob) };
       draft.removeIcon = false;
+      markDirty();
       paint();
     } catch (err) { msg.textContent = err.message; }
   });
   const change = h('button', { type: 'button', class: 'btn secondary', onClick: () => file.click() }, 'Trocar ícone');
-  const clear = h('button', { type: 'button', class: 'btn secondary', onClick: () => { draft.pendingIcon = null; draft.removeIcon = true; paint(); } }, 'Tirar ícone');
-  const save = h('button', { class: 'btn primary', style: { alignSelf: 'flex-start' } }, 'Salvar');
+  const clear = h('button', { type: 'button', class: 'btn secondary', onClick: () => { draft.pendingIcon = null; draft.removeIcon = true; markDirty(); paint(); } }, 'Tirar ícone');
+  const save = h('button', { class: 'btn primary' }, 'Salvar alterações');
   save.addEventListener('click', async () => {
     if (!name.value.trim()) { msg.textContent = 'Dê um nome para a sala.'; return; }
     save.disabled = true; save.textContent = 'Salvando…'; msg.textContent = '';
@@ -3168,8 +3171,9 @@ function paintRoomOverview(body) {
       if (current && current.id === r.id) { $('room-title').textContent = findChat(r.id).name; current = findChat(r.id); }
       renderRail();
       toast('Sala atualizada.');
-    } catch (err) { msg.textContent = err.message; }
-    save.disabled = false; save.textContent = 'Salvar';
+      dirtyLabel.hidden = false; dirtyLabel.textContent = 'Salvo'; dirtyLabel.classList.add('ok');
+    } catch (err) { msg.textContent = err.message; toast(err.message, 4000); }
+    save.disabled = false; save.textContent = 'Salvar alterações';
   });
   const del = h('button', { class: 'btn danger' }, 'Excluir sala');
   del.addEventListener('click', async () => {
@@ -3191,10 +3195,13 @@ function paintRoomOverview(body) {
         h('div', { class: 'rs-icon-col' }, iconBox, change, draft.icon ? clear : null, file),
         h('div', { class: 'rs-fields' }, field('Nome da sala', name), field('Descrição', desc), field('Categoria em Explorar', cat),
           h('div', { class: 'field' }, h('span', { class: 'label' }, 'Cor da sala'), colors))),
-      msg, save),
+      msg),
     h('section', { class: 'cfg-card' }, h('label', { class: 'cfg-row' }, h('span', { class: 'cfg-row-text' }, h('b', null, 'Meta da vaquinha (R$)'), h('small', null, 'Quando a barra enche, a sala inteira vê a explosão.')), goal)),
     h('section', { class: 'cfg-card' }, h('label', { class: 'cfg-row' }, h('span', { class: 'cfg-row-text' }, h('b', null, 'Sala pública'), h('small', null, 'Aparece em Explorar. Qualquer pessoa entra sem convite.')), pub)),
-    h('section', { class: 'cfg-card' }, h('div', { class: 'cfg-row' }, h('span', { class: 'cfg-row-text' }, h('b', null, 'Excluir sala'), h('small', null, 'Apaga mensagens, canais e cargos de todo mundo. Não tem volta.')), del)));
+    h('section', { class: 'cfg-card' }, h('div', { class: 'cfg-row' }, h('span', { class: 'cfg-row-text' }, h('b', null, 'Excluir sala'), h('small', null, 'Apaga mensagens, canais e cargos de todo mundo. Não tem volta.')), del)),
+    h('div', { class: 'cfg-savebar' }, dirtyLabel, save));
+  body.addEventListener('input', markDirty);
+  body.addEventListener('change', markDirty);
   void preview;
 }
 
@@ -3211,7 +3218,7 @@ function paintRoomChannels(body) {
         });
         return h('div', { class: 'cfg-row' }, h('span', { class: 'cfg-row-text' }, h('b', null, (c.kind === 'text' ? '# ' : '🔊 ') + c.name), h('small', null, `${c.kind === 'text' ? 'Texto' : 'Voz'}${c.is_private ? ' · privado' : ''}`)), del);
       }),
-      channels.length ? null : h('p', { class: 'cfg-hint' }, 'Nenhum canal além do chat e da call padrão da sala.'));
+      ...(channels.length ? [] : [h('p', { class: 'cfg-hint' }, 'Nenhum canal além do chat e da call padrão da sala.')]));
   };
   paint();
   body.append(list);

@@ -1318,3 +1318,10 @@ kbd { font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 70
 /* Áudio e vídeo: teste do filtro de ruído */
 .ns-test { margin-top: 8px; }
 .ns-test .btn.on { background: var(--accent-soft); color: var(--accent-ink); }
+
+/* Barra de salvar fixa (Configurações da sala) e campo numérico */
+.cfg-savebar { position: sticky; bottom: 0; z-index: 2; display: flex; align-items: center; justify-content: flex-end; gap: 14px; padding: 14px 20px; margin: 4px -4px 0; border-radius: 16px; background: var(--bg-1); box-shadow: 0 -10px 24px -14px var(--shadow); }
+.cfg-dirty { font-size: 13px; color: var(--yellow); font-weight: 700; margin-right: auto; }
+.cfg-dirty.ok { color: var(--green); }
+.cfg-row input[type="number"] { width: 110px; background: var(--bg-input); border: 0; border-radius: 10px; padding: 10px 12px; color: var(--text); font-size: 15px; outline: 0; }
+.cfg-row input[type="number"]:focus { box-shadow: 0 0 0 2px rgba(var(--accent-rgb), .55); }
