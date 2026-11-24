@@ -1340,3 +1340,26 @@ kbd { font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 70
 .watch-slot { background: #000; aspect-ratio: 16 / 9; }
 .watch-slot .label { z-index: 3; }
 .cd-pin.on { background: var(--accent-soft); color: var(--accent-ink); }
+
+/* Layout da call: ocupa o espaço, centralizado e sem sobras */
+.call-view { container-type: normal; }
+.stage { align-content: center; justify-content: center; }
+/* Sem tela fixada: as pessoas ocupam o palco conforme o número delas */
+.stage.grid { width: 100%; max-width: 1180px; margin: 0 auto; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.stage.grid.n1 { grid-template-columns: minmax(0, 880px); }
+.stage.grid.n2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.stage.grid.n3, .stage.grid.n4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.stage.grid.n5 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.stage.grid .tile { width: 100%; }
+.stage.grid .tile .avatar.lg { width: clamp(64px, 9vw, 112px); height: clamp(64px, 9vw, 112px); font-size: clamp(24px, 3.4vw, 42px); }
+/* Com quadro principal: a faixa de baixo fica centralizada e os quadros dividem o espaço */
+.focus-main { align-items: center; justify-content: center; container-type: size; }
+.focus-strip { justify-content: center; flex-wrap: wrap; overflow-x: visible; gap: 12px; }
+.focus-strip .tile { flex: 0 1 220px; width: auto; min-width: 140px; }
+.stage.focus .focus-main .tile.watch-slot { flex: none; width: min(100cqw, calc(100cqh * 16 / 9)); height: auto; aspect-ratio: 16 / 9; }
+.stage.focus { gap: 14px; }
+.side-grid { align-content: center; }
+.side-grid.n2 .tile { max-height: 100%; }
+.layout-bar { margin: 12px auto 0; align-self: center; }
+@media (max-width: 640px) { .stage.grid.n2, .stage.grid.n3, .stage.grid.n4, .stage.grid.n5 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .focus-strip .tile { flex-basis: 140px; } }
+@media (max-width: 560px) { .focus-strip { flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; } .focus-strip .tile { min-width: 0; } }

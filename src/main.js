@@ -128,7 +128,6 @@ function showAuth(mode) {
   $('auth-title').textContent = isSignup ? 'Criar conta' : isForgot ? 'Esqueceu a senha?' : isReset ? 'Nova senha' : 'Bem-vindo de volta';
   $('auth-sub').textContent = isSignup ? 'É de graça e leva 30 segundos.' : isForgot ? 'Acontece. Coloca seu e-mail que a gente manda um link pra criar outra.' : isReset ? 'Escolha uma senha nova.' : 'Entre para ver suas salas.';
   $('auth-email-label').textContent = isForgot ? 'E-mail da conta' : 'E-mail';
-  $('google-label').textContent = isSignup ? 'Criar com Google' : 'Entrar com Google';
   $('pass-meter').hidden = !(isSignup || isReset);
   $('auth-pass').minLength = isSignup || isReset ? 8 : 6;
   $('auth-pass').placeholder = isSignup || isReset ? 'Pelo menos 8 caracteres' : 'Sua senha';
@@ -142,7 +141,6 @@ function showAuth(mode) {
   $('auth-pass').required = !isForgot;
   $('auth-pass').autocomplete = isSignup || isReset ? 'new-password' : 'current-password';
   $('forgot-link').hidden = mode !== 'login';
-  $('oauth-box').hidden = isForgot || isReset;
   $('auth-submit').textContent = isSignup ? 'Criar conta' : isForgot ? 'Mandar link' : isReset ? 'Salvar senha' : 'Entrar';
   $('switch-text').textContent = isSignup ? 'Já tem conta?' : isForgot || isReset ? '' : 'Ainda não tem conta?';
   $('switch-btn').textContent = isSignup ? 'Entrar' : isForgot || isReset ? 'Voltar pro login' : 'Criar conta';
@@ -172,11 +170,6 @@ $('auth-pass').addEventListener('input', () => {
   if (/[a-z]/.test(v) && /[A-Z]/.test(v)) score += 1;
   if (/\d/.test(v) && /[^A-Za-z0-9]/.test(v)) score += 1;
   $('pass-meter').dataset.score = String(v ? score : 0);
-});
-
-$('google-btn').addEventListener('click', async () => {
-  const { error } = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin } });
-  if (error) authMsg(traduzir(error.message));
 });
 
 $('auth-form').addEventListener('submit', async (e) => {

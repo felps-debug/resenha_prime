@@ -591,7 +591,8 @@ export function renderStage() {
   if (call.pinned.length) {
     renderPinned(stage, frames, byKey, base);
   } else if (!screens.length) {
-    stage.className = 'stage grid' + base;
+    const people = frames.filter((f) => f.kind === 'person').length;
+    stage.className = 'stage grid n' + Math.min(people, 5) + base;
     frames.filter((f) => f.kind === 'person').forEach((f) => stage.append(withPin(personTile(f.item), f.key)));
   } else {
     const keys = screens.map((x) => `${x.identity}:screen`);

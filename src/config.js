@@ -16,7 +16,7 @@ const MINE = [['account', 'Minha conta'], ['profile', 'Perfil'], ['audio', 'Áud
 const APP = [['look', 'Aparência'], ['keys', 'Atalhos'], ['about', 'Sobre o Resenha']];
 const DESC = {
   look: 'Vale pra este aparelho. As outras pessoas continuam com o tema delas.',
-  account: 'E-mail, senha e contas conectadas.',
+  account: 'E-mail e senha.',
   profile: 'Como as outras pessoas te veem.',
   audio: 'Microfone, saída de som e câmera.',
   notif: 'O que toca e o que aparece.',
@@ -165,7 +165,6 @@ async function paintAccount(body, ctx) {
   let identities = [];
   try { identities = ((await sb.auth.getUserIdentities()).data || {}).identities || []; } catch (_) {}
   const hasPassword = identities.length ? identities.some((i) => i.provider === 'email') : true;
-  const google = identities.find((i) => i.provider === 'google');
 
   const msg = (el, text, ok) => { el.textContent = text; el.className = 'msg' + (ok ? ' ok' : ''); };
 
@@ -203,28 +202,12 @@ async function paintAccount(body, ctx) {
   });
   const passBtn = h('button', { class: 'btn secondary', type: 'button', onClick: () => { passForm.hidden = !passForm.hidden; if (!passForm.hidden) (hasPassword ? cur : nw).focus(); } }, hasPassword ? 'Trocar senha' : 'Criar senha');
 
-  // Google
-  const gMsg = h('p', { class: 'msg', role: 'status' });
-  const gBtn = h('button', { class: 'btn secondary', type: 'button' }, google ? 'Desconectar' : 'Conectar');
-  gBtn.addEventListener('click', async () => {
-    if (google) {
-      if (identities.length < 2) { msg(gMsg, 'É o seu único jeito de entrar. Crie uma senha antes de desconectar.'); return; }
-      if (!(await confirmModal({ title: 'Desconectar o Google?', text: 'Você continua entrando com e-mail e senha.', confirm: 'Desconectar', danger: true }))) return;
-      const { error } = await sb.auth.unlinkIdentity(google);
-      if (error) msg(gMsg, 'Não foi possível desconectar: ' + error.message);
-      else { toast('Google desconectado.'); paintAgain(); }
-    } else {
-      const { error } = await sb.auth.linkIdentity({ provider: 'google', options: { redirectTo: location.origin } });
-      if (error) msg(gMsg, 'Não foi possível conectar o Google: ' + error.message);
-    }
-  });
   const paintAgain = () => { body.replaceChildren(); paintAccount(body, ctx); };
 
   body.append(
     card('Acesso',
       row('E-mail', maskEmail(user.email), emailBtn), emailForm, emailMsg,
-      row('Senha', hasPassword ? 'Pede a senha atual antes de trocar' : 'Você entra só pelo Google', passBtn), passForm, passMsg,
-      row('Google', google ? 'Conectado' : 'Não conectado', gBtn), gMsg));
+      row('Senha', hasPassword ? 'Pede a senha atual antes de trocar' : 'Crie uma senha para entrar também com e-mail', passBtn), passForm, passMsg));
 }
 
 // ---------- Zoeira ----------
