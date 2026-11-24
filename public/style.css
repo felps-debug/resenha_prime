@@ -1363,3 +1363,9 @@ kbd { font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 70
 .layout-bar { margin: 12px auto 0; align-self: center; }
 @media (max-width: 640px) { .stage.grid.n2, .stage.grid.n3, .stage.grid.n4, .stage.grid.n5 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .focus-strip .tile { flex-basis: 140px; } }
 @media (max-width: 560px) { .focus-strip { flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; } .focus-strip .tile { min-width: 0; } }
+
+/* Assistir junto fixado: o vídeo ocupa a área toda do palco (fundo preto, como um cinema) */
+.stage.focus .focus-main .tile.watch-slot { width: 100%; height: 100%; aspect-ratio: auto; background: #000; border-radius: 18px; }
+.stage.focus .focus-strip .tile { flex-basis: 190px; }
+.stage.focus { padding-top: 6px; }
+.layout-bar { margin-top: 8px; margin-bottom: 2px; padding: 3px; }
