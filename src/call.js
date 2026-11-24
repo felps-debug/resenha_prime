@@ -1,5 +1,6 @@
 // Call de voz/vídeo/tela com LiveKit (SFU).
 import { $, h, ICON, avatar, toast, beep } from './ui.js';
+import { ZOEIRA_TOPIC, ZOEIRA_KINDS, playZoeira, preloadZoeira, stopAllZoeira, isZoeiraPlaying } from './zoeira.js';
 
 let Room, RoomEvent, Track, DisconnectReason, ScreenSharePresets, VideoPresets;
 let livekitPromise;
@@ -22,12 +23,13 @@ export const call = {
   deafened: false,
   focusKey: null,
   avatarUrl: null,
+  onPersonClick: null,
   onChange: () => {}
 };
 
 // ---------- Preferências (dispositivos, filtros, volumes) ----------
 export function loadSettings() {
-  const def = { audioinput: '', audiooutput: '', videoinput: '', echoCancellation: true, noiseSuppression: true, autoGainControl: true };
+  const def = { audioinput: '', audiooutput: '', videoinput: '', echoCancellation: true, noiseSuppression: true, autoGainControl: true, mirrorCam: true, zoeiraOnMe: true, zoeiraSound: true };
   try { return { ...def, ...JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}') }; } catch (_) { return def; }
 }
 export function saveSettings(s) { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
@@ -108,6 +110,7 @@ export async function joinCall(roomId, roomName, getToken) {
     }
     await syncAttributes();
     applyAllVolumes();
+    preloadZoeira();
     beep(660, 880);
   } catch (err) {
     console.error(err);
@@ -131,6 +134,7 @@ export async function leaveCall(silent) {
   call.room = null;
   call.roomId = null;
   call.focusKey = null;
+  stopAllZoeira();
   $('audio-bin').innerHTML = '';
   for (const v of videoEls.values()) { if (v._track) { try { v._track.detach(v); } catch (_) {} } }
   videoEls.clear();
@@ -167,6 +171,9 @@ function wireRoom(room) {
     .on(RoomEvent.AudioPlaybackStatusChanged, () => {
       $('audio-unlock').hidden = room.canPlaybackAudio;
     })
+    .on(RoomEvent.DataReceived, (payload, participant, _kind, topic) => {
+      if (topic === ZOEIRA_TOPIC && participant) receiveZoeira(payload, participant);
+    })
     .on(RoomEvent.MediaDevicesError, () => toast('Problema ao acessar microfone ou câmera.'))
     .on(RoomEvent.Disconnected, (reason) => {
       if (call.room !== room) return;
@@ -186,6 +193,65 @@ async function syncAttributes() {
   try {
     await call.room.localParticipant.setAttributes({ deafened: call.deafened ? '1' : '0' });
   } catch (_) {}
+}
+
+// ---------- Zoeira (golpes animados vistos por todos da call) ----------
+const ZOEIRA_COOLDOWN_MS = 8000;
+const lastZoeiraBy = new Map();
+let myLastZoeira = 0;
+
+function nameOf(identity) {
+  if (!call.room) return 'Alguém';
+  const p = identity === call.room.localParticipant.identity ? call.room.localParticipant : call.room.remoteParticipants.get(identity);
+  return (p && p.name) || 'Alguém';
+}
+
+function showZoeira(kind, target, fromName) {
+  const targetName = nameOf(target);
+  const isMe = call.room && target === call.room.localParticipant.identity;
+  toast(isMe ? `${fromName} te mandou pra privada` : `${fromName} mandou ${targetName} pra privada`);
+  playZoeira({ kind, identity: target, name: targetName, avatarUrl: call.avatarUrl ? call.avatarUrl(target) : null, muted: call.deafened || loadSettings().zoeiraSound === false });
+}
+
+function receiveZoeira(payload, participant) {
+  let msg;
+  try { msg = JSON.parse(new TextDecoder().decode(payload)); } catch (_) { return; }
+  if (!msg || msg.v !== 1 || !Object.hasOwn(ZOEIRA_KINDS, msg.kind) || typeof msg.target !== 'string') return;
+  const room = call.room;
+  if (!room) return;
+  const targetInCall = msg.target === room.localParticipant.identity || room.remoteParticipants.has(msg.target);
+  if (!targetInCall || msg.target === participant.identity) return;
+  if (msg.target === room.localParticipant.identity && loadSettings().zoeiraOnMe === false) return;
+  const now = Date.now();
+  if (now - (lastZoeiraBy.get(participant.identity) || 0) < ZOEIRA_COOLDOWN_MS - 1000) return;
+  lastZoeiraBy.set(participant.identity, now);
+  showZoeira(msg.kind, msg.target, participant.name || 'Alguém');
+}
+
+export function zoeiraWait() {
+  return Math.max(0, Math.ceil((ZOEIRA_COOLDOWN_MS - (Date.now() - myLastZoeira)) / 1000));
+}
+
+export async function sendZoeira(kind, target) {
+  const room = call.room;
+  if (!room || !Object.hasOwn(ZOEIRA_KINDS, kind)) return;
+  if (target === room.localParticipant.identity || !room.remoteParticipants.has(target)) {
+    toast('Essa pessoa não está na call.');
+    return;
+  }
+  const wait = zoeiraWait();
+  if (wait > 0) { toast(`Calma, espera ${wait}s pra zoar de novo.`); return; }
+  if (isZoeiraPlaying(target)) { toast(`${nameOf(target)} ainda está na privada.`); return; }
+  myLastZoeira = Date.now();
+  try {
+    const data = new TextEncoder().encode(JSON.stringify({ v: 1, kind, target }));
+    await room.localParticipant.publishData(data, { reliable: true, topic: ZOEIRA_TOPIC });
+  } catch (_) {
+    myLastZoeira = 0;
+    toast('Não consegui mandar a zoeira. Tenta de novo.');
+    return;
+  }
+  showZoeira(kind, target, 'Você');
 }
 
 // ---------- Controles ----------
@@ -349,10 +415,16 @@ function personTile(item) {
   const tile = h('div', { class: 'tile' + (cam ? ' cam' : ''), 'data-identity': item.identity });
   if (item.speaking) tile.classList.add('speaking');
   if (cam) tile.append(videoFor(`${item.identity}:cam`, cam));
+  // Espelha só a sua própria imagem, como um espelho; os outros continuam vendo normal.
+  if (cam && item.local && loadSettings().mirrorCam) tile.classList.add('mirror');
   else tile.append(avatar(item.identity, item.name, 'lg', call.avatarUrl ? call.avatarUrl(item.identity) : null));
   tile.append(h('div', { class: 'label' },
     item.muted ? h('span', { html: ICON.smallMicOff, style: { display: 'inline-flex' } }) : null,
     h('span', null, item.name + (item.local ? ' (você)' : ''))));
+  if (!item.local && call.onPersonClick) {
+    tile.classList.add('clickable');
+    tile.addEventListener('click', () => call.onPersonClick(tile, item.identity));
+  }
   return tile;
 }
 

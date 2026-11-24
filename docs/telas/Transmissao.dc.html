@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Resenha — call com várias transmissões</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0E0F13}
+*{scrollbar-width:none}*::-webkit-scrollbar{display:none}
+select{appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,#A9AEB8 50%),linear-gradient(135deg,#A9AEB8 50%,transparent 50%) !important;background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50% !important;background-size:5px 5px !important;background-repeat:no-repeat !important;padding-right:36px !important;cursor:pointer}
+input[type=checkbox]{appearance:none;-webkit-appearance:none;width:40px !important;height:24px !important;flex:none;margin:0;border-radius:12px;background:#3A3F4B;position:relative;cursor:pointer;transition:background .2s}
+input[type=checkbox]::before{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#ECEDEF;transition:transform .2s cubic-bezier(.3,1.4,.5,1)}
+input[type=checkbox]:checked{background:#FF6B3D}input[type=checkbox]:checked::before{transform:translateX(16px)}
+input[type=range]{appearance:none;-webkit-appearance:none;background:transparent;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:#262A33}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;margin-top:-6px;border-radius:50%;background:#ECEDEF;border:3px solid #FF6B3D;box-sizing:border-box}
+input[type=range]::-moz-range-track{height:6px;border-radius:3px;background:#262A33}
+input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:#ECEDEF;border:3px solid #FF6B3D}
+a{color:#FF8A62}a:hover{color:#FFB091}
+button{font:inherit;color:inherit;cursor:pointer}
+.press{transition:transform .12s,background .15s,color .15s}
+.press:active{transform:scale(.94)}
+.hov:hover{background:#262A33 !important;color:#ECEDEF !important}
+.tile{position:relative;overflow:hidden;transition:box-shadow .2s}
+.tile .ov{opacity:0;transform:translateY(-4px);transition:opacity .15s,transform .15s}
+.tile:hover .ov,.tile:focus-within .ov{opacity:1;transform:none}
+.tile.pinned{box-shadow:0 0 0 2px #FF6B3D}
+.enter{animation:enter .35s cubic-bezier(.2,.8,.2,1) both}
+.speak{box-shadow:0 0 0 2px #14161B,0 0 0 4px #3DD68C}
+.wave span{display:inline-block;width:3px;height:12px;border-radius:2px;background:#3DD68C;animation:eq 1s ease-in-out infinite;transform-origin:bottom}
+.wave span:nth-child(2){animation-delay:.2s}.wave span:nth-child(3){animation-delay:.4s}
+.chan:hover{background:#20232B !important;color:#ECEDEF !important}
+.vc:hover{background:#1D2027 !important}
+.room{transition:border-radius .22s cubic-bezier(.2,.8,.2,1),background .18s,transform .18s}
+.room:hover{border-radius:14px !important;transform:translateY(-1px)}
+.chan:hover .ic-hash,.room:hover .ic-dm{animation:hop .45s cubic-bezier(.3,1.6,.5,1)}
+.ic-bag .draw{stroke-dasharray:1;stroke-dashoffset:0}
+.ic-bag.boot .draw{animation:draw .9s ease-out .3s both}
+.room:hover .ic-bag .draw{animation:draw .7s ease-out forwards}
+.room:hover .ic-compass{animation:spinFull .6s cubic-bezier(.3,1.4,.5,1)}
+.room:hover .ic-plus,.addc:hover svg{animation:spin90 .3s ease-out}
+.gear:hover svg{animation:spin90 .5s cubic-bezier(.3,1.4,.5,1)}
+.ftb{transition:background .15s,color .15s}
+.ftb:hover{background:#262A33 !important;color:#ECEDEF !important}
+.ftb:hover svg{animation:hop .4s cubic-bezier(.3,1.6,.5,1)}
+.ftb.off{color:#FF7377 !important;background:rgba(255,90,95,.14) !important}
+.addc{transition:background .15s,color .15s}
+.addc:hover{background:#262A33 !important;color:#ECEDEF !important}
+@keyframes hop{0%{transform:scale(1)}40%{transform:scale(1.25) rotate(-8deg)}100%{transform:scale(1)}}
+@keyframes draw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes spinFull{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes spin90{from{transform:rotate(0)}to{transform:rotate(90deg)}}
+@keyframes enter{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+@keyframes eq{0%,100%{transform:scaleY(.3)}50%{transform:scaleY(1)}}
+@media (max-width:1100px){.hide-md{display:none !important}}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width:100%;height:900px;display:flex;background:#191B21;color:#ECEDEF;font-family:{{font}};font-size:15px;overflow:hidden">
+
+  <!-- Trilho -->
+  <nav aria-label="Suas salas" class="hide-sm" style="width:76px;flex:none;background:#0E0F13;display:flex;flex-direction:column;align-items:center;gap:10px;padding:14px 0">
+    <a href="DMs.dc.html" class="room" title="Mensagens diretas" aria-label="Mensagens diretas" style="position:relative;width:48px;height:48px;background:#191B21;color:#ECEDEF;border-radius:24px;display:flex;align-items:center;justify-content:center;text-decoration:none">
+      <svg class="ic-dm" aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.6A8 8 0 1 1 21 12z"></path></svg>
+    </a>
+    <span aria-hidden="true" style="width:28px;height:2px;border-radius:2px;background:#262A33;margin:2px 0"></span>
+    <a href="Main.dc.html" class="room" title="Resenha dos amigos" aria-label="Resenha dos amigos" aria-current="page" style="position:relative;width:48px;height:48px;border-radius:14px;background:#FF6B3D;color:#1A0F0A;font-weight:800;font-size:18px;display:flex;align-items:center;justify-content:center;text-decoration:none">R<span style="position:absolute;right:-3px;bottom:-3px;width:14px;height:14px;border-radius:50%;background:#3DD68C;border:3px solid #0E0F13"></span></a>
+    <a href="Main.dc.html" class="room" title="Futebol de quinta" aria-label="Futebol de quinta" style="position:relative;width:48px;height:48px;border-radius:24px;background:#191B21;color:#ECEDEF;font-weight:800;font-size:18px;display:flex;align-items:center;justify-content:center;text-decoration:none">F</a>
+    <a href="Main.dc.html" class="room" title="Jogatina" aria-label="Jogatina" style="position:relative;width:48px;height:48px;border-radius:24px;background:#191B21;color:#ECEDEF;font-weight:800;font-size:18px;display:flex;align-items:center;justify-content:center;text-decoration:none">J</a>
+    <a href="Main.dc.html" class="room" title="Pagode de domingo" aria-label="Pagode de domingo" style="position:relative;width:48px;height:48px;border-radius:24px;background:#191B21;color:#ECEDEF;font-weight:800;font-size:18px;display:flex;align-items:center;justify-content:center;text-decoration:none">P</a>
+    <a href="Explorar.dc.html" class="room" title="Adicionar sala (criar ou entrar com convite)" aria-label="Adicionar sala" style="width:48px;height:48px;box-sizing:border-box;border:1px dashed #8A909C;border-radius:24px;color:#3DD68C;display:flex;align-items:center;justify-content:center;text-decoration:none">
+      <svg class="ic-plus" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+    </a>
+    <a href="Explorar.dc.html" class="room" title="Explorar salas públicas" aria-label="Explorar salas públicas" style="width:48px;height:48px;border-radius:24px;background:#191B21;color:#3DD68C;display:flex;align-items:center;justify-content:center;text-decoration:none">
+      <svg class="ic-compass" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="m15.5 8.5-2 5-5 2 2-5z"></path></svg>
+    </a>
+    <div style="flex:1"></div>
+    <a href="Loja.dc.html" class="room" title="Loja" aria-label="Loja" style="width:48px;height:48px;border-radius:24px;background:#191B21;color:#FFB091;display:flex;align-items:center;justify-content:center;text-decoration:none">
+      <svg class="ic-bag boot" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path class="draw" pathLength="1" d="M20 7H4l1.5 12.5a2 2 0 0 0 2 1.5h9a2 2 0 0 0 2-1.5z"></path><path class="draw" pathLength="1" d="M8 7V6a4 4 0 0 1 8 0v1"></path></svg>
+    </a>
+  </nav>
+
+  <!-- Canais: texto e voz com visual próprio -->
+  <aside class="hide-md" aria-label="Canais" style="width:272px;flex:none;background:#14161B;display:flex;flex-direction:column">
+    <header style="height:60px;padding:0 16px;display:flex;align-items:center;border-bottom:1px solid #22252D">
+      <div style="flex:1"><div style="font-weight:800;font-size:16px">Resenha dos amigos</div><div style="font-size:12px;color:#8A909C">4 online · 7 membros</div></div>
+    </header>
+    <div style="flex:1;overflow:auto;padding:14px 10px;display:flex;flex-direction:column;gap:4px">
+      <div style="display:flex;align-items:center;padding:4px 8px 4px"><span style="flex:1;font-size:11px;font-weight:800;letter-spacing:.08em;color:#8A909C">TEXTO</span><a href="CriarCanal.dc.html" class="addc" title="Criar canal de texto" aria-label="Criar canal de texto" style="width:24px;height:24px;border-radius:7px;color:#8A909C;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></a></div>
+      <a href="Main.dc.html" class="chan" style="display:flex;align-items:center;gap:10px;height:38px;padding:0 10px;border-radius:10px;color:#A9AEB8;text-decoration:none;font-weight:600">
+        <svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h10M4 18h7"></path></svg>
+        <span style="flex:1">chat</span>
+        <span style="font-size:11px;font-weight:800;color:#1A0F0A;background:#FF6B3D;border-radius:8px;padding:1px 7px">3</span>
+      </a>
+      <a href="Main.dc.html" class="chan" style="display:flex;align-items:center;gap:10px;height:38px;padding:0 10px;border-radius:10px;color:#A9AEB8;text-decoration:none;font-weight:600">
+        <svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h10M4 18h7"></path></svg>
+        <span style="flex:1">memes</span>
+      </a>
+
+      <div style="display:flex;align-items:center;padding:14px 8px 4px"><span style="flex:1;font-size:11px;font-weight:800;letter-spacing:.08em;color:#8A909C">VOZ</span><a href="CriarCanal.dc.html" class="addc" title="Criar canal de voz" aria-label="Criar canal de voz" style="width:24px;height:24px;border-radius:7px;color:#8A909C;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg></a></div>
+      <!-- Canal de voz ativo: card vivo -->
+      <div class="vc" style="padding:12px;border-radius:16px;background:#20232B;display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="wave" aria-hidden="true" style="display:inline-flex;align-items:flex-end;gap:2px;height:12px"><span></span><span></span><span></span></span>
+          <span style="flex:1;font-weight:800">Resenha</span>
+          <span style="font-size:10px;font-weight:800;letter-spacing:.04em;color:#fff;background:#E5484D;border-radius:5px;padding:2px 6px">3 AO VIVO</span>
+        </div>
+        <sc-for list="{{voice}}" as="v" hint-placeholder-count="4">
+          <div style="display:flex;align-items:center;gap:10px;font-size:14px;color:{{v.fg}}">
+            <span class="{{v.cls}}" style="width:26px;height:26px;border-radius:50%;background:{{v.color}};color:#14161B;font-weight:800;font-size:11px;display:flex;align-items:center;justify-content:center">{{v.initial}}</span>
+            <span style="flex:1">{{v.name}}</span>
+            <sc-if value="{{v.sharing}}" hint-placeholder-val="{{false}}">
+              <svg role="img" aria-label="Transmitindo a tela" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#FF8A62" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"></rect><path d="M8 21h8"></path></svg>
+            </sc-if>
+            <sc-if value="{{v.muted}}" hint-placeholder-val="{{false}}">
+              <svg role="img" aria-label="Microfone desligado" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8A909C" stroke-width="2" stroke-linecap="round"><path d="M2 2l20 20M9 9v3a3 3 0 0 0 5.1 2.1M15 9.3V5a3 3 0 0 0-5.9-.6M19 10v2a7 7 0 0 1-.6 2.9M5 10v2a7 7 0 0 0 11.5 5.4M12 19v3"></path></svg>
+            </sc-if>
+          </div>
+        </sc-for>
+        <div style="font-size:12px;color:#3DD68C;font-weight:700">Você está aqui · 42 min</div>
+      </div>
+      <!-- Canal de voz vazio: compacto -->
+      <button class="vc" style="margin-top:4px;padding:10px 12px;border:0;border-radius:14px;background:transparent;display:flex;align-items:center;gap:10px;text-align:left;color:#A9AEB8">
+        <svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4zM15.5 8.5a5 5 0 0 1 0 7"></path></svg>
+        <span style="flex:1;font-weight:700">Jogatina</span>
+        <span style="font-size:12px;color:#8A909C">vazio</span>
+      </button>
+      <button class="vc" style="padding:10px 12px;border:0;border-radius:14px;background:transparent;display:flex;align-items:center;gap:10px;text-align:left;color:#A9AEB8">
+        <svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4zM15.5 8.5a5 5 0 0 1 0 7"></path></svg>
+        <span style="flex:1;font-weight:700">Cinema</span>
+        <span style="display:flex"><span style="width:20px;height:20px;border-radius:50%;background:#E8D07A;border:2px solid #14161B"></span><span style="width:20px;height:20px;border-radius:50%;background:#9FB8C8;border:2px solid #14161B;margin-left:-7px"></span></span>
+      </button>
+    </div>
+    <footer style="height:64px;flex:none;padding:0 10px;background:#0E0F13;display:flex;align-items:center;gap:4px">
+      <span style="flex:1;min-width:0;display:flex;align-items:center;gap:10px;padding:6px 8px">
+        <span style="position:relative;width:36px;height:36px;border-radius:50%;background:#7FB2F0;color:#14161B;font-weight:800;display:flex;align-items:center;justify-content:center">F<span style="position:absolute;right:-1px;bottom:-1px;width:12px;height:12px;border-radius:50%;background:#3DD68C;border:3px solid #0E0F13"></span></span>
+        <span style="min-width:0;display:flex;flex-direction:column"><span style="font-weight:700;font-size:14px">Felipe</span><span style="font-size:12px;color:#8A909C">{{meStatus}}</span></span>
+      </span>
+      <button class="ftb {{micCls}}" onClick="{{toggleMic}}" aria-pressed="{{micPressed}}" title="{{micLabel}}" aria-label="{{micLabel}}" style="width:36px;height:36px;border:0;border-radius:10px;background:transparent;color:#A9AEB8;display:flex;align-items:center;justify-content:center">
+        <sc-if value="{{micOn}}" hint-placeholder-val="{{true}}"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3"></path></svg></sc-if>
+        <sc-if value="{{micOff}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l20 20M9 9v3a3 3 0 0 0 5.1 2.1M15 9.3V5a3 3 0 0 0-5.9-.6M19 10v2a7 7 0 0 1-.6 2.9M5 10v2a7 7 0 0 0 11.5 5.4M12 19v3"></path></svg></sc-if>
+      </button>
+      <button class="ftb {{deafCls}}" onClick="{{toggleDeaf}}" aria-pressed="{{deafPressed}}" title="{{deafLabel}}" aria-label="{{deafLabel}}" style="width:36px;height:36px;border:0;border-radius:10px;background:transparent;color:#A9AEB8;display:flex;align-items:center;justify-content:center">
+        <sc-if value="{{hear}}" hint-placeholder-val="{{true}}"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path></svg></sc-if>
+        <sc-if value="{{deaf}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"></path><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path><path d="M2 2l20 20"></path></svg></sc-if>
+      </button>
+      <a href="Config.dc.html" class="ftb gear" title="Configurações" aria-label="Configurações" style="width:36px;height:36px;border-radius:10px;color:#A9AEB8;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"></path></svg></a>
+    </footer>
+  </aside><main style="flex:1;min-width:0;display:flex;flex-direction:column;background:#0E0F13">
+    <header style="height:60px;flex:none;padding:0 16px 0 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #1B1D23">
+      <span class="wave" aria-hidden="true" style="display:inline-flex;align-items:flex-end;gap:2px;height:12px"><span></span><span></span><span></span></span>
+      <h1 style="margin:0;font-size:17px;font-weight:800">Resenha</h1>
+      <span style="font-size:13px;color:#8A909C">4 na call · 3 transmitindo</span>
+      <div style="flex:1"></div>
+      <span class="hide-md" style="font-size:12px;color:#8A909C">Passe o mouse numa tela e fixe quem você quer no principal</span>
+      <button class="press hov" onClick="{{toggleChat}}" aria-pressed="{{chatPressed}}" title="Chat da call" aria-label="Mostrar ou esconder o chat da call" style="height:36px;padding:0 12px;border:0;border-radius:10px;background:{{chatBtnBg}};color:#ECEDEF;display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px">
+        <svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.6A8 8 0 1 1 21 12z"></path></svg>
+        Chat da call
+      </button>
+    </header>
+
+    <div style="flex:1;min-height:0;display:flex">
+      <section aria-label="Palco" style="flex:1;min-width:0;display:flex;flex-direction:column;gap:12px;padding:16px;position:relative">
+        <!-- Principal: 1 tela, ou dividido quando fixa 2 ou 3 -->
+        <div style="flex:1;min-height:0;display:grid;grid-template-columns:repeat({{cols}},minmax(0,1fr));gap:12px">
+          <sc-for list="{{mainTiles}}" as="t" hint-placeholder-count="1">
+            <div class="{{t.cls}}" tabindex="0" style="border-radius:18px;background:{{t.bg}};min-height:0">
+              <div aria-hidden="true" style="position:absolute;inset:18px;display:flex;flex-direction:column;gap:12px">
+                <div style="height:14%;border-radius:10px;background:rgba(255,255,255,.05)"></div>
+                <div style="flex:1;border-radius:12px;background:rgba(255,255,255,.04);display:flex;align-items:center;justify-content:center;color:{{t.accent}};font-weight:800;font-size:18px;letter-spacing:.02em">{{t.title}}</div>
+              </div>
+              <div style="position:absolute;left:12px;bottom:12px;display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:9px;background:rgba(14,15,19,.78);font-size:13px;font-weight:700">
+                <span style="font-size:10px;font-weight:800;color:#fff;background:#E5484D;border-radius:5px;padding:2px 6px">AO VIVO</span><span>{{t.caption}}</span>
+                <sc-if value="{{t.isPinned}}" hint-placeholder-val="{{false}}"><span style="color:#FFB091">fixada</span></sc-if>
+              </div>
+              <div class="ov" style="position:absolute;right:12px;top:12px;display:flex;gap:6px">
+                <button class="press hov" onClick="{{t.pin}}" aria-pressed="{{t.pinPressed}}" title="{{t.pinLabel}}" aria-label="{{t.pinLabel}}" style="height:36px;padding:0 12px;border:0;border-radius:10px;background:rgba(14,15,19,.82);color:{{t.pinFg}};display:flex;align-items:center;gap:6px;font-weight:700;font-size:13px">
+                  <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5M9 3h6l-1 6 4 4H6l4-4z"></path></svg>{{t.pinText}}
+                </button>
+                <button class="press hov" onClick="{{t.full}}" title="Tela cheia" aria-label="Ver a tela de {{t.name}} em tela cheia" style="width:36px;height:36px;border:0;border-radius:10px;background:rgba(14,15,19,.82);color:#ECEDEF;display:flex;align-items:center;justify-content:center">
+                  <svg aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"></path></svg>
+                </button>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+
+        <!-- Faixa de baixo: outras telas (com Fixar) e pessoas -->
+        <div style="height:132px;flex:none;display:flex;gap:10px;overflow-x:auto">
+          <sc-for list="{{stripScreens}}" as="s" hint-placeholder-count="2">
+            <div class="tile enter" tabindex="0" style="width:220px;flex:none;border-radius:14px;background:{{s.bg}}">
+              <button onClick="{{s.show}}" aria-label="Mostrar a tela de {{s.name}} no principal" style="position:absolute;inset:0;border:0;background:transparent;display:flex;align-items:center;justify-content:center;color:{{s.accent}};font-weight:800;font-size:13px">{{s.tag}}</button>
+              <div style="position:absolute;left:8px;bottom:8px;display:flex;align-items:center;gap:6px;padding:3px 8px;border-radius:7px;background:rgba(14,15,19,.78);font-size:12px;font-weight:700;pointer-events:none"><span style="width:6px;height:6px;border-radius:50%;background:#FF8A62"></span><span>{{s.name}}</span></div>
+              <div class="ov" style="position:absolute;right:8px;top:8px">
+                <button class="press hov" onClick="{{s.pin}}" title="Fixar no principal" aria-label="Fixar a tela de {{s.name}} no principal" style="height:30px;padding:0 10px;border:0;border-radius:8px;background:rgba(14,15,19,.85);color:#ECEDEF;display:flex;align-items:center;gap:5px;font-weight:700;font-size:12px">
+                  <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5M9 3h6l-1 6 4 4H6l4-4z"></path></svg>Fixar
+                </button>
+              </div>
+            </div>
+          </sc-for>
+          <sc-for list="{{people}}" as="p" hint-placeholder-count="4">
+            <div style="width:150px;flex:none;border-radius:14px;background:#191B21;position:relative;display:flex;align-items:center;justify-content:center">
+              <span class="{{p.cls}}" style="width:48px;height:48px;border-radius:50%;background:{{p.color}};color:#14161B;font-weight:800;font-size:18px;display:flex;align-items:center;justify-content:center">{{p.initial}}</span>
+              <span style="position:absolute;left:8px;bottom:8px;padding:3px 8px;border-radius:7px;background:rgba(14,15,19,.78);font-size:12px;font-weight:700">{{p.name}}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <!-- Dock -->
+        <div style="flex:none;display:flex;justify-content:center">
+          <div style="display:flex;gap:8px;padding:8px;border-radius:20px;background:#191B21">
+            <button class="press hov" aria-label="Desativar microfone" title="Microfone" style="width:48px;height:48px;border:0;border-radius:14px;background:#262A33;color:#ECEDEF;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3"></path></svg></button>
+            <button class="press hov" aria-label="Ligar câmera" title="Câmera" style="width:48px;height:48px;border:0;border-radius:14px;background:#262A33;color:#ECEDEF;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="12" rx="2"></rect><path d="m16 10 6-3v10l-6-3"></path></svg></button>
+            <a href="Compartilhar.dc.html" class="press" aria-label="Transmitir tela" title="Transmitir tela" style="width:48px;height:48px;border-radius:14px;background:#FF6B3D;color:#1A0F0A;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"></rect><path d="M8 21h8M12 17v4M12 13V8M9.5 10.5 12 8l2.5 2.5"></path></svg></a>
+            <a href="Config.dc.html" class="press hov" aria-label="Áudio e vídeo" title="Áudio e vídeo" style="width:48px;height:48px;border-radius:14px;background:#262A33;color:#ECEDEF;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"></path></svg></a>
+            <a href="Main.dc.html" class="press" aria-label="Sair da call" title="Sair da call" style="height:48px;padding:0 18px;border-radius:14px;background:#E5484D;color:#fff;display:flex;align-items:center;gap:8px;font-weight:800;font-size:14px;text-decoration:none">Sair</a>
+          </div>
+        </div>
+
+        <!-- Tela cheia simulada -->
+        <sc-if value="{{hasFull}}" hint-placeholder-val="{{false}}">
+          <div class="enter" role="dialog" aria-label="Tela cheia" style="position:absolute;inset:0;background:{{fullBg}};display:flex;align-items:center;justify-content:center;z-index:5">
+            <span style="color:{{fullAccent}};font-weight:800;font-size:22px">{{fullText}}</span>
+            <button class="press hov" onClick="{{exitFull}}" style="position:absolute;right:16px;top:16px;height:38px;padding:0 14px;border:0;border-radius:10px;background:rgba(14,15,19,.85);color:#ECEDEF;font-weight:700;font-size:13px">Sair da tela cheia · Esc</button>
+          </div>
+        </sc-if>
+      </section>
+
+      <!-- Chat dentro da call -->
+      <sc-if value="{{showChat}}" hint-placeholder-val="{{true}}">
+        <aside aria-label="Chat da call" class="enter" style="width:320px;flex:none;background:#14161B;display:flex;flex-direction:column;border-left:1px solid #1B1D23">
+          <div style="height:48px;flex:none;padding:0 16px;display:flex;align-items:center;font-weight:800;font-size:14px">Chat da call <span style="margin-left:8px;font-size:12px;font-weight:600;color:#8A909C">só pra quem está aqui</span></div>
+          <div style="flex:1;overflow:auto;padding:4px 14px;display:flex;flex-direction:column;gap:12px;justify-content:flex-end">
+            <div style="font-size:12px;color:#8A909C;text-align:center">Bia começou a transmitir</div>
+            <sc-for list="{{chat}}" as="c" hint-placeholder-count="4">
+              <div style="display:flex;gap:10px">
+                <span style="width:30px;height:30px;flex:none;border-radius:50%;background:{{c.color}};color:#14161B;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center">{{c.initial}}</span>
+                <div style="min-width:0"><div style="font-weight:800;font-size:13px">{{c.name}} <span style="font-weight:500;color:#8A909C;font-size:11px">{{c.time}}</span></div><div style="font-size:14px;color:#DADCE0;line-height:1.45">{{c.text}}</div></div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="padding:12px">
+            <label style="display:flex;align-items:center;gap:6px;height:46px;padding:0 6px 0 12px;border-radius:14px;background:#20232B">
+              <span style="position:absolute;width:1px;height:1px;overflow:hidden">Mensagem na call</span>
+              <input placeholder="Mensagem na call" style="flex:1;min-width:0;border:0;outline:0;background:transparent;color:#ECEDEF;font:inherit;font-size:14px">
+              <span style="width:34px;height:34px;border-radius:10px;background:#FF6B3D;color:#1A0F0A;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></span>
+            </label>
+          </div>
+        </aside>
+      </sc-if>
+    </div>
+  </main>
+
+  <!-- Call -->
+  
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"font":{"editor":"enum","options":["Geist","Plus Jakarta Sans","Outfit","Sora","DM Sans","Inter"],"default":"Geist","section":"Tipografia"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { muted: false, deaf: false, pinned: [], focus: 'caio', full: null, chat: true };
+  }
+  renderVals() {
+    const s = this.state;
+    const font = "'" + (this.props.font ?? 'Geist') + "',system-ui,sans-serif";
+    const screens = [
+      { id: 'caio', name: 'Caio', label: 'jogo', bg: '#16202C', accent: '#7FB2F0' },
+      { id: 'bia', name: 'Bia', label: 'design', bg: '#1E1A2B', accent: '#C9A7F5' },
+      { id: 'duda', name: 'Duda', label: 'série', bg: '#2A1E17', accent: '#F2A65A' }
+    ];
+    const mainIds = s.pinned.length ? s.pinned : [s.focus];
+    const togglePin = (id) => () => {
+      const has = s.pinned.includes(id);
+      let next = has ? s.pinned.filter((x) => x !== id) : [...s.pinned, id].slice(-3);
+      if (!next.length) return this.setState({ pinned: [], focus: id });
+      this.setState({ pinned: next });
+    };
+    const mainTiles = mainIds.map((id) => screens.find((x) => x.id === id)).filter(Boolean).map((t) => {
+      const isPinned = s.pinned.includes(t.id);
+      return {
+        ...t, isPinned, cls: 'tile enter' + (isPinned ? ' pinned' : ''),
+        title: '[Tela de ' + t.name + ' · ' + t.label + ']', caption: 'Tela de ' + t.name,
+        pinPressed: isPinned ? 'true' : 'false',
+        pinLabel: isPinned ? 'Desafixar a tela de ' + t.name : 'Fixar a tela de ' + t.name,
+        pinText: isPinned ? 'Fixada' : 'Fixar', pinFg: isPinned ? '#FFB091' : '#ECEDEF',
+        pin: togglePin(t.id), full: () => this.setState({ full: t.id })
+      };
+    });
+    const stripScreens = screens.filter((x) => !mainIds.includes(x.id)).map((t) => ({
+      ...t, pin: togglePin(t.id), tag: '[' + t.label + ']',
+      show: () => (s.pinned.length ? this.setState({ pinned: [...s.pinned, t.id].slice(-3) }) : this.setState({ focus: t.id }))
+    }));
+    const C = { bia: '#F2A65A', caio: '#8BD3A8', duda: '#C9A7F5', felipe: '#7FB2F0' };
+    const people = [['Bia', C.bia, true], ['Caio', C.caio], ['Duda', C.duda], ['Você', C.felipe]].map(([name, color, speak]) => ({ name, color, initial: name.charAt(0), cls: speak ? 'speak' : '' }));
+    const voice = [['Bia', C.bia, true, true], ['Caio', C.caio, false, true], ['Duda', C.duda, false, true, true], ['Felipe', C.felipe]].map(([name, color, speak, sharing, muted]) => ({
+      name, color, initial: name.charAt(0), cls: speak ? 'speak' : '', sharing: Boolean(sharing), muted: Boolean(muted), fg: speak ? '#ECEDEF' : '#A9AEB8'
+    }));
+    const chat = [
+      ['Bia', C.bia, '22:41', 'fixa a tela do Caio que ele vai errar o clutch'],
+      ['Caio', C.caio, '22:41', 'respeita kkkkk'],
+      ['Duda', C.duda, '22:42', 'tô passando a série, quem quiser fixa a minha'],
+      ['Bia', C.bia, '22:43', 'fixei as duas, dividiu certinho']
+    ].map(([name, color, time, text]) => ({ name, color, time, text, initial: name.charAt(0) }));
+    const f = screens.find((x) => x.id === s.full);
+    return {
+      micOn: !s.muted, micOff: Boolean(s.muted), micCls: s.muted ? 'off' : '', micPressed: s.muted ? 'true' : 'false',
+      micLabel: s.muted ? 'Ativar microfone' : 'Desativar microfone',
+      toggleMic: () => this.setState({ muted: !s.muted, deaf: s.muted ? false : s.deaf }),
+      deaf: Boolean(s.deaf), hear: !s.deaf, deafCls: s.deaf ? 'off' : '', deafPressed: s.deaf ? 'true' : 'false',
+      deafLabel: s.deaf ? 'Ativar áudio' : 'Desativar áudio',
+      toggleDeaf: () => this.setState({ deaf: !s.deaf, muted: !s.deaf ? true : s.muted }),
+      meStatus: s.deaf ? 'Sem áudio' : (s.muted ? 'Mutado' : 'Online'),
+      font, mainTiles, stripScreens, people, voice, chat,
+      cols: Math.max(1, mainTiles.length),
+      hasFull: Boolean(f), fullText: f ? '[Tela de ' + f.name + ' em tela cheia]' : '', fullBg: f ? f.bg : '#000', fullAccent: f ? f.accent : '#fff',
+      exitFull: () => this.setState({ full: null }),
+      showChat: s.chat, chatPressed: s.chat ? 'true' : 'false', chatBtnBg: s.chat ? '#262A33' : 'transparent',
+      toggleChat: () => this.setState({ chat: !s.chat })
+    };
+  }
+}
+</script>
+</body>
+</html>

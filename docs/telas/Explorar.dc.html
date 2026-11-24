@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Resenha — explorar e criar sala</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0E0F13}
+*{scrollbar-width:none}*::-webkit-scrollbar{display:none}
+input[type=checkbox]{appearance:none;-webkit-appearance:none;width:40px !important;height:24px !important;flex:none;margin:0;border-radius:12px;background:#3A3F4B;position:relative;cursor:pointer;transition:background .2s}
+input[type=checkbox]::before{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#ECEDEF;transition:transform .2s cubic-bezier(.3,1.4,.5,1)}
+input[type=checkbox]:checked{background:#FF6B3D}input[type=checkbox]:checked::before{transform:translateX(16px)}
+a{color:#FF8A62}a:hover{color:#FFB091}
+button{font:inherit;color:inherit;cursor:pointer}
+input{font:inherit}
+.press{transition:transform .12s,background .15s,border-color .15s}
+.press:active{transform:scale(.97)}
+.card{transition:transform .2s cubic-bezier(.2,.8,.2,1),background .2s;animation:rise .4s cubic-bezier(.2,.8,.2,1) both}
+.card:hover{transform:translateY(-3px);background:#1D2027 !important}
+.btnp:hover{background:#FF7F57 !important}
+.modal{animation:pop .3s cubic-bezier(.2,.8,.2,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width:100%;min-height:900px;box-sizing:border-box;position:relative;padding:28px;background:#191B21;color:#ECEDEF;font-family:{{font}};font-size:15px;display:flex;flex-direction:column;gap:20px">
+  <header style="display:flex;flex-wrap:wrap;align-items:center;gap:14px">
+    <div style="flex:1 1 300px"><h1 style="margin:0;font-size:28px;font-weight:900;letter-spacing:-.02em">Explorar salas</h1><p style="margin:4px 0 0;color:#A9AEB8">Salas públicas da galera do Resenha. Entra quem quiser.</p></div>
+    <label style="display:flex;align-items:center;gap:8px;height:44px;width:280px;max-width:100%;padding:0 14px;border-radius:12px;background:#14161B;color:#8A909C"><span style="position:absolute;width:1px;height:1px;overflow:hidden">Buscar sala</span><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input placeholder="Buscar sala" style="flex:1;min-width:0;border:0;outline:0;background:transparent;color:#ECEDEF"></label>
+    <button class="press btnp" onClick="{{openCreate}}" style="height:44px;padding:0 18px;border:0;border-radius:12px;background:#FF6B3D;color:#1A0F0A;font-weight:800">+ Criar sala</button>
+  </header>
+  <nav aria-label="Categorias" style="display:flex;gap:6px;flex-wrap:wrap">
+    <sc-for list="{{cats}}" as="c" hint-placeholder-count="5">
+      <button class="press" onClick="{{c.pick}}" aria-pressed="{{c.pressed}}" style="height:38px;padding:0 14px;border:0;border-radius:11px;background:{{c.bg}};color:{{c.fg}};font-weight:700;font-size:14px">{{c.name}}</button>
+    </sc-for>
+  </nav>
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px">
+    <sc-for list="{{rooms}}" as="r" hint-placeholder-count="6">
+      <article class="card" style="padding:18px;border-radius:20px;background:#14161B;display:flex;flex-direction:column;gap:12px;animation-delay:{{r.d}}">
+        <div style="display:flex;align-items:center;gap:12px">
+          <span style="width:48px;height:48px;border-radius:15px;background:{{r.color}};color:#1A0F0A;font-weight:900;font-size:20px;display:flex;align-items:center;justify-content:center">{{r.initial}}</span>
+          <div style="flex:1;min-width:0"><div style="font-weight:800;font-size:16px">{{r.name}}</div><div style="font-size:12px;color:#8A909C">{{r.cat}}</div></div>
+        </div>
+        <p style="margin:0;font-size:14px;color:#A9AEB8;line-height:1.45">{{r.desc}}</p>
+        <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#A9AEB8">
+          <span style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:50%;background:#3DD68C"></span><span>{{r.onlineText}}</span></span>
+          <span>{{r.membersText}}</span>
+          <sc-if value="{{r.live}}" hint-placeholder-val="{{false}}"><span style="font-size:10px;font-weight:800;color:#fff;background:#E5484D;border-radius:5px;padding:2px 6px">CALL AO VIVO</span></sc-if>
+        </div>
+        <button class="press" onClick="{{r.join}}" style="height:42px;border:0;border-radius:12px;background:{{r.btnBg}};color:{{r.btnFg}};font-weight:800">{{r.btn}}</button>
+      </article>
+    </sc-for>
+  </div>
+
+  <!-- Criar sala -->
+  <sc-if value="{{creating}}" hint-placeholder-val="{{false}}">
+    <div style="position:absolute;inset:0;background:rgba(8,9,11,.66);display:flex;align-items:center;justify-content:center;padding:20px">
+      <div class="modal" role="dialog" aria-label="Criar sala" style="width:100%;max-width:460px;border-radius:24px;background:#14161B;border:1px solid #22252D;padding:22px;display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;align-items:flex-start"><div style="flex:1"><h2 style="margin:0;font-size:22px;font-weight:800">Criar sala</h2><p style="margin:4px 0 0;color:#A9AEB8">Escolha um ponto de partida. Dá pra mudar tudo depois.</p></div>
+          <button class="press" onClick="{{closeCreate}}" aria-label="Fechar" style="width:34px;height:34px;border:0;border-radius:10px;background:#20232B;color:#A9AEB8;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div>
+        <div role="radiogroup" aria-label="Tipo de sala" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+          <sc-for list="{{templates}}" as="t" hint-placeholder-count="3">
+            <button class="press" role="radio" aria-checked="{{t.checked}}" onClick="{{t.pick}}" style="padding:12px 8px;border-radius:14px;border:2px solid {{t.border}};background:#191B21;color:#ECEDEF;display:flex;flex-direction:column;align-items:center;gap:6px">
+              <span style="font-weight:800">{{t.name}}</span><span style="font-size:11px;color:#8A909C;text-align:center">{{t.desc}}</span>
+            </button>
+          </sc-for>
+        </div>
+        <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:700;color:#A9AEB8">Nome da sala</span><input value="{{newName}}" onInput="{{setName}}" maxlength="50" placeholder="Ex.: Resenha dos amigos" style="height:46px;border:0;border-radius:12px;background:#20232B;color:#ECEDEF;padding:0 12px;outline:0"></label>
+        <div style="font-size:13px;color:#8A909C">{{templateChannels}}</div>
+        <label style="display:flex;align-items:center;gap:12px;cursor:pointer"><input type="checkbox" style="width:20px;height:20px;accent-color:#FF6B3D"><span style="display:flex;flex-direction:column"><span style="font-weight:700">Aparecer em Explorar</span><span style="font-size:12px;color:#8A909C">Sem marcar, só entra quem tiver o convite</span></span></label>
+        <button class="press btnp" onClick="{{closeCreate}}" style="height:50px;border:0;border-radius:14px;background:#FF6B3D;color:#1A0F0A;font-weight:800;font-size:16px">Criar e pegar o convite</button>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"font":{"editor":"enum","options":["Geist","Plus Jakarta Sans","Outfit","Sora","DM Sans","Inter"],"default":"Geist","section":"Tipografia"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { cat: 'todas', joined: [], creating: false, tpl: 'galera', newName: '' };
+  }
+  renderVals() {
+    const s = this.state;
+    const font = "'" + (this.props.font ?? 'Geist') + "',system-ui,sans-serif";
+    const catDefs = [['todas', 'Todas'], ['jogos', 'Jogos'], ['estudo', 'Estudo'], ['musica', 'Música'], ['papo', 'Papo']];
+    const cats = catDefs.map(([id, name]) => ({ name, pressed: s.cat === id ? 'true' : 'false', bg: s.cat === id ? '#ECEDEF' : '#14161B', fg: s.cat === id ? '#14161B' : '#A9AEB8', pick: () => this.setState({ cat: id }) }));
+    const all = [
+      ['r1', 'Liga do fim de semana', 'jogos', 'Jogos', '#7FB2F0', 'Campeonato interno toda sexta. Times sorteados pelo bot.', 12, 48, true],
+      ['r2', 'Grupo de estudo ENEM', 'estudo', 'Estudo', '#8BD3A8', 'Call silenciosa pra estudar junto, pomodoro de 50 min.', 6, 31, true],
+      ['r3', 'Roda de pagode', 'musica', 'Música', '#FFD166', 'Quem toca, canta. Quem não toca, canta também.', 3, 22, false],
+      ['r4', 'Papo de madrugada', 'papo', 'Papo', '#C9A7F5', 'Pra quem não dorme. Começa depois da meia-noite.', 9, 64, false],
+      ['r5', 'Cine Resenha', 'papo', 'Papo', '#F28DA6', 'Sessão de filme com transmissão toda quarta.', 4, 27, true],
+      ['r6', 'Valorant BR', 'jogos', 'Jogos', '#FF6B3D', 'Procurando o quinto pra fechar o time.', 7, 40, false]
+    ];
+    const list = all.filter((r) => s.cat === 'todas' || r[2] === s.cat);
+    const rooms = list.map(([id, name, , cat, color, desc, online, members, live], i) => {
+      const joined = s.joined.includes(id);
+      return { name, cat, color, desc, live, initial: name.charAt(0), onlineText: online + ' online', membersText: '· ' + members + ' membros', d: (i * 0.05).toFixed(2) + 's',
+        btn: joined ? 'Você está na sala' : 'Entrar', btnBg: joined ? '#1F2A22' : '#262A33', btnFg: joined ? '#3DD68C' : '#ECEDEF',
+        join: () => this.setState({ joined: joined ? s.joined : [...s.joined, id] }) };
+    });
+    const tpls = [['galera', 'Galera', 'Papo e call', '#chat, #memes e a voz Resenha'], ['jogos', 'Jogos', 'Times e partidas', '#chat, #clipes e duas vozes de time'], ['estudo', 'Estudo', 'Foco e calma', '#dúvidas e a voz Estudo silencioso']];
+    const templates = tpls.map(([id, name, desc]) => ({ name, desc, checked: s.tpl === id ? 'true' : 'false', border: s.tpl === id ? '#FF6B3D' : 'transparent', pick: () => this.setState({ tpl: id }) }));
+    return {
+      font, cats, rooms, templates,
+      creating: s.creating, openCreate: () => this.setState({ creating: true }), closeCreate: () => this.setState({ creating: false }),
+      newName: s.newName, setName: (e) => this.setState({ newName: e.target.value }),
+      templateChannels: 'Já vem com: ' + (tpls.find((t) => t[0] === s.tpl) || tpls[0])[3]
+    };
+  }
+}
+</script>
+</body>
+</html>

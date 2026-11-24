@@ -1,3 +1,4 @@
+import { resolvedTheme, setPrefs, onThemeChange } from './theme.js';
 // Utilidades de interface: criação de elementos, ícones, toast, menus e modais.
 
 export const $ = (id) => document.getElementById(id);
@@ -79,18 +80,8 @@ export function initRipple() {
 }
 
 // ---------- Tema claro/escuro com transição circular ----------
-const THEME_KEY = 'resenha:tema';
-export function currentTheme() {
-  const t = document.documentElement.dataset.theme;
-  if (t === 'light' || t === 'dark') return t;
-  return matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-}
-function applyTheme(t) {
-  document.documentElement.dataset.theme = t;
-  const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.content = t === 'light' ? '#F3F2EF' : '#0E0F13';
-  try { localStorage.setItem(THEME_KEY, t); } catch (_) {}
-}
+export function currentTheme() { return resolvedTheme(); }
+function applyTheme(t) { setPrefs({ mode: t }); }
 export function setupThemeToggle(btn) {
   const paint = () => {
     const light = currentTheme() === 'light';
@@ -99,6 +90,7 @@ export function setupThemeToggle(btn) {
     btn.setAttribute('aria-label', btn.title);
   };
   paint();
+  onThemeChange(paint);
   btn.addEventListener('click', () => {
     const next = currentTheme() === 'light' ? 'dark' : 'light';
     const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;

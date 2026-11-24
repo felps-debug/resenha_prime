@@ -9,10 +9,12 @@ import { openEmojiPicker } from './emoji.js';
 import { badgeIcon, badgeRow, RARITY_LABEL } from './badges.js';
 import { COMMANDS, parseCommand, resultCard, BOT_ICON } from './draw.js';
 import { createChatCache } from './chat-cache.js';
+import { initTheme, attachAccount } from './theme.js';
+import { openConfig } from './config.js';
 import { moveFocus } from './focus-navigation.js';
 import {
   call, joinCall, leaveCall, toggleMic, setDeafened, toggleCam, toggleScreen, participants, renderStage,
-  getVolume, setVolume, loadSettings, saveSettings, switchDevice, applyAudioFilters, listDevices
+  getVolume, setVolume, loadSettings, saveSettings, switchDevice, applyAudioFilters, listDevices, sendZoeira
 } from './call.js';
 
 // ================= Estado =================
@@ -55,6 +57,7 @@ const RANK = { owner: 3, moderator: 2, member: 1 };
 boot();
 
 async function boot() {
+  initTheme();
   initRipple();
   const params = new URLSearchParams(location.search);
   const invite = params.get('convite');
@@ -227,6 +230,7 @@ async function startApp() {
   $('auth-screen').hidden = true;
   $('app').hidden = false;
 
+  attachAccount(sb, session.user);
   const uid = session.user.id;
   let prof = null;
   for (let i = 0; i < 5 && !prof; i++) {
@@ -254,6 +258,7 @@ async function startApp() {
 
   call.onChange = onCallChange;
   call.avatarUrl = (id) => (profs.get(id) || {}).avatar_url || null;
+  call.onPersonClick = (tile, id) => memberMenu(tile, id);
   wireStatic();
   subscribeMe();
   await loadRooms();
@@ -291,7 +296,13 @@ function renderMe() {
   const a = avatarOf(me.id, me.display_name, '', true);
   a.id = 'me-avatar';
   $('me-avatar').replaceWith(a);
-  document.querySelector('.me-sub').textContent = STATUS[shownStatus()].label;
+  paintMeSub();
+}
+// Rodapé: Online / Mutado / Sem áudio (o status escolhido aparece quando o áudio está normal)
+function paintMeSub() {
+  const el = document.querySelector('.me-sub');
+  if (!el || !me) return;
+  el.textContent = call.deafened ? 'Sem áudio' : call.muted ? 'Mutado' : STATUS[shownStatus()].label;
 }
 
 // ---------- Status e presença ----------
@@ -884,19 +895,43 @@ function renderMembers() {
   for (const r of roles) groups.push([r.name, rest.filter((m) => m.role_id === r.id)]);
   groups.push(['Online', rest.filter((m) => !m.role_id || !roles.some((r) => r.id === m.role_id))]);
   groups.push(['Offline', offline]);
+  let idx = 0;
+  const cascade = () => ({ '--i': String(Math.min(idx++, 16)) });
   for (const [title, list] of groups) {
     if (!list.length) continue;
-    panel.append(h('div', { class: 'mem-group' }, `${title} — ${list.length}`));
+    panel.append(h('div', { class: 'mem-group', style: cascade() }, `${title} — ${list.length}`));
     for (const m of list.sort((a, b) => a.name.localeCompare(b.name))) {
       const st = statusOf(m.user_id);
-      const b = h('button', { class: 'mem' + (st === 'offline' ? ' offline' : '') },
+      const b = h('button', { class: 'mem' + (st === 'offline' ? ' offline' : ''), 'data-uid': m.user_id, style: cascade() },
         avatarOf(m.user_id, m.name, '', true),
-        h('span', { class: 'name', style: { color: nameColor(m) || '' } }, m.name),
+        h('span', { class: 'mem-text' },
+          h('span', { class: 'name', style: { color: nameColor(m) || '' } }, m.name),
+          h('span', { class: 'mem-act' }, activityOf(m.user_id) || (STATUS[st] || STATUS.offline).label)),
         m.base_role === 'owner' ? h('span', { class: 'crown', html: ICON.crown, title: 'Dono' }) : null,
         m.base_role === 'moderator' ? h('span', { class: 'crown', html: ICON.shield, title: 'Moderador', style: { color: 'var(--accent)' } }) : null);
       b.addEventListener('click', () => memberMenu(b, m.user_id));
       panel.append(b);
     }
+  }
+}
+
+// O que a pessoa está fazendo agora (aparece embaixo do nome no painel de membros)
+function activityOf(id) {
+  if (typing.has(id)) return 'Digitando…';
+  if (!current) return null;
+  if (call.room && call.roomId === current.id) {
+    const x = participants().find((p) => p.identity === id);
+    if (x) return x.screen && !x.screen.isMuted ? 'Transmitindo a tela' : 'Na call';
+  } else if (callPreview.some((p) => p.identity === id)) return 'Na call';
+  return null;
+}
+function updateMemberActivity() {
+  for (const b of document.querySelectorAll('#members-panel .mem[data-uid]')) {
+    const el = b.querySelector('.mem-act');
+    const id = b.dataset.uid;
+    const st = statusOf(id);
+    const text = activityOf(id) || (STATUS[st] || STATUS.offline).label;
+    if (el && el.textContent !== text) el.textContent = text;
   }
 }
 
@@ -915,6 +950,7 @@ function memberMenu(anchor, userId) {
     const range = h('input', { type: 'range', min: '0', max: '200', step: '5', value: String(val), 'aria-label': `Volume de ${name}` });
     range.addEventListener('input', () => { label.textContent = `Volume: ${range.value}%`; setVolume(userId, Number(range.value) / 100); });
     items.push('sep', { node: h('div', { class: 'menu-range' }, label, range) });
+    items.push({ label: 'Mandar pra privada', onClick: () => sendZoeira('privada', userId) });
   }
 
   if (m && current) {
@@ -1782,6 +1818,7 @@ function stopTyping(id) {
   renderTyping();
 }
 function renderTyping() {
+  updateMemberActivity();
   const el = $('typing');
   el.innerHTML = '';
   const list = [...typing.values()].map((x) => x.name);
@@ -2062,6 +2099,7 @@ function renderCallCard() {
   const card = $('call-card');
   const join = $('call-card-join');
   card.hidden = !current;
+  $('voice-cat').hidden = !current || mode === 'dms';
   if (!current) { card.classList.remove('live'); join.hidden = true; return; }
   const inThis = Boolean(call.room && call.roomId === current.id);
   const count = inThis ? participants().length : callPreview.length;
@@ -2077,6 +2115,7 @@ function renderCallList() {
   const ul = $('call-list');
   ul.innerHTML = '';
   renderCallCard();
+  updateMemberActivity();
   if (!current) return;
   const inThis = call.room && call.roomId === current.id;
   if (inThis) {
@@ -2136,6 +2175,7 @@ function onCallChange() {
   setBtn($('deaf-btn'), !call.deafened, ICON.head, ICON.headOff, 'Desativar áudio', 'Ativar áudio');
   $('deaf-btn').classList.toggle('off', call.deafened);
   $('settings-btn').innerHTML = ICON.gear;
+  paintMeSub();
 
   const connected = Boolean(call.room);
   $('voice-bar').hidden = !connected && !call.connecting;
@@ -2494,6 +2534,34 @@ function allBadgesSection() {
   return box;
 }
 
+// Dentro da tela de Configurações, os formulários de perfil, áudio e notificações aparecem no painel (não em janela).
+let configPane = null;
+function presentPanel(opts) {
+  if (!configPane) return openModal(opts);
+  const keep = (opts.actions || []).filter((b) => !['Pronto', 'Cancelar'].includes(b.textContent));
+  const kids = [].concat(opts.body).filter(Boolean);
+  configPane.replaceChildren(h('section', { class: 'cfg-card cfg-form' }, ...kids), ...(keep.length ? [h('div', { class: 'cfg-actions' }, keep)] : []));
+  return configPane;
+}
+const panelDone = () => { if (!configPane) closeModal(); };
+
+function openConfigScreen(start) {
+  openConfig({
+    sb,
+    getMe: () => me,
+    getSession: () => session,
+    avatarEl: () => { const a = avatarOf(me.id, me.display_name, '', true); a.classList.add('cfg-me-av'); return a; },
+    mount: (name, container) => {
+      const fn = { profile: profileModal, audio: settingsModal, notif: notifModal }[name];
+      if (!fn) return;
+      configPane = container;
+      Promise.resolve(fn()).catch(() => {}).finally(() => { if (configPane === container) configPane = null; });
+    },
+    signOut: async () => { if (call.room) await leaveCall(true); await sb.auth.signOut(); location.reload(); },
+    updates: async () => { if (!updates.length) await loadUpdates(); return updates; }
+  }, start);
+}
+
 function profileModal() {
   const draft = { avatar_url: me.avatar_url || null, banner_url: me.banner_url || null };
   const pending = { avatar: null, banner: null };    // arquivos novos escolhidos
@@ -2543,8 +2611,8 @@ function profileModal() {
     input);
 
   const save = h('button', { class: 'btn primary' }, 'Salvar');
-  openModal({
-    title: 'Seu perfil',
+  presentPanel({
+    title: 'Perfil',
     body: [
       preview,
       btnRow('Foto de perfil', avIn, 'avatar'),
@@ -2587,7 +2655,7 @@ function profileModal() {
       Object.assign(me, patch);
       setProf(me);
       renderMe();
-      closeModal();
+      panelDone();
       urls.forEach((u) => URL.revokeObjectURL(u));
       loadMembers();
       toast('Perfil atualizado!');
@@ -2626,7 +2694,7 @@ function notifModal() {
   });
   sound.addEventListener('change', save);
   radios.forEach((l) => l.querySelector('input').addEventListener('change', save));
-  openModal({
+  presentPanel({
     title: 'Notificações',
     body: [
       h('div', { class: 'field' }, h('span', { class: 'label' }, 'Me avisar de'), ...radios),
@@ -2662,16 +2730,22 @@ async function settingsModal() {
       });
       return h('label', { class: 'check' }, cb, label);
     });
+  const mirror = h('input', { type: 'checkbox', checked: s.mirrorCam });
+  mirror.addEventListener('change', () => {
+    const cur = loadSettings(); cur.mirrorCam = mirror.checked; saveSettings(cur);
+    call.onChange();
+  });
   const meter = h('div', { class: 'meter' }, h('div'));
   const body = [
     await mk('audioinput', 'Microfone'),
     h('div', { class: 'field' }, h('span', { class: 'label' }, 'Teste do microfone'), meter),
     await mk('audiooutput', 'Saída de áudio'),
     await mk('videoinput', 'Câmera'),
+    h('label', { class: 'check' }, mirror, 'Espelhar minha câmera (só para você; os outros veem normal)'),
     h('div', { class: 'field' }, h('span', { class: 'label' }, 'Processamento de voz'), ...filters),
     h('p', { class: 'hint' }, 'Se os nomes dos dispositivos não aparecerem, permita o microfone no navegador e abra de novo.')
   ];
-  openModal({ title: 'Áudio e vídeo', body, actions: [h('button', { class: 'btn primary', onClick: closeModal }, 'Pronto')] });
+  presentPanel({ title: 'Áudio e vídeo', body, actions: [h('button', { class: 'btn primary', onClick: closeModal }, 'Pronto')] });
   // Medidor de volume do microfone
   let stream, raf, actx;
   try {
@@ -2747,9 +2821,10 @@ function meMenu() {
     items.push({ node: b });
   }
   items.push('sep',
-    { label: 'Editar perfil', onClick: profileModal },
-    { label: 'Notificações', onClick: notifModal },
-    { label: 'Áudio e vídeo', onClick: settingsModal });
+    { label: 'Editar perfil', onClick: () => openConfigScreen('profile') },
+    { label: 'Notificações', onClick: () => openConfigScreen('notif') },
+    { label: 'Áudio e vídeo', onClick: () => openConfigScreen('audio') },
+    { label: 'Configurações', onClick: () => openConfigScreen('look') });
   if (installPrompt) items.push({ label: 'Instalar app no PC', onClick: installApp });
   items.push('sep', { label: 'Sair da conta', danger: true, onClick: async () => { if (call.room) await leaveCall(true); await sb.auth.signOut(); location.reload(); } });
   openMenu($('me-btn'), items, { above: true });
@@ -2792,7 +2867,7 @@ function wireStatic() {
   $('mic-btn').addEventListener('click', toggleMic);
   $('mic-btn-2').addEventListener('click', toggleMic);
   $('deaf-btn').addEventListener('click', () => setDeafened(!call.deafened));
-  $('settings-btn').addEventListener('click', settingsModal);
+  $('settings-btn').addEventListener('click', () => openConfigScreen('look'));
   $('cam-btn').addEventListener('click', toggleCam);
   $('cam-btn-2').addEventListener('click', toggleCam);
   $('speaker-btn-2').addEventListener('click', () => setDeafened(!call.deafened));
@@ -2807,7 +2882,13 @@ function wireStatic() {
   $('members-toggle').addEventListener('click', () => {
     const p = $('members-panel');
     if (innerWidth <= 1100) p.classList.toggle('open');
-    else p.classList.toggle('closed');
+    else {
+      p.classList.toggle('closed');
+      if (!p.classList.contains('closed')) {
+        p.classList.add('cascade');
+        setTimeout(() => p.classList.remove('cascade'), 1100);
+      }
+    }
     const shown = innerWidth <= 1100 ? p.classList.contains('open') : !p.classList.contains('closed');
     $('members-toggle').classList.toggle('pressed', shown);
   });
@@ -2826,6 +2907,14 @@ function wireStatic() {
     $('app').classList.remove('show-side');
     $('side-toggle').setAttribute('aria-expanded', 'false');
     $('side-toggle').focus();
+  });
+  window.addEventListener('keydown', (event) => {
+    if (!event.altKey || !event.shiftKey || event.ctrlKey || event.metaKey || !call.room) return;
+    const k = event.key.toLowerCase();
+    const actions = { m: toggleMic, d: () => setDeafened(!call.deafened), l: () => leaveCall() };
+    if (!actions[k]) return;
+    event.preventDefault();
+    actions[k]();
   });
   $('vb-sub').addEventListener('click', () => { if (call.roomId) { openRoom(call.roomId); } });
   window.addEventListener('beforeunload', () => { if (call.room) call.room.disconnect(); });

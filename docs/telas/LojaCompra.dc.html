@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Resenha — compra e agradecimento</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0E0F13}
+*{scrollbar-width:none}*::-webkit-scrollbar{display:none}
+a{color:#FF8A62}a:hover{color:#FFB091}
+button{font:inherit;color:inherit;cursor:pointer}
+.press{transition:transform .12s,background .15s,border-color .15s}
+.press:active{transform:scale(.97)}
+.btnp:hover{background:#FF7F57 !important}
+.modal{animation:pop .35s cubic-bezier(.2,.8,.2,1) both}
+.bob{animation:bob 1.6s ease-in-out infinite}
+.spin{animation:spin .9s linear infinite}
+.cf{position:absolute;top:-12px;width:8px;height:12px;border-radius:2px;animation:fall 2.2s linear infinite}
+.big{animation:big .6s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes pop{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fall{from{transform:translateY(0) rotate(0)}to{transform:translateY(520px) rotate(360deg)}}
+@keyframes big{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width:100%;min-height:900px;position:relative;background:#191B21;color:#ECEDEF;font-family:{{font}};font-size:15px;overflow:hidden">
+  <!-- Loja ao fundo -->
+  <div aria-hidden="true" style="padding:24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px;filter:blur(2px);opacity:.45">
+    <sc-for list="{{ghost}}" as="g" hint-placeholder-count="8">
+      <div style="height:220px;border-radius:18px;background:#14161B"></div>
+    </sc-for>
+  </div>
+  <div aria-hidden="true" style="position:absolute;inset:0;background:rgba(8,9,11,.6)"></div>
+
+  <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:24px">
+
+    <!-- Card de compra -->
+    <sc-if value="{{stepBuy}}" hint-placeholder-val="{{true}}">
+      <div class="modal" role="dialog" aria-label="Comprar Chapéu de palhaço" style="width:100%;max-width:440px;border-radius:24px;background:#14161B;border:1px solid #22252D;overflow:hidden">
+        <div style="height:190px;background:#101216;display:flex;align-items:center;justify-content:center;position:relative">
+          <span class="bob" style="position:relative;display:inline-flex;margin-top:24px">
+            <svg aria-hidden="true" width="56" height="50" viewBox="0 0 46 42" style="position:absolute;left:50%;top:-38px;transform:translateX(-50%) rotate(-12deg);z-index:2"><path d="M23 4 40 37H6z" fill="#E5484D"></path><path d="M15 20h16l4 8H11z" fill="#FFD166"></path><circle cx="23" cy="5" r="5" fill="#ECEDEF"></circle><rect x="4" y="34" width="38" height="6" rx="3" fill="#ECEDEF"></rect></svg>
+            <span style="width:84px;height:84px;border-radius:50%;background:{{tColor}};color:#14161B;font-weight:800;font-size:32px;display:flex;align-items:center;justify-content:center">{{tInitial}}</span>
+          </span>
+          <a href="Loja.dc.html" aria-label="Fechar" style="position:absolute;right:12px;top:12px;width:34px;height:34px;border-radius:10px;background:#20232B;color:#A9AEB8;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></a>
+          <span style="position:absolute;left:12px;top:12px;font-size:11px;font-weight:800;color:#1A0F0A;background:#FFD166;border-radius:6px;padding:3px 7px">ZOEIRA · 24 H</span>
+        </div>
+        <div style="padding:20px 22px 22px;display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;align-items:flex-start;gap:12px">
+            <div style="flex:1"><h1 style="margin:0;font-size:22px;font-weight:800;letter-spacing:-.01em">Chapéu de palhaço</h1><p style="margin:4px 0 0;color:#A9AEB8;line-height:1.45">Coloca um chapéu de palhaço na foto do amigo por 24 horas.</p></div>
+            <span style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:20px;color:#FFB091">R$ 0,99</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <span style="font-size:13px;font-weight:700;color:#A9AEB8">Quem vai ser zoado?</span>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <sc-for list="{{friends}}" as="f" hint-placeholder-count="4">
+                <button class="press" onClick="{{f.pick}}" aria-pressed="{{f.pressed}}" style="height:40px;padding:0 12px 0 6px;border:2px solid {{f.border}};border-radius:999px;background:#1D2027;color:#ECEDEF;font-weight:700;font-size:14px;display:flex;align-items:center;gap:8px">
+                  <span style="width:28px;height:28px;border-radius:50%;background:{{f.color}};color:#14161B;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center">{{f.initial}}</span>{{f.name}}
+                </button>
+              </sc-for>
+            </div>
+          </div>
+          <button class="press btnp" onClick="{{pay}}" style="height:52px;border:0;border-radius:14px;background:#FF6B3D;color:#1A0F0A;font-weight:800;font-size:16px">{{payText}}</button>
+          <div style="display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;color:#8A909C">
+            <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+            Pix ou cartão, pelo Stripe. Aparece "zoeira de Felipe" junto.
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- Pagando -->
+    <sc-if value="{{stepPaying}}" hint-placeholder-val="{{false}}">
+      <div class="modal" role="dialog" aria-label="Pagamento em andamento" style="width:100%;max-width:400px;padding:32px 24px;border-radius:24px;background:#14161B;border:1px solid #22252D;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center">
+        <span class="spin" aria-hidden="true" style="width:44px;height:44px;border-radius:50%;border:4px solid #262A33;border-top-color:#FF6B3D"></span>
+        <h1 style="margin:0;font-size:20px;font-weight:800">Esperando o pagamento</h1>
+        <p style="margin:0;color:#A9AEB8;line-height:1.5">{{payingText}}</p>
+        <button class="press" onClick="{{approve}}" style="height:40px;padding:0 16px;border:0;border-radius:10px;background:transparent;color:#8A909C;font-weight:700;font-size:13px">Simular pagamento aprovado</button>
+      </div>
+    </sc-if>
+
+    <!-- Agradecimento -->
+    <sc-if value="{{stepThanks}}" hint-placeholder-val="{{false}}">
+      <div aria-hidden="true" style="position:absolute;inset:0;pointer-events:none">
+        <sc-for list="{{confetti}}" as="c" hint-placeholder-count="14">
+          <span class="cf" style="left:{{c.left}};background:{{c.color}};animation-delay:{{c.delay}};animation-duration:{{c.dur}}"></span>
+        </sc-for>
+      </div>
+      <div class="modal" role="dialog" aria-label="Obrigado" style="position:relative;width:100%;max-width:460px;padding:30px 26px 24px;border-radius:24px;background:#14161B;border:1px solid #22252D;display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center">
+        <span class="big" style="width:76px;height:76px;border-radius:50%;background:#FF6B3D;color:#fff;display:flex;align-items:center;justify-content:center">
+          <svg aria-hidden="true" width="40" height="40" viewBox="0 0 48 48"><circle cx="24" cy="24" r="13" fill="none" stroke="currentColor" stroke-width="4"></circle><circle cx="24" cy="11" r="5.5" fill="currentColor"></circle><circle cx="35.3" cy="30.5" r="5.5" fill="currentColor"></circle><circle cx="12.7" cy="30.5" r="5.5" fill="currentColor"></circle></svg>
+        </span>
+        <h1 style="margin:0;font-size:26px;font-weight:900;letter-spacing:-.02em">Valeu demais!</h1>
+        <p style="margin:0;color:#DADCE0;line-height:1.5">{{thanksText}}</p>
+        <div style="width:100%;padding:14px;border-radius:16px;background:#1D2027;display:flex;flex-direction:column;gap:8px;text-align:left">
+          <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:#A9AEB8">Sua ajuda pro Resenha</span><span style="font-family:'JetBrains Mono',monospace;font-weight:700">R$ 0,99</span></div>
+          <div style="height:8px;border-radius:999px;background:#262A33;overflow:hidden"><div style="width:64%;height:100%;border-radius:999px;background:#3DD68C"></div></div>
+          <span style="font-size:12px;color:#8A909C">Os custos deste mês estão 64% pagos. Cada compra mantém o servidor e a call no ar.</span>
+        </div>
+        <div style="width:100%;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px">
+          <a href="Main.dc.html" class="press" style="height:46px;border-radius:12px;background:#262A33;color:#ECEDEF;font-weight:800;display:flex;align-items:center;justify-content:center;text-decoration:none">Ver no chat</a>
+          <button class="press btnp" onClick="{{again}}" style="height:46px;border:0;border-radius:12px;background:#FF6B3D;color:#1A0F0A;font-weight:800">Zoar mais alguém</button>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"font":{"editor":"enum","options":["Geist","Plus Jakarta Sans","Outfit","Sora","DM Sans","Inter"],"default":"Geist","section":"Tipografia"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { step: 'buy', friend: 'caio' };
+  }
+  renderVals() {
+    const s = this.state;
+    const font = "'" + (this.props.font ?? 'Geist') + "',system-ui,sans-serif";
+    const F = [{ id: 'bia', name: 'Bia', color: '#F2A65A' }, { id: 'caio', name: 'Caio', color: '#8BD3A8' }, { id: 'duda', name: 'Duda', color: '#C9A7F5' }, { id: 'gabi', name: 'Gabi', color: '#F28DA6' }];
+    const t = F.find((x) => x.id === s.friend) || F[1];
+    const friends = F.map((x) => ({ ...x, initial: x.name.charAt(0), pressed: s.friend === x.id ? 'true' : 'false', border: s.friend === x.id ? '#FF6B3D' : 'transparent', pick: () => this.setState({ friend: x.id }) }));
+    const colors = ['#FF6B3D', '#FFD166', '#3DD68C', '#7FB2F0', '#F28DA6', '#C9A7F5'];
+    const confetti = Array.from({ length: 22 }, (_, i) => ({ left: ((i * 47) % 100) + '%', color: colors[i % colors.length], delay: ((i * 0.13) % 1.8).toFixed(2) + 's', dur: (1.8 + (i % 5) * 0.25).toFixed(2) + 's' }));
+    return {
+      font, friends, confetti, ghost: Array.from({ length: 8 }, () => ({})),
+      tInitial: t.name.charAt(0), tColor: t.color,
+      payText: 'Zoar ' + t.name + ' por R$ 0,99',
+      payingText: 'Abrimos a página segura do Stripe. Quando o Pix cair, o chapéu aparece sozinho na foto do ' + t.name + '.',
+      thanksText: t.name + ' está de chapéu de palhaço pelas próximas 24 horas. Todo mundo da sala já está vendo.',
+      stepBuy: s.step === 'buy', stepPaying: s.step === 'paying', stepThanks: s.step === 'thanks',
+      pay: () => this.setState({ step: 'paying' }),
+      approve: () => this.setState({ step: 'thanks' }),
+      again: () => this.setState({ step: 'buy' })
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Resenha — DJ Resenha</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0E0F13}
+*{scrollbar-width:none}*::-webkit-scrollbar{display:none}
+button{font:inherit;color:inherit;cursor:pointer}
+input{font:inherit}
+.tile{position:relative;border-radius:20px;background:#191B21;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;overflow:hidden}
+.speak{animation:ring 1.4s ease-out infinite}
+.dj{background:radial-gradient(120% 90% at 50% 0%,#2A2240 0%,#191B21 70%)}
+.djIn{animation:djIn .6s cubic-bezier(.3,1.4,.5,1) both}
+.vin{width:110px;height:110px;border-radius:50%;background:repeating-radial-gradient(circle,#121317 0 2px,#1C1E24 2px 3px);box-shadow:0 12px 28px -10px rgba(0,0,0,.9);position:relative}
+.vin .lb{position:absolute;left:50%;top:50%;width:38px;height:38px;margin:-19px 0 0 -19px;border-radius:50%;background:#FF6B3D}
+.vin .lb::after{content:"";position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:#0B0C0F}
+.vin .sh{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 30deg,transparent 0 40deg,rgba(255,255,255,.1) 55deg,transparent 75deg 220deg,rgba(255,255,255,.07) 235deg,transparent 255deg)}
+.vin.on{animation:spin 2.6s linear infinite}
+.eq{display:flex;align-items:flex-end;gap:3px;height:18px}
+.eq span{width:4px;height:18px;border-radius:2px;background:#FF6B3D;transform-origin:bottom;transform:scaleY(.3)}
+.eq.on span{animation:eq .9s ease-in-out infinite}
+.eq.on span:nth-child(2){animation-delay:.15s}.eq.on span:nth-child(3){animation-delay:.3s}.eq.on span:nth-child(4){animation-delay:.45s}
+.tile .pin{opacity:0;transform:translateY(-4px);transition:opacity .15s,transform .15s,background .15s}
+.tile:hover .pin,.tile .pin.on{opacity:1;transform:none}
+.pin:hover{background:#FF6B3D !important;color:#1A0F0A !important}
+.np{animation:msgIn .45s cubic-bezier(.3,1.4,.5,1) both}
+.album{position:relative;width:132px;height:84px;flex:none}
+.sleeve{position:absolute;left:0;top:0;width:84px;height:84px;border-radius:10px;z-index:2;background:#000;box-shadow:0 10px 22px -10px rgba(0,0,0,.9),inset 0 0 0 1px #262A33;transition:transform .5s cubic-bezier(.2,.8,.2,1);overflow:hidden}
+.vinyl{position:absolute;left:4px;top:4px;width:76px;height:76px;border-radius:50%;z-index:1;background:repeating-radial-gradient(circle,#121317 0 2px,#1C1E24 2px 3px);box-shadow:0 8px 18px -8px rgba(0,0,0,.9);transition:transform .6s cubic-bezier(.2,.8,.2,1)}
+.vinyl .disc{position:absolute;inset:0;border-radius:50%}
+.vinyl .shine{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 30deg,transparent 0 40deg,rgba(255,255,255,.1) 55deg,transparent 75deg 220deg,rgba(255,255,255,.07) 235deg,transparent 255deg)}
+.vinyl .label{position:absolute;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;background:#FF6B3D}
+.vinyl .hole{position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px 0 0 -2px;border-radius:50%;background:#0B0C0F}
+.album.out .vinyl{transform:translateX(48px)}
+.album:hover .vinyl{transform:translateX(54px)}
+.album:hover .sleeve{transform:rotate(-3deg)}
+.album.spin .disc{animation:spin 2.6s linear infinite}
+.msg{animation:msgIn .4s cubic-bezier(.3,1.4,.5,1) both}
+.embed{border-radius:14px;background:#14161B;box-shadow:inset 0 0 0 1px #262A33}
+.ac{animation:acIn .18s ease-out both}
+.acItem{transition:background .12s}
+.acItem:hover{background:#262A33 !important}
+.composer{transition:box-shadow .18s}
+.composer:focus-within{box-shadow:0 0 0 2px rgba(255,107,61,.5)}
+.chip{transition:background .15s,transform .12s}
+.chip:hover{background:#2E323C !important}
+.chip:active{transform:scale(.95)}
+@keyframes ring{0%{box-shadow:0 0 0 0 rgba(61,214,140,.55)}100%{box-shadow:0 0 0 8px rgba(61,214,140,0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes eq{0%,100%{transform:scaleY(.3)}50%{transform:scaleY(1)}}
+@keyframes msgIn{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes acIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes djIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:none}}
+@media (max-width:1000px){.chat{flex-basis:100% !important;max-width:none !important}}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width:100%;min-height:900px;display:flex;flex-wrap:wrap;background:#0E0F13;color:#ECEDEF;font-family:'Geist',system-ui,sans-serif;font-size:15px">
+
+  <!-- Call -->
+  <section style="flex:999 1 620px;min-width:0;box-sizing:border-box;padding:16px 20px;display:flex;flex-direction:column;gap:14px;height:900px">
+    <header style="display:flex;align-items:center;gap:12px">
+      <h1 style="margin:0;font-size:17px;font-weight:800">Call · Resenha</h1>
+      <span style="font-size:12px;color:#8A909C">{{countText}}</span>
+    </header>
+    <div style="flex:1;min-height:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:minmax(0,1fr);gap:14px;align-content:center">
+      <sc-for list="{{people}}" as="p" hint-placeholder-count="4">
+        <div class="tile" style="grid-column:{{p.span}};order:{{p.order}}">
+          <span class="{{p.cls}}" style="width:72px;height:72px;border-radius:50%;background:{{p.color}};color:#14161B;font-weight:800;font-size:28px;display:flex;align-items:center;justify-content:center">{{p.initial}}</span>
+          <span style="position:absolute;left:12px;bottom:12px;padding:4px 9px;border-radius:8px;background:rgba(14,15,19,.78);font-size:13px;font-weight:700">{{p.name}}</span>
+          <button class="{{p.pinCls}}" onClick="{{p.togglePin}}" aria-label="{{p.pinAria}}" style="position:absolute;right:12px;top:12px;height:32px;padding:0 11px;border:0;border-radius:10px;background:rgba(14,15,19,.82);color:{{p.pinFg}};font-weight:700;font-size:12px;display:flex;align-items:center;gap:6px">
+            <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="{{p.pinFill}}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5M9 3h6l-1 6 4 4H6l4-4z"></path></svg>{{p.pinText}}
+          </button>
+        </div>
+      </sc-for>
+      <sc-if value="{{inCall}}" hint-placeholder-val="{{true}}">
+        <div class="tile djIn">
+          <span style="width:72px;height:72px;border-radius:50%;background:#C9A7F5;color:#14161B;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg></span>
+          <span style="position:absolute;left:12px;bottom:12px;display:flex;align-items:center;gap:6px;padding:4px 9px;border-radius:8px;background:rgba(14,15,19,.78);font-size:13px;font-weight:700">
+            <svg role="img" aria-label="Microfone desligado" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF5A5F" stroke-width="2.2" stroke-linecap="round"><path d="M2 2l20 20M9 9v3a3 3 0 0 0 5.1 2.1M15 9.3V5a3 3 0 0 0-5.9-.6M19 10v2a7 7 0 0 1-.6 2.9M5 10v2a7 7 0 0 0 11.5 5.4M12 19v3"></path></svg>
+            DJ Resenha
+            <span style="font-size:10px;font-weight:800;letter-spacing:.06em;background:#262A33;border-radius:5px;padding:2px 6px">BOT</span>
+          </span>
+        </div>
+      </sc-if>
+    </div>
+  </section>
+
+  <!-- Chat da call -->
+  <aside class="chat" aria-label="Chat da call" style="flex:0 1 460px;max-width:460px;box-sizing:border-box;background:#14161B;display:flex;flex-direction:column;height:900px">
+    <header style="height:60px;flex:none;padding:0 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #22252D">
+      <span style="font-weight:800">Chat da call</span>
+      <span style="font-size:12px;color:#8A909C">digite m!help</span>
+    </header>
+
+    <!-- Tocando agora: o CD fica aqui, do lado do chat -->
+    <sc-if value="{{inCall}}" hint-placeholder-val="{{true}}">
+      <div class="np" style="flex:none;margin:14px 16px 0;padding:14px;border-radius:18px;background:#191B21;display:flex;gap:14px;align-items:center;overflow:hidden">
+        <div class="{{albumCls}}">
+          <div class="vinyl"><div class="disc"><span class="shine"></span><span class="label"></span><span class="hole"></span></div></div>
+          <div class="sleeve" aria-label="Player do YouTube">
+            <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:6px;color:#5A5F6B;font-size:9px;line-height:1.3">[player do YouTube]</span>
+          </div>
+        </div>
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px">
+          <span style="font-size:10px;font-weight:800;letter-spacing:.08em;color:#C9A7F5">DJ RESENHA TOCANDO</span>
+          <span style="font-weight:800;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{nowTitle}}</span>
+          <span style="font-size:12px;color:#A9AEB8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{nowSub}}</span>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:2px">
+            <div class="{{eqCls}}" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+            <span style="font-size:11px;color:#8A909C">{{stateText}}</span>
+          </div>
+        </div>
+        <button class="chip" onClick="{{togglePlay}}" aria-label="{{playLabel}}" style="width:42px;height:42px;flex:none;border:0;border-radius:50%;background:#FF6B3D;color:#1A0F0A;display:flex;align-items:center;justify-content:center">
+          <sc-if value="{{isPlaying}}" hint-placeholder-val="{{true}}"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"></rect><rect x="14" y="5" width="4" height="14" rx="1"></rect></svg></sc-if>
+          <sc-if value="{{isPaused}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l12-7z"></path></svg></sc-if>
+        </button>
+      </div>
+    </sc-if>
+    <div style="flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column-reverse">
+      <div style="padding:14px 16px;display:flex;flex-direction:column;gap:14px">
+        <sc-for list="{{msgs}}" as="m" hint-placeholder-count="4">
+          <div class="msg" style="display:flex;gap:12px">
+            <span style="width:36px;height:36px;flex:none;border-radius:{{m.avR}};background:{{m.color}};color:#14161B;font-weight:800;display:flex;align-items:center;justify-content:center">
+              <sc-if value="{{m.isBot}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#14161B" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg></sc-if>
+              <sc-if value="{{m.isUser}}" hint-placeholder-val="{{true}}">{{m.initial}}</sc-if>
+            </span>
+            <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:6px">
+              <div style="display:flex;align-items:baseline;gap:8px">
+                <span style="font-weight:800;color:{{m.nameColor}}">{{m.name}}</span>
+                <sc-if value="{{m.isBot}}" hint-placeholder-val="{{false}}"><span style="font-size:10px;font-weight:800;letter-spacing:.06em;background:#262A33;border-radius:5px;padding:2px 6px">BOT</span></sc-if>
+              </div>
+              <sc-if value="{{m.isUser}}" hint-placeholder-val="{{true}}">
+                <span style="font-family:'JetBrains Mono',monospace;font-size:14px;color:#DADCE0;word-break:break-word">{{m.text}}</span>
+              </sc-if>
+              <sc-if value="{{m.isBot}}" hint-placeholder-val="{{false}}">
+                <div class="embed" style="padding:12px 14px;display:flex;flex-direction:column;gap:6px">
+                  <span style="font-size:11px;font-weight:800;letter-spacing:.08em;color:{{m.tagColor}}">{{m.tag}}</span>
+                  <span style="font-weight:800">{{m.title}}</span>
+                  <sc-if value="{{m.hasSub}}" hint-placeholder-val="{{false}}"><span style="font-size:13px;color:#A9AEB8;white-space:pre-line;line-height:1.55">{{m.sub}}</span></sc-if>
+                  <sc-if value="{{m.hasLines}}" hint-placeholder-val="{{false}}">
+                    <div style="display:flex;flex-direction:column;gap:4px;margin-top:2px">
+                      <sc-for list="{{m.lines}}" as="l" hint-placeholder-count="3">
+                        <span style="display:flex;gap:10px;font-size:13px"><span style="font-family:'JetBrains Mono',monospace;color:#8A909C;width:22px">{{l.n}}</span><span style="flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:{{l.color}};font-weight:{{l.weight}}">{{l.text}}</span><span style="color:#8A909C">{{l.by}}</span></span>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+
+    <!-- Atalhos rápidos -->
+    <div style="flex:none;display:flex;gap:6px;flex-wrap:wrap;padding:0 16px 8px">
+      <sc-for list="{{chips}}" as="c" hint-placeholder-count="4">
+        <button class="chip" onClick="{{c.run}}" style="height:32px;padding:0 10px;border:0;border-radius:9px;background:#20232B;color:#ECEDEF;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700">{{c.cmd}}</button>
+      </sc-for>
+    </div>
+
+    <!-- Compositor com autocompletar -->
+    <div style="flex:none;padding:0 16px 16px;position:relative">
+      <sc-if value="{{showAc}}" hint-placeholder-val="{{false}}">
+        <div class="ac" role="listbox" aria-label="Comandos do DJ" style="position:absolute;left:16px;right:16px;bottom:72px;border-radius:14px;background:#191B21;box-shadow:0 18px 40px -12px rgba(0,0,0,.9),inset 0 0 0 1px #262A33;padding:6px;display:flex;flex-direction:column;gap:2px">
+          <span style="font-size:11px;font-weight:800;letter-spacing:.08em;color:#8A909C;padding:6px 8px">COMANDOS DO DJ RESENHA</span>
+          <sc-for list="{{acList}}" as="a" hint-placeholder-count="4">
+            <button class="acItem" role="option" onClick="{{a.fill}}" style="display:flex;align-items:center;gap:10px;padding:8px;border:0;border-radius:9px;background:transparent;text-align:left">
+              <span style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:#FFB091;min-width:118px">{{a.cmd}}</span>
+              <span style="font-size:13px;color:#A9AEB8">{{a.desc}}</span>
+            </button>
+          </sc-for>
+        </div>
+      </sc-if>
+      <form onSubmit="{{submit}}" class="composer" style="display:flex;align-items:center;gap:6px;height:52px;padding:0 6px 0 14px;border-radius:16px;background:#20232B">
+        <label style="flex:1;display:flex">
+          <span style="position:absolute;width:1px;height:1px;overflow:hidden">Mensagem na call</span>
+          <input value="{{draft}}" onInput="{{setDraft}}" placeholder="m!play nome da música" autocomplete="off" style="flex:1;border:0;outline:0;background:transparent;color:#ECEDEF;font-family:'JetBrains Mono',monospace;font-size:14px">
+        </label>
+        <button type="submit" aria-label="Enviar" style="width:40px;height:40px;border:0;border-radius:12px;background:#FF6B3D;color:#1A0F0A;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg></button>
+      </form>
+    </div>
+  </aside>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    const q = [{ title: 'Evidências', artist: 'Chitãozinho & Xororó', by: 'Bia' }, { title: 'Sorte Grande', artist: 'Ivete Sangalo', by: 'Caio' }];
+    this.state = {
+      inCall: true, playing: true, loop: false, vol: 70, queue: q, draft: '', id: 3,
+      msgs: [
+        { id: 1, user: 'Bia', color: '#F2A65A', text: 'm!play evidencias' },
+        { id: 2, bot: true, tag: 'TOCANDO AGORA', tagColor: '#3DD68C', title: 'Evidências · Chitãozinho & Xororó', sub: 'Pedido por Bia · 4:44' },
+        { id: 3, user: 'Caio', color: '#8BD3A8', text: 'm!p sorte grande' },
+        { id: 4, bot: true, tag: 'NA FILA · #1', tagColor: '#FFB091', title: 'Sorte Grande · Ivete Sangalo', sub: 'Pedido por Caio · toca depois desta' }
+      ]
+    };
+  }
+  run(raw) {
+    const s = this.state;
+    const text = raw.trim();
+    if (!text) return;
+    let id = s.id + 10;
+    const mine = { id: id++, user: 'Você', color: '#7FB2F0', text };
+    const bot = (o) => ({ id: id++, bot: true, ...o });
+    const out = [];
+    const next = {};
+    const m = text.match(/^m!(\w+)\s*(.*)$/i);
+    const cap = (v) => v.split(' ').filter(Boolean).map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    if (!m) {
+      this.setState({ msgs: [...s.msgs, mine], draft: '', id });
+      return;
+    }
+    const cmd = m[1].toLowerCase(), arg = m[2];
+    const queue = [...s.queue];
+    if (cmd === 'play' || cmd === 'p') {
+      if (!arg) out.push(bot({ tag: 'FALTOU O NOME', tagColor: '#FF7377', title: 'Manda o nome da música', sub: 'Ex.: m!play ainda gosto dela' }));
+      else {
+        const song = { title: cap(arg), artist: 'resultado da busca', by: 'Você' };
+        queue.push(song);
+        if (!s.inCall) next.inCall = true;
+        if (queue.length === 1 || !s.inCall) {
+          next.playing = true;
+          out.push(bot({ tag: 'TOCANDO AGORA', tagColor: '#3DD68C', title: song.title, sub: (s.inCall ? '' : 'Entrei na call. ') + 'Pedido por você' }));
+        } else out.push(bot({ tag: 'NA FILA · #' + (queue.length - 1), tagColor: '#FFB091', title: song.title, sub: 'Pedido por você' }));
+      }
+    } else if (cmd === 'skip' || cmd === 's') {
+      const gone = queue.shift();
+      if (s.loop && gone) queue.push(gone);
+      out.push(queue.length
+        ? bot({ tag: 'PULEI', tagColor: '#FFB091', title: 'Agora: ' + queue[0].title, sub: gone ? 'Saiu: ' + gone.title : '' })
+        : bot({ tag: 'FILA VAZIA', tagColor: '#8A909C', title: 'Acabaram as músicas', sub: 'Manda m!play pra pedir outra' }));
+    } else if (cmd === 'pause') {
+      next.playing = false; out.push(bot({ tag: 'PAUSADO', tagColor: '#F2C14E', title: 'Música pausada', sub: 'm!resume pra voltar' }));
+    } else if (cmd === 'resume' || cmd === 'r') {
+      next.playing = true; out.push(bot({ tag: 'VOLTANDO', tagColor: '#3DD68C', title: queue[0] ? queue[0].title : 'Nada na fila' }));
+    } else if (cmd === 'queue' || cmd === 'q') {
+      out.push(bot({ tag: 'FILA · ' + queue.length + ' MÚSICAS', tagColor: '#C9A7F5', title: queue.length ? 'Tocando e próximas' : 'Fila vazia',
+        lines: queue.slice(0, 6).map((x, i) => ({ n: i === 0 ? '▶' : String(i), text: x.title, by: x.by, color: i === 0 ? '#ECEDEF' : '#A9AEB8', weight: i === 0 ? 800 : 500 })) }));
+    } else if (cmd === 'np') {
+      out.push(bot({ tag: 'TOCANDO AGORA', tagColor: '#3DD68C', title: queue[0] ? queue[0].title : 'Nada tocando', sub: queue[0] ? 'Pedido por ' + queue[0].by + ' · volume ' + s.vol + '% · loop ' + (s.loop ? 'ligado' : 'desligado') : '' }));
+    } else if (cmd === 'loop') {
+      next.loop = !s.loop; out.push(bot({ tag: 'LOOP', tagColor: '#C9A7F5', title: next.loop ? 'Loop da fila ligado' : 'Loop desligado' }));
+    } else if (cmd === 'volume' || cmd === 'vol') {
+      const v = Math.max(0, Math.min(100, parseInt(arg, 10) || s.vol));
+      next.vol = v; out.push(bot({ tag: 'VOLUME', tagColor: '#C9A7F5', title: 'Volume do DJ em ' + v + '%', sub: 'Cada um ainda ajusta o próprio no quadro do DJ' }));
+    } else if (cmd === 'leave' || cmd === 'stop') {
+      next.inCall = false; next.playing = false; queue.length = 0;
+      out.push(bot({ tag: 'TCHAU', tagColor: '#8A909C', title: 'Saí da call e limpei a fila', sub: 'm!play me chama de volta' }));
+    } else if (cmd === 'help' || cmd === 'h') {
+      out.push(bot({ tag: 'COMANDOS', tagColor: '#C9A7F5', title: 'DJ Resenha', sub: 'm!play nome · toca ou põe na fila\nm!skip · pula\nm!pause / m!resume\nm!queue · mostra a fila\nm!np · o que está tocando\nm!loop · repete a fila\nm!volume 0-100\nm!leave · tira o DJ da call' }));
+    } else {
+      out.push(bot({ tag: 'NÃO CONHEÇO', tagColor: '#FF7377', title: 'Comando m!' + cmd + ' não existe', sub: 'Manda m!help pra ver a lista' }));
+    }
+    this.setState({ ...next, queue, msgs: [...s.msgs, mine, ...out].slice(-14), draft: '', id });
+  }
+  renderVals() {
+    const s = this.state;
+    const cur = s.queue[0];
+    const cmds = [
+      ['m!play nome', 'toca ou põe na fila', 'm!play '], ['m!skip', 'pula a música', 'm!skip'], ['m!pause', 'pausa', 'm!pause'],
+      ['m!resume', 'volta a tocar', 'm!resume'], ['m!queue', 'mostra a fila', 'm!queue'], ['m!np', 'o que está tocando', 'm!np'],
+      ['m!loop', 'repete a fila', 'm!loop'], ['m!volume 0-100', 'volume do DJ', 'm!volume '], ['m!leave', 'tira o DJ da call', 'm!leave'], ['m!help', 'todos os comandos', 'm!help']
+    ];
+    const d = s.draft.toLowerCase();
+    const showAc = d.startsWith('m!') && !d.includes(' ');
+    const acList = cmds.filter(([c]) => c.startsWith(d) || d === 'm!').slice(0, 6).map(([cmd, desc, ins]) => ({ cmd, desc, fill: () => this.setState({ draft: ins }) }));
+    const pinned = s.pinned || [];
+    const people = [['Bia', '#F2A65A', true], ['Caio', '#8BD3A8'], ['Duda', '#C9A7F5'], ['Você', '#7FB2F0']].map(([name, color, sp]) => {
+      const on = pinned.includes(name);
+      return {
+        name, color, initial: name.charAt(0), cls: sp ? 'speak' : '',
+        span: on ? '1 / -1' : 'auto', order: on ? -1 : 0,
+        pinCls: on ? 'pin on' : 'pin', pinText: on ? 'Fixado' : 'Fixar', pinFill: on ? 'currentColor' : 'none',
+        pinFg: on ? '#FFB091' : '#ECEDEF', pinAria: (on ? 'Desafixar ' : 'Fixar ') + name,
+        togglePin: () => this.setState({ pinned: on ? pinned.filter((x) => x !== name) : [...pinned, name] })
+      };
+    });
+    const msgs = s.msgs.map((m) => m.bot
+      ? { ...m, isBot: true, isUser: false, name: 'DJ Resenha', nameColor: '#C9A7F5', color: '#C9A7F5', avR: '12px', hasSub: Boolean(m.sub), hasLines: Boolean(m.lines), lines: m.lines || [] }
+      : { ...m, isBot: false, isUser: true, name: m.user, nameColor: '#ECEDEF', initial: m.user.charAt(0), avR: '50%' });
+    return {
+      inCall: s.inCall, people, msgs,
+      countText: s.inCall ? '4 pessoas e o DJ na call' : '4 na call',
+      nowTitle: cur ? cur.title : 'Fila vazia',
+      nowSub: cur ? (cur.artist + ' · pedido por ' + cur.by) : 'Manda m!play nome da música',
+      stateText: (s.playing && cur ? 'Tocando' : 'Pausado') + ' · ' + s.vol + '%' + (s.loop ? ' · loop' : '') + ' · ' + Math.max(0, s.queue.length - 1) + ' na fila',
+      albumCls: s.playing && cur ? 'album spin' : 'album', eqCls: s.playing && cur ? 'eq on' : 'eq',
+      isPlaying: s.playing, isPaused: !s.playing,
+      playLabel: s.playing ? 'Pausar' : 'Tocar',
+      togglePlay: () => this.run(s.playing ? 'm!pause' : 'm!resume'),
+      draft: s.draft, setDraft: (e) => this.setState({ draft: e.target.value }),
+      submit: (e) => { e.preventDefault(); this.run(s.draft); },
+      showAc: showAc && acList.length > 0, acList,
+      chips: ['m!play ainda gosto dela', 'm!skip', 'm!queue', 'm!pause', 'm!help'].map((cmd) => ({ cmd, run: () => this.run(cmd) }))
+    };
+  }
+}
+</script>
+</body>
+</html>

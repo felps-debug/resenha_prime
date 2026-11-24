@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Resenha — loja no celular</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0E0F13}
+*{scrollbar-width:none}*::-webkit-scrollbar{display:none}
+button{font:inherit;color:inherit;cursor:pointer}
+.press{transition:transform .12s,background .15s}
+.press:active{transform:scale(.96)}
+.sheet{animation:up .32s cubic-bezier(.2,.8,.2,1) both}
+.bob{animation:bob 1.6s ease-in-out infinite}
+@keyframes up{from{transform:translateY(100%)}to{transform:none}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width:390px;height:844px;position:relative;display:flex;flex-direction:column;background:#191B21;color:#ECEDEF;font-family:{{font}};font-size:15px;overflow:hidden">
+  <header style="flex:none;padding:18px 16px 12px;display:flex;flex-direction:column;gap:10px">
+    <h1 style="margin:0;font-size:26px;font-weight:900;letter-spacing:-.02em">Loja</h1>
+    <div style="padding:12px;border-radius:16px;background:#14161B;font-size:13px;color:#A9AEB8;line-height:1.45">Tudo opcional e por trocado. Ajuda a manter o Resenha no ar.</div>
+    <div style="display:flex;gap:6px;overflow-x:auto">
+      <sc-for list="{{tabs}}" as="t" hint-placeholder-count="5"><span style="flex:none;height:34px;padding:0 14px;border-radius:10px;background:{{t.bg}};color:{{t.fg}};font-weight:700;font-size:13px;display:flex;align-items:center">{{t.name}}</span></sc-for>
+    </div>
+  </header>
+  <div style="flex:1;overflow:auto;padding:0 12px 20px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;align-content:start">
+    <sc-for list="{{items}}" as="it" hint-placeholder-count="6">
+      <button class="press" onClick="{{it.open}}" style="padding:0;border:0;border-radius:16px;background:#14161B;color:#ECEDEF;text-align:left;overflow:hidden;display:flex;flex-direction:column">
+        <span style="height:96px;background:#101216;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:24px;color:{{it.c}}">{{it.glyph}}</span>
+        <span style="padding:10px;display:flex;flex-direction:column;gap:2px"><span style="font-weight:800;font-size:14px">{{it.name}}</span><span style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;color:#FFB091">{{it.price}}</span></span>
+      </button>
+    </sc-for>
+  </div>
+  <sc-if value="{{open}}" hint-placeholder-val="{{false}}">
+    <div style="position:absolute;inset:0;background:rgba(5,6,8,.6);display:flex;align-items:flex-end">
+      <div class="sheet" role="dialog" aria-label="Comprar" style="width:100%;padding:10px 18px 26px;border-radius:24px 24px 0 0;background:#14161B;display:flex;flex-direction:column;gap:14px">
+        <span aria-hidden="true" style="align-self:center;width:40px;height:4px;border-radius:2px;background:#3A3F4B"></span>
+        <div style="height:120px;border-radius:16px;background:#101216;display:flex;align-items:center;justify-content:center"><span class="bob" style="font-weight:900;font-size:40px;color:{{sel.c}}">{{sel.glyph}}</span></div>
+        <div style="display:flex;align-items:flex-start;gap:10px"><div style="flex:1"><div style="font-size:20px;font-weight:800">{{sel.name}}</div><div style="font-size:14px;color:#A9AEB8;margin-top:2px">{{sel.desc}}</div></div><span style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:18px;color:#FFB091">{{sel.price}}</span></div>
+        <a href="LojaCompra.dc.html" class="press" style="height:52px;border-radius:14px;background:#FF6B3D;color:#1A0F0A;font-weight:800;font-size:16px;display:flex;align-items:center;justify-content:center;text-decoration:none">{{buyText}}</a>
+        <button class="press" onClick="{{close}}" style="height:44px;border:0;border-radius:12px;background:transparent;color:#A9AEB8;font-weight:700">Agora não</button>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"font":{"editor":"enum","options":["Geist","Plus Jakarta Sans","Outfit","Sora","DM Sans","Inter"],"default":"Geist","section":"Tipografia"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { open: false, sel: 0 }; }
+  renderVals() {
+    const s = this.state;
+    const font = "'" + (this.props.font ?? 'Geist') + "',system-ui,sans-serif";
+    const tabs = ['Destaques', 'Zoeira', 'Efeitos', 'Call', 'Vaquinha'].map((name, i) => ({ name, bg: i === 0 ? '#ECEDEF' : '#14161B', fg: i === 0 ? '#14161B' : '#A9AEB8' }));
+    const defs = [
+      ['Chapéu de palhaço', 'R$ 0,99', 'Na foto do amigo por 24 h', '▲', '#E5484D'],
+      ['/gol', 'R$ 0,99', 'A tela de todo mundo treme e explode GOOOL', 'GOL', '#FFD166'],
+      ['Telão da sala', 'R$ 0,50', 'Sua mensagem no topo da sala por 24 h', '★', '#FFD166'],
+      ['Entrada triunfal', 'R$ 1,99', 'Holofote quando você entra na call', '✦', '#FFB091'],
+      ['Modo fantasma', 'R$ 0,50', 'A foto do amigo vira lençolzinho por 1 h', '◠', '#ECEDEF'],
+      ['Espelho', 'R$ 0,99', 'A próxima zoeira volta pra quem mandou', '◇', '#7FE3FF']
+    ];
+    const items = defs.map(([name, price, desc, glyph, c], i) => ({ name, price, desc, glyph, c, open: () => this.setState({ open: true, sel: i }) }));
+    return { font, tabs, items, open: s.open, sel: items[s.sel], buyText: 'Comprar por ' + items[s.sel].price, close: () => this.setState({ open: false }) };
+  }
+}
+</script>
+</body>
+</html>

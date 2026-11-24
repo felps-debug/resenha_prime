@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Resenha — mensagens no celular</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0E0F13}
+*{scrollbar-width:none}*::-webkit-scrollbar{display:none}
+button{font:inherit;color:inherit;cursor:pointer}
+.press{transition:transform .12s,background .15s}
+.press:active{transform:scale(.96)}
+.item{animation:rise .35s cubic-bezier(.2,.8,.2,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width:390px;height:844px;position:relative;display:flex;flex-direction:column;background:#191B21;color:#ECEDEF;font-family:{{font}};font-size:15px;overflow:hidden">
+  <header style="flex:none;padding:18px 16px 10px;display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;align-items:center"><h1 style="flex:1;margin:0;font-size:26px;font-weight:900;letter-spacing:-.02em">Mensagens</h1>
+      <a href="MobileMenu.dc.html" aria-label="Abrir menu" style="width:44px;height:44px;border-radius:12px;background:#20232B;color:#ECEDEF;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg></a></div>
+    <label style="display:flex;align-items:center;gap:8px;height:44px;padding:0 14px;border-radius:12px;background:#0F1115;color:#8A909C"><span style="position:absolute;width:1px;height:1px;overflow:hidden">Buscar conversa</span><svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input placeholder="Buscar conversa" style="flex:1;border:0;outline:0;background:transparent;color:#ECEDEF;font:inherit;font-size:16px"></label>
+    <div style="display:flex;gap:12px;overflow-x:auto;padding-bottom:4px">
+      <sc-for list="{{online}}" as="o" hint-placeholder-count="5">
+        <div style="flex:none;width:60px;display:flex;flex-direction:column;align-items:center;gap:4px">
+          <span style="position:relative;width:52px;height:52px;border-radius:50%;background:{{o.color}};color:#14161B;font-weight:800;font-size:18px;display:flex;align-items:center;justify-content:center">{{o.initial}}<span style="position:absolute;right:0;bottom:0;width:14px;height:14px;border-radius:50%;background:#3DD68C;border:3px solid #191B21"></span></span>
+          <span style="font-size:12px;color:#A9AEB8">{{o.name}}</span>
+        </div>
+      </sc-for>
+    </div>
+  </header>
+  <div style="flex:1;overflow:auto;padding:0 8px 90px;display:flex;flex-direction:column;gap:2px">
+    <sc-for list="{{convos}}" as="c" hint-placeholder-count="5">
+      <a href="DMs.dc.html" class="item press" style="display:flex;align-items:center;gap:12px;padding:10px 8px;border-radius:14px;color:#ECEDEF;text-decoration:none;animation-delay:{{c.d}}">
+        <span style="width:50px;height:50px;flex:none;border-radius:50%;background:{{c.color}};color:#14161B;font-weight:800;font-size:18px;display:flex;align-items:center;justify-content:center">{{c.initial}}</span>
+        <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
+          <span style="display:flex;align-items:baseline;gap:6px"><span style="flex:1;font-weight:{{c.weight}};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{c.name}}</span><span style="font-size:12px;color:#8A909C">{{c.time}}</span></span>
+          <span style="display:flex;align-items:center;gap:6px"><span style="flex:1;font-size:14px;color:{{c.pc}};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{c.preview}}</span>
+            <sc-if value="{{c.has}}" hint-placeholder-val="{{false}}"><span style="min-width:20px;height:20px;padding:0 6px;box-sizing:border-box;border-radius:10px;background:#FF6B3D;color:#1A0F0A;font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center">{{c.unread}}</span></sc-if></span>
+        </span>
+      </a>
+    </sc-for>
+  </div>
+  <button class="press" aria-label="Nova conversa" style="position:absolute;right:18px;bottom:24px;height:56px;padding:0 20px;border:0;border-radius:18px;background:#FF6B3D;color:#1A0F0A;font-weight:800;display:flex;align-items:center;gap:8px;box-shadow:0 12px 28px -12px rgba(0,0,0,.8)">
+    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Nova conversa
+  </button>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"font":{"editor":"enum","options":["Geist","Plus Jakarta Sans","Outfit","Sora","DM Sans","Inter"],"default":"Geist","section":"Tipografia"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const font = "'" + (this.props.font ?? 'Geist') + "',system-ui,sans-serif";
+    const online = [['Caio', '#8BD3A8'], ['Bia', '#F2A65A'], ['Gabi', '#F28DA6'], ['Duda', '#C9A7F5'], ['Léo', '#E8D07A']].map(([name, color]) => ({ name, color, initial: name.charAt(0) }));
+    const convos = [
+      ['Caio', '#8BD3A8', '20:44', 'quinta tu vai de goleiro', 2],
+      ['Bia, Caio e Duda', '#C9A7F5', '18:30', 'Duda: alguém tem carregador?', 5],
+      ['Bia', '#F2A65A', '19:10', 'Você: fechou então', 0],
+      ['Gabi', '#F28DA6', 'ontem', 'kkkkkkkk', 0],
+      ['Léo', '#E8D07A', 'seg', 'Valeu!', 0]
+    ].map(([name, color, time, preview, unread], i) => ({ name, color, time, preview, unread, has: unread > 0, initial: name.charAt(0), weight: unread ? 800 : 600, pc: unread ? '#ECEDEF' : '#8A909C', d: (i * 0.05).toFixed(2) + 's' }));
+    return { font, online, convos };
+  }
+}
+</script>
+</body>
+</html>

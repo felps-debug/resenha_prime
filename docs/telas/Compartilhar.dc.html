@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Resenha — transmitir tela</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0E0F13}
+*{scrollbar-width:none}*::-webkit-scrollbar{display:none}
+input[type=checkbox]{appearance:none;-webkit-appearance:none;width:40px !important;height:24px !important;flex:none;margin:0;border-radius:12px;background:#3A3F4B;position:relative;cursor:pointer;transition:background .2s}
+input[type=checkbox]::before{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#ECEDEF;transition:transform .2s cubic-bezier(.3,1.4,.5,1)}
+input[type=checkbox]:checked{background:#FF6B3D}input[type=checkbox]:checked::before{transform:translateX(16px)}
+a{color:#FF8A62}a:hover{color:#FFB091}
+button{font:inherit;color:inherit;cursor:pointer}
+.press{transition:transform .12s,background .15s,border-color .15s}
+.press:active{transform:scale(.97)}
+.src:hover{background:#20232B !important}
+.thumb{transition:transform .18s cubic-bezier(.2,.8,.2,1),border-color .15s}
+.thumb:hover{transform:translateY(-2px)}
+.modal{animation:pop .32s cubic-bezier(.2,.8,.2,1) both}
+.btnp:hover{background:#FF7F57 !important}
+@keyframes pop{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width:100%;min-height:900px;box-sizing:border-box;padding:40px 16px;background:#0A0B0E;color:#ECEDEF;font-family:{{font}};font-size:15px;display:flex;align-items:center;justify-content:center;position:relative">
+  <div aria-hidden="true" style="position:absolute;inset:0;background:#0E0F13;opacity:.55"></div>
+
+  <div class="modal" role="dialog" aria-label="Transmitir tela" style="position:relative;width:100%;max-width:880px;border-radius:24px;background:#14161B;border:1px solid #22252D;display:flex;flex-direction:column;overflow:hidden">
+    <div style="padding:22px 24px 8px;display:flex;align-items:flex-start;gap:12px">
+      <div style="flex:1">
+        <h1 style="margin:0;font-size:22px;font-weight:800;letter-spacing:-.01em">Transmitir tela</h1>
+        <p style="margin:4px 0 0;color:#A9AEB8">6 pessoas na call vão ver o que você escolher.</p>
+      </div>
+      <a href="Transmissao.dc.html" aria-label="Fechar" style="width:36px;height:36px;border-radius:10px;background:#20232B;color:#A9AEB8;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></a>
+    </div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:20px;padding:12px 24px 20px">
+      <!-- Tipo de fonte -->
+      <div role="radiogroup" aria-label="O que transmitir" style="flex:1 1 220px;max-width:260px;display:flex;flex-direction:column;gap:6px">
+        <sc-for list="{{kinds}}" as="k" hint-placeholder-count="3">
+          <button class="press src" role="radio" aria-checked="{{k.checked}}" onClick="{{k.pick}}" style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;border:2px solid {{k.border}};background:{{k.bg}};text-align:left;color:#ECEDEF">
+            <span style="width:38px;height:38px;flex:none;border-radius:11px;background:#262A33;display:flex;align-items:center;justify-content:center;color:{{k.iconFg}}">
+              <sc-if value="{{k.isScreen}}" hint-placeholder-val="{{true}}"><svg aria-hidden="true" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></sc-if>
+              <sc-if value="{{k.isWindow}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M7 6.5h.01M10 6.5h.01"/></svg></sc-if>
+              <sc-if value="{{k.isTab}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8a2 2 0 0 1 2-2h5l2 2h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></sc-if>
+            </span>
+            <span style="display:flex;flex-direction:column"><span style="font-weight:800">{{k.name}}</span><span style="font-size:12px;color:#8A909C">{{k.desc}}</span></span>
+          </button>
+        </sc-for>
+      </div>
+
+      <!-- Miniaturas -->
+      <div style="flex:3 1 420px;display:flex;flex-direction:column;gap:10px">
+        <div style="font-size:12px;font-weight:800;letter-spacing:.08em;color:#8A909C">{{thumbTitle}}</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px">
+          <sc-for list="{{thumbs}}" as="t" hint-placeholder-count="4">
+            <button class="press thumb" onClick="{{t.pick}}" aria-pressed="{{t.pressed}}" style="padding:8px;border-radius:14px;border:2px solid {{t.border}};background:#191B21;display:flex;flex-direction:column;gap:8px;text-align:left;color:#ECEDEF">
+              <span aria-hidden="true" style="height:92px;border-radius:9px;background:{{t.bg}};display:flex;flex-direction:column;gap:6px;padding:8px;box-sizing:border-box">
+                <span style="height:8px;width:60%;border-radius:4px;background:rgba(255,255,255,.12)"></span>
+                <span style="flex:1;border-radius:6px;background:rgba(255,255,255,.06)"></span>
+              </span>
+              <span style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{t.name}}</span>
+            </button>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+
+    <!-- Qualidade e som -->
+    <div style="padding:16px 24px;background:#101216;display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end">
+      <div style="flex:2 1 340px;display:flex;flex-direction:column;gap:8px">
+        <span style="font-size:13px;font-weight:700;color:#A9AEB8">Qualidade</span>
+        <div role="radiogroup" aria-label="Qualidade" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:4px;border-radius:14px;background:#191B21">
+          <sc-for list="{{qualities}}" as="q" hint-placeholder-count="3">
+            <button class="press" role="radio" aria-checked="{{q.checked}}" onClick="{{q.pick}}" style="padding:8px 6px;border:0;border-radius:10px;background:{{q.bg}};color:{{q.fg}};display:flex;flex-direction:column;align-items:center;gap:2px">
+              <span style="font-weight:800;font-size:14px">{{q.name}}</span>
+              <span style="font-family:'JetBrains Mono',monospace;font-size:11px;opacity:.8">{{q.spec}}</span>
+            </button>
+          </sc-for>
+        </div>
+        <span style="font-size:12px;color:#8A909C">{{qualityHint}}</span>
+      </div>
+      <label style="flex:1 1 220px;display:flex;align-items:center;gap:12px;padding:12px;border-radius:14px;background:#191B21;cursor:pointer">
+        <input type="checkbox" checked="{{audio}}" onChange="{{toggleAudio}}" style="width:20px;height:20px;accent-color:#FF6B3D">
+        <span style="display:flex;flex-direction:column"><span style="font-weight:800;font-size:14px">Transmitir o som</span><span style="font-size:12px;color:#8A909C">O pessoal ouve o jogo ou o vídeo</span></span>
+      </label>
+    </div>
+
+    <div style="padding:16px 24px 22px;display:flex;flex-wrap:wrap;align-items:center;gap:14px">
+      <p style="flex:1 1 320px;margin:0;font-size:12px;color:#8A909C;line-height:1.5">No navegador, depois de clicar, o próprio Chrome confirma a tela: é uma proteção dele que nenhum site consegue esconder. No app do PC a escolha acontece toda aqui.</p>
+      <a href="Transmissao.dc.html" style="height:44px;padding:0 18px;border-radius:12px;background:#20232B;color:#ECEDEF;font-weight:700;display:flex;align-items:center;text-decoration:none">Cancelar</a>
+      <a href="Transmissao.dc.html" class="btnp press" style="height:44px;padding:0 20px;border-radius:12px;background:#FF6B3D;color:#1A0F0A;font-weight:800;display:flex;align-items:center;gap:8px;text-decoration:none">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        <span>{{pickedText}}</span>
+      </a>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"font":{"editor":"enum","options":["Geist","Plus Jakarta Sans","Outfit","Sora","DM Sans","Inter"],"default":"Geist","section":"Tipografia"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { kind: 'window', thumb: 1, quality: 'mid', audio: true };
+  }
+  renderVals() {
+    const s = this.state;
+    const font = "'" + (this.props.font ?? 'Geist') + "',system-ui,sans-serif";
+    const defs = [
+      ['screen', 'Tela inteira', 'Tudo que aparece no monitor'],
+      ['window', 'Janela', 'Só um programa, como o jogo'],
+      ['tab', 'Aba do navegador', 'Melhor pra vídeo com som']
+    ];
+    const kinds = defs.map(([id, name, desc]) => ({
+      name, desc, isScreen: id === 'screen', isWindow: id === 'window', isTab: id === 'tab',
+      checked: s.kind === id ? 'true' : 'false',
+      border: s.kind === id ? '#FF6B3D' : 'transparent', bg: s.kind === id ? '#1D2027' : 'transparent',
+      iconFg: s.kind === id ? '#FFB091' : '#A9AEB8',
+      pick: () => this.setState({ kind: id, thumb: 0 })
+    }));
+    const lists = {
+      screen: [['Monitor 1', '#16202C'], ['Monitor 2', '#1E1A2B']],
+      window: [['Jogo', '#16202C'], ['Navegador · YouTube', '#2A1717'], ['Spotify', '#14261C'], ['Planilha', '#1A2422']],
+      tab: [['YouTube · melhores momentos', '#2A1717'], ['Twitch · campeonato', '#21172E'], ['Netflix', '#2A1414']]
+    };
+    const thumbs = lists[s.kind].map(([name, bg], i) => ({
+      name, bg, pressed: s.thumb === i ? 'true' : 'false', border: s.thumb === i ? '#FF6B3D' : 'transparent',
+      pick: () => this.setState({ thumb: i })
+    }));
+    const qdefs = [['low', 'Leve', '720p · 30', 'Pra internet fraca'], ['mid', 'Nítida', '1080p · 30', 'O melhor pra quase tudo'], ['high', 'Fluida', '1080p · 60', 'Jogo rápido. Gasta mais internet']];
+    const qualities = qdefs.map(([id, name, spec]) => ({
+      name, spec, checked: s.quality === id ? 'true' : 'false',
+      bg: s.quality === id ? '#ECEDEF' : 'transparent', fg: s.quality === id ? '#14161B' : '#A9AEB8',
+      pick: () => this.setState({ quality: id })
+    }));
+    const picked = lists[s.kind][s.thumb] || lists[s.kind][0];
+    return {
+      font, kinds, thumbs, qualities,
+      thumbTitle: s.kind === 'screen' ? 'MONITORES' : s.kind === 'window' ? 'JANELAS ABERTAS' : 'ABAS ABERTAS',
+      qualityHint: (qdefs.find((q) => q[0] === s.quality) || qdefs[1])[3],
+      audio: s.audio, toggleAudio: () => this.setState({ audio: !s.audio }),
+      pickedText: 'Transmitir ' + picked[0]
+    };
+  }
+}
+</script>
+</body>
+</html>

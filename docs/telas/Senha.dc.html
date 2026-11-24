@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Resenha — redefinir senha</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Outfit:wght@400;500;600;700;800&amp;family=Sora:wght@400;500;600;700;800&amp;family=DM+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0E0F13}
+*{scrollbar-width:none}*::-webkit-scrollbar{display:none}
+a{color:#FF8A62}a:hover{color:#FFB091}
+button{font:inherit;color:inherit;cursor:pointer}
+input{font:inherit}
+.press{transition:transform .12s,background .15s,opacity .15s}
+.press:active{transform:scale(.98)}
+.btnp:hover{background:#FF7F57 !important}
+.ghost:hover{background:#262A33 !important}
+.fieldbox{transition:box-shadow .18s,background .18s}
+.fieldbox:focus-within{box-shadow:0 0 0 2px rgba(255,107,61,.55);background:#1D2027 !important}
+.card{animation:rise .4s cubic-bezier(.2,.8,.2,1) both}
+.env{animation:env 2.4s ease-in-out infinite}
+.check{animation:pop .5s cubic-bezier(.3,1.6,.5,1) both}
+.seg{transition:background .3s}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes env{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-8px) rotate(3deg)}}
+@keyframes pop{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width:100%;min-height:900px;box-sizing:border-box;padding:40px 16px;background:#0E0F13;color:#ECEDEF;font-family:{{font}};font-size:15px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px">
+  <div style="display:flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:-.02em">
+    <span style="width:38px;height:38px;border-radius:12px;background:#FF6B3D;color:#fff;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 48 48"><circle cx="24" cy="24" r="13" fill="none" stroke="currentColor" stroke-width="4"></circle><circle cx="24" cy="11" r="5.5" fill="currentColor"></circle><circle cx="35.3" cy="30.5" r="5.5" fill="currentColor"></circle><circle cx="12.7" cy="30.5" r="5.5" fill="currentColor"></circle></svg></span>
+    <span>resenha</span>
+  </div>
+
+  <div style="width:100%;max-width:420px;padding:30px 28px;border-radius:24px;background:#14161B;border:1px solid #22252D;box-sizing:border-box">
+    <sc-if value="{{isAsk}}" hint-placeholder-val="{{true}}">
+      <div class="card" style="display:flex;flex-direction:column;gap:16px">
+        <div><h1 style="margin:0;font-size:26px;font-weight:800;letter-spacing:-.01em">Esqueceu a senha?</h1><p style="margin:6px 0 0;color:#A9AEB8;line-height:1.5">Acontece. Coloca seu e-mail que a gente manda um link pra criar outra.</p></div>
+        <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:700;color:#A9AEB8">E-mail da conta</span>
+          <span class="fieldbox" style="height:50px;border-radius:14px;background:#191B21;display:flex;align-items:center;padding:0 14px"><input type="email" value="{{email}}" onInput="{{setEmail}}" placeholder="voce@email.com" autocomplete="email" style="flex:1;border:0;outline:0;background:transparent;color:#ECEDEF"></span></label>
+        <button class="press btnp" onClick="{{send}}" aria-disabled="{{sendDisabled}}" style="height:52px;border:0;border-radius:14px;background:#FF6B3D;color:#1A0F0A;font-weight:800;font-size:16px;opacity:{{sendOpacity}}">Mandar link</button>
+        <a href="Login.dc.html" style="text-align:center;font-weight:700;font-size:14px;text-decoration:none">Voltar pro login</a>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isSent}}" hint-placeholder-val="{{false}}">
+      <div class="card" style="display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center">
+        <span class="env" aria-hidden="true" style="width:84px;height:84px;border-radius:24px;background:#20232B;color:#FF8A62;display:flex;align-items:center;justify-content:center"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="m4 7 8 6 8-6"></path></svg></span>
+        <h1 style="margin:0;font-size:26px;font-weight:800;letter-spacing:-.01em">Link enviado</h1>
+        <p style="margin:0;color:#A9AEB8;line-height:1.55">{{sentText}}</p>
+        <button class="press ghost" onClick="{{resend}}" style="width:100%;height:46px;border:0;border-radius:12px;background:#191B21;color:#ECEDEF;font-weight:700">Reenviar</button>
+        <button class="press" onClick="{{openLink}}" style="height:40px;border:0;border-radius:10px;background:transparent;color:#8A909C;font-weight:700;font-size:13px">Simular clique no link do e-mail</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isNew}}" hint-placeholder-val="{{false}}">
+      <div class="card" style="display:flex;flex-direction:column;gap:16px">
+        <div><h1 style="margin:0;font-size:26px;font-weight:800;letter-spacing:-.01em">Crie uma senha nova</h1><p style="margin:6px 0 0;color:#A9AEB8">Use uma que você não usa em outro lugar.</p></div>
+        <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:700;color:#A9AEB8">Senha nova</span>
+          <span class="fieldbox" style="height:50px;border-radius:14px;background:#191B21;display:flex;align-items:center;padding:0 14px"><input type="password" value="{{p1}}" onInput="{{setP1}}" placeholder="Pelo menos 8 caracteres" autocomplete="new-password" style="flex:1;border:0;outline:0;background:transparent;color:#ECEDEF"></span></label>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div aria-hidden="true" style="flex:1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px"><sc-for list="{{strength}}" as="b" hint-placeholder-count="4"><span class="seg" style="height:5px;border-radius:3px;background:{{b}}"></span></sc-for></div>
+          <span style="font-size:12px;font-weight:700;color:{{strengthColor}};min-width:52px;text-align:right">{{strengthLabel}}</span>
+        </div>
+        <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:700;color:#A9AEB8">Repita a senha</span>
+          <span class="fieldbox" style="height:50px;border-radius:14px;background:#191B21;display:flex;align-items:center;padding:0 14px"><input type="password" value="{{p2}}" onInput="{{setP2}}" autocomplete="new-password" style="flex:1;border:0;outline:0;background:transparent;color:#ECEDEF"></span>
+          <span style="font-size:12px;color:{{matchColor}};min-height:16px">{{matchText}}</span></label>
+        <button class="press btnp" onClick="{{save}}" aria-disabled="{{saveDisabled}}" style="height:52px;border:0;border-radius:14px;background:#FF6B3D;color:#1A0F0A;font-weight:800;font-size:16px;opacity:{{saveOpacity}}">Salvar senha</button>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{isDone}}" hint-placeholder-val="{{false}}">
+      <div class="card" style="display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center">
+        <span class="check" style="width:84px;height:84px;border-radius:50%;background:#3DD68C;color:#0E2A1C;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"></path></svg></span>
+        <h1 style="margin:0;font-size:26px;font-weight:800;letter-spacing:-.01em">Senha alterada</h1>
+        <p style="margin:0;color:#A9AEB8;line-height:1.55">Pronto. Por segurança, saímos da sua conta nos outros aparelhos.</p>
+        <a href="Main.dc.html" class="press btnp" style="width:100%;height:52px;border-radius:14px;background:#FF6B3D;color:#1A0F0A;font-weight:800;display:flex;align-items:center;justify-content:center;text-decoration:none">Entrar no Resenha</a>
+      </div>
+    </sc-if>
+  </div>
+  <p style="margin:0;font-size:13px;color:#8A909C">{{footer}}</p>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"font":{"editor":"enum","options":["Geist","Plus Jakarta Sans","Outfit","Sora","DM Sans","Inter"],"default":"Geist","section":"Tipografia"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) { super(props); this.state = { step: 'ask', email: '', p1: '', p2: '' }; }
+  renderVals() {
+    const s = this.state;
+    const font = "'" + (this.props.font ?? 'Geist') + "',system-ui,sans-serif";
+    const okEmail = /.+@.+\..+/.test(s.email);
+    const p = s.p1;
+    let score = 0;
+    if (p.length >= 8) score++;
+    if (/[A-Z]/.test(p) && /[a-z]/.test(p)) score++;
+    if (/\d/.test(p)) score++;
+    if (/[^A-Za-z0-9]/.test(p) || p.length >= 14) score++;
+    if (p.length && p.length < 8) score = 0;
+    const C = ['#E5484D', '#F2C14E', '#8BD3A8', '#3DD68C'], L = ['Fraca', 'Ok', 'Boa', 'Forte'];
+    const lvl = Math.max(0, score - 1);
+    const match = s.p2.length > 0 && s.p1 === s.p2;
+    const canSave = p.length >= 8 && match;
+    const steps = { ask: 1, sent: 2, new: 3, done: 4 };
+    return {
+      font, email: s.email, p1: s.p1, p2: s.p2,
+      setEmail: (e) => this.setState({ email: e.target.value }), setP1: (e) => this.setState({ p1: e.target.value }), setP2: (e) => this.setState({ p2: e.target.value }),
+      isAsk: s.step === 'ask', isSent: s.step === 'sent', isNew: s.step === 'new', isDone: s.step === 'done',
+      sendDisabled: okEmail ? 'false' : 'true', sendOpacity: okEmail ? 1 : 0.45, send: () => { if (okEmail) this.setState({ step: 'sent' }); },
+      sentText: 'Se ' + (s.email || 'esse e-mail') + ' tiver conta no Resenha, o link chega em instantes. Ele vale por 1 hora.',
+      resend: () => {}, openLink: () => this.setState({ step: 'new' }),
+      strength: [0, 1, 2, 3].map((i) => (p.length && i < Math.max(1, score) ? C[lvl] : '#262A33')),
+      strengthLabel: p.length ? L[lvl] : '', strengthColor: p.length ? C[lvl] : '#8A909C',
+      matchText: s.p2.length ? (match ? 'As senhas batem' : 'As senhas estão diferentes') : '', matchColor: match ? '#3DD68C' : '#FF7377',
+      saveDisabled: canSave ? 'false' : 'true', saveOpacity: canSave ? 1 : 0.45, save: () => { if (canSave) this.setState({ step: 'done' }); },
+      footer: 'Passo ' + steps[s.step] + ' de 4'
+    };
+  }
+}
+</script>
+</body>
+</html>

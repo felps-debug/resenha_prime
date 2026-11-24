@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Resenha — opções de logo</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Outfit:wght@400;500;600;700;800;900&amp;family=Sora:wght@400;500;600;700;800&amp;family=DM+Sans:wght@400;500;600;700;800;900&amp;family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0E0F13}
+a{color:#FF8A62}a:hover{color:#FFB091}
+button{font:inherit;color:inherit;cursor:pointer}
+.opt{position:relative;transition:transform .22s cubic-bezier(.2,.8,.2,1),background .2s}
+.opt:hover{transform:translateY(-3px);background:#1D2027 !important}
+.opt:active{transform:scale(.98)}
+@property --ang{syntax:'<angle>';initial-value:0deg;inherits:false}
+.beam::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:2px;background:conic-gradient(from var(--ang),transparent 0deg,transparent 260deg,#FF6B3D 315deg,#FFD166 345deg,transparent 360deg);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;animation:beam 3.5s linear infinite;pointer-events:none}
+.lock{animation:pop .45s cubic-bezier(.3,1.4,.5,1) both}
+@keyframes beam{to{--ang:360deg}}
+@keyframes pop{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width:100%;min-height:900px;box-sizing:border-box;padding:40px;background:#14161B;color:#ECEDEF;font-family:{{font}};display:flex;flex-direction:column;gap:28px">
+  <div style="display:flex;flex-direction:column;gap:6px">
+    <h1 style="margin:0;font-size:32px;font-weight:800;letter-spacing:-.02em">Logo do Resenha</h1>
+    <p style="margin:0;color:#A9AEB8;max-width:640px;line-height:1.5">Quatro caminhos. Clique numa opção pra ver ela aplicada no ícone do app, no favicon e com o nome. Todas são desenhos originais e funcionam em tamanho pequeno.</p>
+  </div>
+
+  <!-- Aplicação da escolhida -->
+  <section class="lock" aria-label="Opção escolhida aplicada" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(380px,1fr));gap:16px">
+    <div style="padding:32px;border-radius:24px;background:#0E0F13;display:flex;align-items:center;gap:22px">
+      <span style="width:96px;height:96px;flex:none;border-radius:28px;background:#FF6B3D;color:#FFFFFF;display:flex;align-items:center;justify-content:center">
+        <sc-if value="{{is1}}" hint-placeholder-val="{{true}}"><svg aria-hidden="true" width="64" height="64" viewBox="0 0 48 48"><circle cx="24" cy="24" r="13" fill="none" stroke="currentColor" stroke-width="4"></circle><circle cx="24" cy="11" r="5.5" fill="currentColor"></circle><circle cx="35.3" cy="30.5" r="5.5" fill="currentColor"></circle><circle cx="12.7" cy="30.5" r="5.5" fill="currentColor"></circle></svg></sc-if>
+        <sc-if value="{{is2}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="64" height="64" viewBox="0 0 48 48"><path d="M10 7h28a6 6 0 0 1 6 6v16a6 6 0 0 1-6 6H22l-9 7v-7h-3a6 6 0 0 1-6-6V13a6 6 0 0 1 6-6z" fill="currentColor"></path><text x="24" y="28.5" text-anchor="middle" font-family="Geist, system-ui, sans-serif" font-weight="900" font-size="19" fill="#FF6B3D">R</text></svg></sc-if>
+        <sc-if value="{{is3}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="64" height="64" viewBox="0 0 48 48"><path d="M8 9h20a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H16l-6 5v-5H8a4 4 0 0 1-4-4V13a4 4 0 0 1 4-4z" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"></path><path d="M22 17h18a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4h-1v6l-7-6H22a4 4 0 0 1-4-4V21a4 4 0 0 1 4-4z" fill="currentColor"></path></svg></sc-if>
+        <sc-if value="{{is4}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="64" height="64" viewBox="0 0 48 48"><path d="M10 7h28a6 6 0 0 1 6 6v16a6 6 0 0 1-6 6H22l-9 7v-7h-3a6 6 0 0 1-6-6V13a6 6 0 0 1 6-6z" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"></path><rect x="15" y="17" width="4" height="8" rx="2" fill="currentColor"></rect><rect x="22" y="13" width="4" height="16" rx="2" fill="currentColor"></rect><rect x="29" y="16" width="4" height="10" rx="2" fill="currentColor"></rect></svg></sc-if>
+      </span>
+      <span style="font-weight:900;font-size:56px;letter-spacing:-.05em;line-height:1">resenha<span style="color:#FF6B3D">.</span></span>
+    </div>
+    <div style="padding:32px;border-radius:24px;background:#F7F6F3;color:#14161B;display:flex;align-items:center;gap:22px">
+      <span style="width:96px;height:96px;flex:none;border-radius:28px;background:#14161B;color:#FF6B3D;display:flex;align-items:center;justify-content:center">
+        <sc-if value="{{is1}}" hint-placeholder-val="{{true}}"><svg aria-hidden="true" width="64" height="64" viewBox="0 0 48 48"><circle cx="24" cy="24" r="13" fill="none" stroke="currentColor" stroke-width="4"></circle><circle cx="24" cy="11" r="5.5" fill="currentColor"></circle><circle cx="35.3" cy="30.5" r="5.5" fill="currentColor"></circle><circle cx="12.7" cy="30.5" r="5.5" fill="currentColor"></circle></svg></sc-if>
+        <sc-if value="{{is2}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="64" height="64" viewBox="0 0 48 48"><path d="M10 7h28a6 6 0 0 1 6 6v16a6 6 0 0 1-6 6H22l-9 7v-7h-3a6 6 0 0 1-6-6V13a6 6 0 0 1 6-6z" fill="currentColor"></path><text x="24" y="28.5" text-anchor="middle" font-family="Geist, system-ui, sans-serif" font-weight="900" font-size="19" fill="#14161B">R</text></svg></sc-if>
+        <sc-if value="{{is3}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="64" height="64" viewBox="0 0 48 48"><path d="M8 9h20a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H16l-6 5v-5H8a4 4 0 0 1-4-4V13a4 4 0 0 1 4-4z" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"></path><path d="M22 17h18a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4h-1v6l-7-6H22a4 4 0 0 1-4-4V21a4 4 0 0 1 4-4z" fill="currentColor"></path></svg></sc-if>
+        <sc-if value="{{is4}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="64" height="64" viewBox="0 0 48 48"><path d="M10 7h28a6 6 0 0 1 6 6v16a6 6 0 0 1-6 6H22l-9 7v-7h-3a6 6 0 0 1-6-6V13a6 6 0 0 1 6-6z" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"></path><rect x="15" y="17" width="4" height="8" rx="2" fill="currentColor"></rect><rect x="22" y="13" width="4" height="16" rx="2" fill="currentColor"></rect><rect x="29" y="16" width="4" height="10" rx="2" fill="currentColor"></rect></svg></sc-if>
+      </span>
+      <span style="font-weight:900;font-size:56px;letter-spacing:-.05em;line-height:1">resenha<span style="color:#E0551F">.</span></span>
+    </div>
+  </section>
+
+  <!-- Opções -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">
+    <sc-for list="{{opts}}" as="o" hint-placeholder-count="4">
+      <button class="{{o.cls}}" onClick="{{o.pick}}" aria-pressed="{{o.pressed}}" style="padding:22px;border:0;border-radius:22px;background:#191B21;color:#ECEDEF;text-align:left;display:flex;flex-direction:column;gap:18px">
+        <span style="display:flex;align-items:flex-end;gap:16px">
+          <span style="width:112px;height:112px;border-radius:32px;background:#FF6B3D;color:#FFFFFF;display:flex;align-items:center;justify-content:center">
+            <sc-if value="{{o.is1}}" hint-placeholder-val="{{true}}"><svg aria-hidden="true" width="76" height="76" viewBox="0 0 48 48"><circle cx="24" cy="24" r="13" fill="none" stroke="currentColor" stroke-width="4"></circle><circle cx="24" cy="11" r="5.5" fill="currentColor"></circle><circle cx="35.3" cy="30.5" r="5.5" fill="currentColor"></circle><circle cx="12.7" cy="30.5" r="5.5" fill="currentColor"></circle></svg></sc-if>
+            <sc-if value="{{o.is2}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="76" height="76" viewBox="0 0 48 48"><path d="M10 7h28a6 6 0 0 1 6 6v16a6 6 0 0 1-6 6H22l-9 7v-7h-3a6 6 0 0 1-6-6V13a6 6 0 0 1 6-6z" fill="currentColor"></path><text x="24" y="28.5" text-anchor="middle" font-family="Geist, system-ui, sans-serif" font-weight="900" font-size="19" fill="#FF6B3D">R</text></svg></sc-if>
+            <sc-if value="{{o.is3}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="76" height="76" viewBox="0 0 48 48"><path d="M8 9h20a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H16l-6 5v-5H8a4 4 0 0 1-4-4V13a4 4 0 0 1 4-4z" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"></path><path d="M22 17h18a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4h-1v6l-7-6H22a4 4 0 0 1-4-4V21a4 4 0 0 1 4-4z" fill="currentColor"></path></svg></sc-if>
+            <sc-if value="{{o.is4}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="76" height="76" viewBox="0 0 48 48"><path d="M10 7h28a6 6 0 0 1 6 6v16a6 6 0 0 1-6 6H22l-9 7v-7h-3a6 6 0 0 1-6-6V13a6 6 0 0 1 6-6z" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"></path><rect x="15" y="17" width="4" height="8" rx="2" fill="currentColor"></rect><rect x="22" y="13" width="4" height="16" rx="2" fill="currentColor"></rect><rect x="29" y="16" width="4" height="10" rx="2" fill="currentColor"></rect></svg></sc-if>
+          </span>
+          <span style="display:flex;align-items:flex-end;gap:10px">
+            <span style="width:40px;height:40px;border-radius:12px;background:#FF6B3D;color:#fff;display:flex;align-items:center;justify-content:center">
+              <sc-if value="{{o.is1}}" hint-placeholder-val="{{true}}"><svg aria-hidden="true" width="28" height="28" viewBox="0 0 48 48"><circle cx="24" cy="24" r="13" fill="none" stroke="currentColor" stroke-width="4"></circle><circle cx="24" cy="11" r="5.5" fill="currentColor"></circle><circle cx="35.3" cy="30.5" r="5.5" fill="currentColor"></circle><circle cx="12.7" cy="30.5" r="5.5" fill="currentColor"></circle></svg></sc-if>
+              <sc-if value="{{o.is2}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="28" height="28" viewBox="0 0 48 48"><path d="M10 7h28a6 6 0 0 1 6 6v16a6 6 0 0 1-6 6H22l-9 7v-7h-3a6 6 0 0 1-6-6V13a6 6 0 0 1 6-6z" fill="currentColor"></path><text x="24" y="28.5" text-anchor="middle" font-family="Geist, system-ui, sans-serif" font-weight="900" font-size="19" fill="#FF6B3D">R</text></svg></sc-if>
+              <sc-if value="{{o.is3}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="28" height="28" viewBox="0 0 48 48"><path d="M8 9h20a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H16l-6 5v-5H8a4 4 0 0 1-4-4V13a4 4 0 0 1 4-4z" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"></path><path d="M22 17h18a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4h-1v6l-7-6H22a4 4 0 0 1-4-4V21a4 4 0 0 1 4-4z" fill="currentColor"></path></svg></sc-if>
+              <sc-if value="{{o.is4}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="28" height="28" viewBox="0 0 48 48"><path d="M10 7h28a6 6 0 0 1 6 6v16a6 6 0 0 1-6 6H22l-9 7v-7h-3a6 6 0 0 1-6-6V13a6 6 0 0 1 6-6z" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linejoin="round"></path><rect x="15" y="17" width="4" height="8" rx="2" fill="currentColor"></rect><rect x="22" y="13" width="4" height="16" rx="2" fill="currentColor"></rect><rect x="29" y="16" width="4" height="10" rx="2" fill="currentColor"></rect></svg></sc-if>
+            </span>
+            <span style="width:20px;height:20px;border-radius:6px;background:#FF6B3D;color:#fff;display:flex;align-items:center;justify-content:center">
+              <sc-if value="{{o.is1}}" hint-placeholder-val="{{true}}"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 48 48"><circle cx="24" cy="24" r="13" fill="none" stroke="currentColor" stroke-width="5"></circle><circle cx="24" cy="11" r="6.5" fill="currentColor"></circle><circle cx="35.3" cy="30.5" r="6.5" fill="currentColor"></circle><circle cx="12.7" cy="30.5" r="6.5" fill="currentColor"></circle></svg></sc-if>
+              <sc-if value="{{o.is2}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 48 48"><path d="M10 7h28a6 6 0 0 1 6 6v16a6 6 0 0 1-6 6H22l-9 7v-7h-3a6 6 0 0 1-6-6V13a6 6 0 0 1 6-6z" fill="currentColor"></path><text x="24" y="28.5" text-anchor="middle" font-family="Geist, system-ui, sans-serif" font-weight="900" font-size="19" fill="#FF6B3D">R</text></svg></sc-if>
+              <sc-if value="{{o.is3}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 48 48"><path d="M8 9h20a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4H16l-6 5v-5H8a4 4 0 0 1-4-4V13a4 4 0 0 1 4-4z" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linejoin="round"></path><path d="M22 17h18a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4h-1v6l-7-6H22a4 4 0 0 1-4-4V21a4 4 0 0 1 4-4z" fill="currentColor"></path></svg></sc-if>
+              <sc-if value="{{o.is4}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="15" height="15" viewBox="0 0 48 48"><path d="M10 7h28a6 6 0 0 1 6 6v16a6 6 0 0 1-6 6H22l-9 7v-7h-3a6 6 0 0 1-6-6V13a6 6 0 0 1 6-6z" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linejoin="round"></path><rect x="14" y="16" width="5" height="10" rx="2.5" fill="currentColor"></rect><rect x="21.5" y="12" width="5" height="18" rx="2.5" fill="currentColor"></rect><rect x="29" y="15" width="5" height="12" rx="2.5" fill="currentColor"></rect></svg></sc-if>
+            </span>
+          </span>
+        </span>
+        <span style="display:flex;flex-direction:column;gap:4px">
+          <span style="display:flex;align-items:center;gap:8px"><span style="font-weight:800;font-size:18px">{{o.name}}</span>
+            <sc-if value="{{o.picked}}" hint-placeholder-val="{{false}}"><span style="font-size:10px;font-weight:800;letter-spacing:.06em;color:#1A0F0A;background:#FF6B3D;border-radius:5px;padding:2px 6px">ESCOLHIDA</span></sc-if>
+          </span>
+          <span style="font-size:14px;color:#A9AEB8;line-height:1.5">{{o.desc}}</span>
+        </span>
+      </button>
+    </sc-for>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"font":{"editor":"enum","options":["Geist","Plus Jakarta Sans","Outfit","Sora","DM Sans","Inter"],"default":"Geist","section":"Tipografia"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { pick: 1 };
+  }
+  renderVals() {
+    const s = this.state;
+    const font = "'" + (this.props.font ?? 'Geist') + "',system-ui,sans-serif";
+    const defs = [
+      [1, 'Roda', 'Três pessoas sentadas em volta: a roda de conversa, que é o que "resenha" significa. Simples e reconhecível até no favicon.'],
+      [2, 'Balão R', 'Balão de conversa com o R do Resenha vazado. Direto: é um app de papo.'],
+      [3, 'Troca', 'Dois balões se sobrepondo, um respondendo o outro. Papo de ida e volta.'],
+      [4, 'Voz', 'Balão com ondas de áudio dentro: chat e call no mesmo lugar.']
+    ];
+    const opts = defs.map(([n, name, desc]) => ({
+      name, desc, is1: n === 1, is2: n === 2, is3: n === 3, is4: n === 4,
+      picked: s.pick === n, pressed: s.pick === n ? 'true' : 'false',
+      cls: 'opt' + (s.pick === n ? ' beam' : ''),
+      pick: () => this.setState({ pick: n })
+    }));
+    return { font, opts, is1: s.pick === 1, is2: s.pick === 2, is3: s.pick === 3, is4: s.pick === 4 };
+  }
+}
+</script>
+</body>
+</html>

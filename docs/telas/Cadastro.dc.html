@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Resenha — criar conta</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Outfit:wght@400;500;600;700;800&amp;family=Sora:wght@400;500;600;700;800&amp;family=DM+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0E0F13}
+*{scrollbar-width:none}*::-webkit-scrollbar{display:none}
+a{color:#FF8A62}a:hover{color:#FFB091}
+button{font:inherit;color:inherit;cursor:pointer}
+input{font:inherit}
+.press{position:relative;overflow:hidden;transition:transform .12s,background .15s,opacity .15s}
+.press:active{transform:scale(.98)}
+.btnp:hover{background:#FF7F57 !important}
+.ghost:hover{background:#262A33 !important}
+.fieldbox{transition:box-shadow .18s,background .18s}
+.fieldbox:focus-within{box-shadow:0 0 0 2px rgba(255,107,61,.55);background:#1D2027 !important}
+.card{animation:rise .45s cubic-bezier(.2,.8,.2,1) both}
+.bubble{animation:float 6s ease-in-out infinite}
+.bubble.b2{animation-delay:-2s}.bubble.b3{animation-delay:-4s}
+.env{animation:env 2.4s ease-in-out infinite}
+.seg{transition:background .3s}
+.rip{position:absolute;border-radius:50%;background:rgba(255,255,255,.5);transform:scale(0);animation:rip .65s ease-out forwards;pointer-events:none}
+.check{animation:pop .5s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes env{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-8px) rotate(3deg)}}
+@keyframes rip{to{transform:scale(1);opacity:0}}
+@keyframes pop{from{transform:scale(.5);opacity:0}to{transform:scale(1);opacity:1}}
+@media (max-width:900px){.hide-sm{display:none !important}}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width:100%;min-height:900px;display:flex;flex-wrap:wrap;background:#0E0F13;color:#ECEDEF;font-family:{{font}};font-size:15px">
+
+  <section class="hide-sm" aria-hidden="true" style="flex:1 1 560px;min-height:900px;box-sizing:border-box;padding:56px;display:flex;flex-direction:column;justify-content:space-between;background:#14161B">
+    <div style="display:flex;align-items:center;gap:12px;font-weight:800;font-size:22px;letter-spacing:-.02em">
+      <span style="width:44px;height:44px;border-radius:14px;background:#FF6B3D;color:#fff;display:flex;align-items:center;justify-content:center"><svg width="28" height="28" viewBox="0 0 48 48"><circle cx="24" cy="24" r="13" fill="none" stroke="currentColor" stroke-width="4"></circle><circle cx="24" cy="11" r="5.5" fill="currentColor"></circle><circle cx="35.3" cy="30.5" r="5.5" fill="currentColor"></circle><circle cx="12.7" cy="30.5" r="5.5" fill="currentColor"></circle></svg></span>
+      <span>resenha<span style="color:#FF6B3D">.</span></span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px;max-width:440px">
+      <div class="bubble" style="align-self:flex-start;display:flex;gap:10px;align-items:flex-end"><span style="width:34px;height:34px;border-radius:50%;background:#F2A65A;color:#14161B;font-weight:800;display:flex;align-items:center;justify-content:center">B</span><span style="padding:12px 16px;border-radius:18px 18px 18px 6px;background:#20232B">Cria a conta e entra aqui!</span></div>
+      <div class="bubble b2" style="align-self:flex-end"><span style="display:block;padding:12px 16px;border-radius:18px 18px 6px 18px;background:#FF6B3D;color:#1A0F0A;font-weight:700">Criando agora</span></div>
+      <div class="bubble b3" style="align-self:flex-start;display:flex;gap:10px;align-items:flex-end"><span style="width:34px;height:34px;border-radius:50%;background:#8BD3A8;color:#14161B;font-weight:800;display:flex;align-items:center;justify-content:center">C</span><span style="padding:12px 16px;border-radius:18px 18px 18px 6px;background:#20232B">Te espero na call</span></div>
+    </div>
+    <div>
+      <h2 style="margin:0 0 10px;font-size:42px;line-height:1.08;font-weight:800;letter-spacing:-.02em;max-width:480px">Sua galera já está te esperando.</h2>
+      <p style="margin:0;color:#A9AEB8;max-width:440px;line-height:1.55">Chat que fica salvo, call com voz, câmera e tela, e zoeira na medida.</p>
+    </div>
+  </section>
+
+  <section style="flex:1 1 420px;min-height:900px;display:flex;align-items:center;justify-content:center;padding:32px 16px;box-sizing:border-box">
+
+    <!-- Formulário -->
+    <sc-if value="{{isForm}}" hint-placeholder-val="{{true}}">
+      <div class="card" style="width:100%;max-width:400px;display:flex;flex-direction:column;gap:18px">
+        <div><h1 style="margin:0;font-size:30px;font-weight:800;letter-spacing:-.01em">Criar conta</h1><p style="margin:6px 0 0;color:#A9AEB8">É de graça e leva 30 segundos.</p></div>
+        <a href="Onboarding.dc.html" class="press ghost" style="height:50px;border:1px solid #2A2E38;border-radius:14px;background:#14161B;color:#ECEDEF;font-weight:700;display:flex;align-items:center;justify-content:center;gap:10px;text-decoration:none">
+          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24"><path fill="#ECEDEF" d="M21.6 12.2c0-.7-.1-1.3-.2-1.9H12v3.6h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.2zM12 22c2.7 0 5-.9 6.6-2.4l-3.2-2.5c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3.1v2.6A10 10 0 0 0 12 22zM6.4 14c-.2-.6-.3-1.3-.3-2s.1-1.4.3-2V7.4H3.1a10 10 0 0 0 0 9.2L6.4 14zM12 6c1.5 0 2.8.5 3.8 1.5l2.9-2.9A10 10 0 0 0 3.1 7.4L6.4 10C7.2 7.7 9.4 6 12 6z"></path></svg>
+          Criar com Google
+        </a>
+        <div style="display:flex;align-items:center;gap:12px;color:#8A909C;font-size:12px;font-weight:700"><span style="flex:1;height:1px;background:#262A33"></span>OU COM E-MAIL<span style="flex:1;height:1px;background:#262A33"></span></div>
+        <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:700;color:#A9AEB8">Como te chamam</span>
+          <span class="fieldbox" style="height:50px;border-radius:14px;background:#191B21;display:flex;align-items:center;padding:0 14px"><input value="{{name}}" onInput="{{setName}}" maxlength="32" placeholder="Seu nome ou apelido" autocomplete="nickname" style="flex:1;border:0;outline:0;background:transparent;color:#ECEDEF"></span></label>
+        <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:700;color:#A9AEB8">E-mail</span>
+          <span class="fieldbox" style="height:50px;border-radius:14px;background:#191B21;display:flex;align-items:center;padding:0 14px"><input type="email" value="{{email}}" onInput="{{setEmail}}" placeholder="voce@email.com" autocomplete="email" style="flex:1;border:0;outline:0;background:transparent;color:#ECEDEF"></span></label>
+        <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:700;color:#A9AEB8">Senha</span>
+          <span class="fieldbox" style="height:50px;border-radius:14px;background:#191B21;display:flex;align-items:center;padding:0 6px 0 14px;gap:6px"><input type="{{passType}}" value="{{pass}}" onInput="{{setPass}}" placeholder="Pelo menos 8 caracteres" autocomplete="new-password" style="flex:1;border:0;outline:0;background:transparent;color:#ECEDEF">
+            <button type="button" class="ghost" onClick="{{toggleShow}}" aria-label="{{showLabel}}" style="width:38px;height:38px;border:0;border-radius:10px;background:transparent;color:#A9AEB8;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"></path><circle cx="12" cy="12" r="3"></circle></svg></button></span></label>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div aria-hidden="true" style="flex:1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px"><sc-for list="{{strength}}" as="b" hint-placeholder-count="4"><span class="seg" style="height:5px;border-radius:3px;background:{{b}}"></span></sc-for></div>
+          <span style="font-size:12px;font-weight:700;color:{{strengthColor}};min-width:52px;text-align:right">{{strengthLabel}}</span>
+        </div>
+        <button class="press btnp" onClick="{{submit}}" aria-disabled="{{disabled}}" style="height:52px;border:0;border-radius:14px;background:#FF6B3D;color:#1A0F0A;font-weight:800;font-size:16px;opacity:{{btnOpacity}}">
+          <sc-for list="{{rips}}" as="r" hint-placeholder-count="0"><span class="rip" style="left:{{r.x}};top:{{r.y}};width:{{r.s}};height:{{r.s}}"></span></sc-for>
+          <span style="position:relative">Criar conta</span>
+        </button>
+        <p style="margin:0;text-align:center;color:#A9AEB8;font-size:14px">Já tem conta? <a href="Login.dc.html" style="font-weight:700">Entrar</a></p>
+        <p style="margin:0;text-align:center;font-size:12px;color:#8A909C">Ao criar a conta você aceita os <a href="#termos">termos</a> e a <a href="#privacidade">privacidade</a>.</p>
+      </div>
+    </sc-if>
+
+    <!-- Confira seu e-mail -->
+    <sc-if value="{{isSent}}" hint-placeholder-val="{{false}}">
+      <div class="card" style="width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center">
+        <span class="env" aria-hidden="true" style="width:96px;height:96px;border-radius:28px;background:#20232B;display:flex;align-items:center;justify-content:center;color:#FF8A62">
+          <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"></rect><path d="m4 7 8 6 8-6"></path></svg>
+        </span>
+        <h1 style="margin:0;font-size:28px;font-weight:800;letter-spacing:-.01em">Confira seu e-mail</h1>
+        <p style="margin:0;color:#A9AEB8;line-height:1.55">{{sentText}}</p>
+        <div style="width:100%;display:flex;flex-direction:column;gap:8px">
+          <a href="#abrir" class="press btnp" style="height:50px;border-radius:14px;background:#FF6B3D;color:#1A0F0A;font-weight:800;display:flex;align-items:center;justify-content:center;text-decoration:none">Abrir meu e-mail</a>
+          <button class="press ghost" onClick="{{resend}}" aria-disabled="{{resendDisabled}}" style="height:46px;border:0;border-radius:12px;background:#191B21;color:{{resendFg}};font-weight:700">{{resendLabel}}</button>
+          <button class="press" onClick="{{simulate}}" style="height:40px;border:0;border-radius:10px;background:transparent;color:#8A909C;font-weight:700;font-size:13px">Simular clique no link do e-mail</button>
+        </div>
+        <p style="margin:0;font-size:13px;color:#8A909C">Errou o e-mail? <button onClick="{{edit}}" style="border:0;background:transparent;color:#FF8A62;font-weight:700;padding:0">Corrigir</button></p>
+      </div>
+    </sc-if>
+
+    <!-- E-mail confirmado -->
+    <sc-if value="{{isDone}}" hint-placeholder-val="{{false}}">
+      <div class="card" style="width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center">
+        <span class="check" style="width:88px;height:88px;border-radius:50%;background:#3DD68C;color:#0E2A1C;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"></path></svg></span>
+        <h1 style="margin:0;font-size:28px;font-weight:800;letter-spacing:-.01em">E-mail confirmado</h1>
+        <p style="margin:0;color:#A9AEB8;line-height:1.55">Sua conta está ativa. Agora deixa a gente te mostrar a casa.</p>
+        <a href="Onboarding.dc.html" class="press btnp" style="width:100%;height:52px;border-radius:14px;background:#FF6B3D;color:#1A0F0A;font-weight:800;font-size:16px;display:flex;align-items:center;justify-content:center;text-decoration:none">Bora</a>
+      </div>
+    </sc-if>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"font":{"editor":"enum","options":["Geist","Plus Jakarta Sans","Outfit","Sora","DM Sans","Inter"],"default":"Geist","section":"Tipografia"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { step: 'form', name: '', email: '', pass: '', show: false, rips: [], cooldown: 0 };
+  }
+  componentWillUnmount() { clearInterval(this.t); }
+  renderVals() {
+    const s = this.state;
+    const font = "'" + (this.props.font ?? 'Geist') + "',system-ui,sans-serif";
+    const p = s.pass;
+    let score = 0;
+    if (p.length >= 8) score++;
+    if (/[A-Z]/.test(p) && /[a-z]/.test(p)) score++;
+    if (/\d/.test(p)) score++;
+    if (/[^A-Za-z0-9]/.test(p) || p.length >= 14) score++;
+    if (p.length && p.length < 8) score = 0;
+    const C = ['#E5484D', '#F2C14E', '#8BD3A8', '#3DD68C'], L = ['Fraca', 'Ok', 'Boa', 'Forte'];
+    const lvl = Math.max(0, score - 1);
+    const ok = s.name.trim() && /.+@.+\..+/.test(s.email) && p.length >= 8;
+    const startCooldown = () => {
+      clearInterval(this.t);
+      this.setState({ cooldown: 30 });
+      this.t = setInterval(() => this.setState((st) => { if (st.cooldown <= 1) { clearInterval(this.t); return { cooldown: 0 }; } return { cooldown: st.cooldown - 1 }; }), 1000);
+    };
+    return {
+      font, name: s.name, email: s.email, pass: s.pass,
+      setName: (e) => this.setState({ name: e.target.value }), setEmail: (e) => this.setState({ email: e.target.value }), setPass: (e) => this.setState({ pass: e.target.value }),
+      passType: s.show ? 'text' : 'password', showLabel: s.show ? 'Esconder senha' : 'Mostrar senha', toggleShow: () => this.setState({ show: !s.show }),
+      strength: [0, 1, 2, 3].map((i) => (p.length && i < Math.max(1, score) ? C[lvl] : '#262A33')),
+      strengthLabel: p.length ? L[lvl] : '', strengthColor: p.length ? C[lvl] : '#8A909C',
+      disabled: ok ? 'false' : 'true', btnOpacity: ok ? 1 : 0.45, rips: s.rips,
+      submit: (e) => {
+        if (!ok) return;
+        const r = e.currentTarget.getBoundingClientRect(); const size = r.width * 2.2; const id = Date.now();
+        this.setState({ rips: [...s.rips, { id, x: (e.clientX - r.left - size / 2) + 'px', y: (e.clientY - r.top - size / 2) + 'px', s: size + 'px' }] });
+        setTimeout(() => { this.setState({ step: 'sent', rips: [] }); startCooldown(); }, 380);
+      },
+      isForm: s.step === 'form', isSent: s.step === 'sent', isDone: s.step === 'done',
+      sentText: 'Mandamos um link pra ' + (s.email || 'seu e-mail') + '. Clica nele pra ativar a conta. Se não aparecer, olha o spam.',
+      resendLabel: s.cooldown ? 'Reenviar em ' + s.cooldown + 's' : 'Reenviar e-mail', resendDisabled: s.cooldown ? 'true' : 'false', resendFg: s.cooldown ? '#8A909C' : '#ECEDEF',
+      resend: () => { if (!s.cooldown) startCooldown(); },
+      simulate: () => this.setState({ step: 'done' }), edit: () => this.setState({ step: 'form' })
+    };
+  }
+}
+</script>
+</body>
+</html>

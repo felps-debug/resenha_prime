@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Resenha — configurações</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0E0F13}
+*{scrollbar-width:none}*::-webkit-scrollbar{display:none}
+button{font:inherit;color:inherit;cursor:pointer}
+select,input{font:inherit}
+.t{--bg0:#0E0F13;--bg1:#14161B;--bg2:#191B21;--bg3:#20232B;--bg4:#262A33;--line:#22252D;--tx:#ECEDEF;--tx2:#A9AEB8;--tx3:#8A909C;--msg:#DADCE0}
+.t.light{--bg0:#E9E8E4;--bg1:#F3F2EF;--bg2:#FBFBF9;--bg3:#ECEBE7;--bg4:#E2E1DC;--line:#E2E1DC;--tx:#14161B;--tx2:#4A4F5B;--tx3:#626875;--msg:#24272E}
+.nav{transition:background .15s,color .15s}
+.nav:hover{background:var(--bg3) !important;color:var(--tx) !important}
+.card{animation:rise .3s cubic-bezier(.2,.8,.2,1) both}
+.sw{transition:transform .18s cubic-bezier(.3,1.6,.5,1),box-shadow .18s}
+.sw:hover{transform:scale(1.1)}
+.mode{transition:box-shadow .18s,transform .15s}
+.mode:hover{transform:translateY(-2px)}
+.tg{appearance:none;-webkit-appearance:none;width:40px;height:24px;flex:none;margin:0;border-radius:12px;background:#3A3F4B;position:relative;cursor:pointer;transition:background .2s}
+.tg::before{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#ECEDEF;transition:transform .2s cubic-bezier(.3,1.4,.5,1)}
+.tg:checked{background:var(--ac)}.tg:checked::before{transform:translateX(16px)}
+.check{animation:pop .3s cubic-bezier(.3,1.6,.5,1)}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes pop{from{transform:scale(.4)}to{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div class="{{themeCls}}" style="--ac:{{ac}};--acTx:#14161B;width:100%;min-height:900px;display:flex;flex-wrap:wrap;background:var(--bg2);color:var(--tx);font-family:'Geist',system-ui,sans-serif;font-size:15px">
+
+  <!-- Menu -->
+  <nav aria-label="Configurações" style="flex:1 1 240px;max-width:290px;box-sizing:border-box;padding:24px 14px;background:var(--bg1);display:flex;flex-direction:column;gap:2px">
+    <div style="display:flex;align-items:center;gap:10px;padding:4px 10px 16px">
+      <span style="width:40px;height:40px;border-radius:50%;background:#7FB2F0;color:#14161B;font-weight:800;display:flex;align-items:center;justify-content:center">F</span>
+      <span style="display:flex;flex-direction:column"><span style="font-weight:800">Felipe</span><span style="font-size:12px;color:var(--tx3)">Abriu pela engrenagem</span></span>
+    </div>
+    <div style="font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--tx3);padding:8px 10px 4px">SUAS CONFIGURAÇÕES</div>
+    <sc-for list="{{mine}}" as="n" hint-placeholder-count="5">
+      <button class="nav" onClick="{{n.pick}}" aria-current="{{n.current}}" style="height:40px;padding:0 12px;border:0;border-radius:10px;display:flex;align-items:center;gap:10px;font-weight:700;background:{{n.bg}};color:{{n.fg}};text-align:left">{{n.name}}</button>
+    </sc-for>
+    <div style="font-size:11px;font-weight:800;letter-spacing:.08em;color:var(--tx3);padding:16px 10px 4px">DO APP</div>
+    <sc-for list="{{app}}" as="n" hint-placeholder-count="4">
+      <button class="nav" onClick="{{n.pick}}" aria-current="{{n.current}}" style="height:40px;padding:0 12px;border:0;border-radius:10px;display:flex;align-items:center;gap:10px;font-weight:700;background:{{n.bg}};color:{{n.fg}};text-align:left">{{n.name}}</button>
+    </sc-for>
+    <div style="flex:1"></div>
+    <button class="nav" style="height:40px;padding:0 12px;border:0;border-radius:10px;background:transparent;color:#FF7377;font-weight:700;text-align:left">Sair da conta</button>
+  </nav>
+
+  <main style="flex:999 1 560px;min-width:0;box-sizing:border-box;padding:28px 32px 40px;display:flex;flex-direction:column;gap:18px;max-width:920px">
+
+    <!-- Aparência -->
+    <sc-if value="{{isLook}}" hint-placeholder-val="{{true}}">
+      <h1 style="margin:0;font-size:26px;font-weight:800;letter-spacing:-.02em">Aparência</h1>
+      <p style="margin:-8px 0 0;color:var(--tx2)">Vale pra este aparelho. As outras pessoas continuam com o tema delas.</p>
+
+      <section class="card" aria-label="Modo" style="padding:20px;border-radius:20px;background:var(--bg1);display:flex;flex-direction:column;gap:14px">
+        <h2 style="margin:0;font-size:16px;font-weight:800">Modo</h2>
+        <div role="radiogroup" aria-label="Modo" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px">
+          <sc-for list="{{modes}}" as="m" hint-placeholder-count="3">
+            <button class="mode" role="radio" aria-checked="{{m.checked}}" onClick="{{m.pick}}" style="padding:10px;border:0;border-radius:16px;background:var(--bg2);box-shadow:{{m.ring}};display:flex;flex-direction:column;gap:10px;text-align:left">
+              <span aria-hidden="true" style="height:84px;border-radius:10px;background:{{m.g0}};display:flex;gap:6px;padding:8px;box-sizing:border-box;overflow:hidden">
+                <span style="width:18%;border-radius:6px;background:{{m.g1}}"></span>
+                <span style="flex:1;display:flex;flex-direction:column;gap:6px;justify-content:flex-end">
+                  <span style="height:8px;width:70%;border-radius:4px;background:{{m.g2}}"></span>
+                  <span style="height:8px;width:45%;border-radius:4px;background:{{m.g2}}"></span>
+                  <span style="height:14px;width:36%;border-radius:5px;background:var(--ac)"></span>
+                </span>
+              </span>
+              <span style="font-weight:800;font-size:14px;padding:0 4px 4px">{{m.name}}</span>
+            </button>
+          </sc-for>
+        </div>
+      </section>
+
+      <section class="card" aria-label="Cor de destaque" style="padding:20px;border-radius:20px;background:var(--bg1);display:flex;flex-direction:column;gap:14px;animation-delay:.05s">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <h2 style="margin:0;font-size:16px;font-weight:800">Cor de destaque</h2>
+          <span style="font-size:13px;color:var(--tx3)">Botões, menções, abas e o anel de quem fala</span>
+        </div>
+        <div role="radiogroup" aria-label="Cor de destaque" style="display:flex;flex-wrap:wrap;gap:12px;align-items:center">
+          <sc-for list="{{colors}}" as="c" hint-placeholder-count="7">
+            <button class="sw" role="radio" aria-checked="{{c.checked}}" aria-label="{{c.name}}" title="{{c.name}}" onClick="{{c.pick}}" style="width:44px;height:44px;border:0;border-radius:50%;background:{{c.hex}};box-shadow:{{c.ring}};display:flex;align-items:center;justify-content:center;color:#14161B">
+              <sc-if value="{{c.on}}" hint-placeholder-val="{{false}}"><svg class="check" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"></path></svg></sc-if>
+            </button>
+          </sc-for>
+          <label style="display:flex;align-items:center;gap:8px;height:44px;padding:0 14px 0 6px;border-radius:22px;background:var(--bg3);cursor:pointer;font-size:14px;font-weight:700">
+            <input type="color" value="{{ac}}" onInput="{{pickCustom}}" aria-label="Cor personalizada" style="width:32px;height:32px;border:0;border-radius:50%;padding:0;background:transparent;cursor:pointer">
+            Outra cor
+          </label>
+        </div>
+      </section>
+
+      <section class="card" aria-label="Prévia" style="padding:20px;border-radius:20px;background:var(--bg1);display:flex;flex-direction:column;gap:12px;animation-delay:.1s">
+        <h2 style="margin:0;font-size:16px;font-weight:800">Prévia</h2>
+        <div style="padding:16px;border-radius:16px;background:var(--bg2);display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;gap:12px">
+            <span style="width:36px;height:36px;border-radius:50%;background:#F2A65A;color:#14161B;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 3px var(--ac)">B</span>
+            <div><div style="font-weight:800">Bia <span style="font-size:12px;color:var(--tx3);font-weight:500">21:02</span></div><p style="margin:4px 0 0;color:var(--msg)">Bora call? <span style="background:color-mix(in srgb,var(--ac) 18%,transparent);color:var(--ac);font-weight:700;border-radius:6px;padding:1px 5px">@Felipe</span> vem também</p></div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <span style="height:40px;padding:0 16px;border-radius:12px;background:var(--ac);color:var(--acTx);font-weight:800;font-size:14px;display:flex;align-items:center">Entrar na call</span>
+            <span style="height:40px;padding:0 16px;border-radius:12px;background:var(--bg4);font-weight:700;font-size:14px;display:flex;align-items:center">Depois</span>
+          </div>
+        </div>
+      </section>
+    </sc-if>
+
+    <!-- Áudio e vídeo (suas) -->
+    <sc-if value="{{isAudio}}" hint-placeholder-val="{{false}}">
+      <h1 style="margin:0;font-size:26px;font-weight:800;letter-spacing:-.02em">Áudio e vídeo</h1>
+      <p style="margin:-8px 0 0;color:var(--tx2)">Só muda o seu microfone, fone e câmera.</p>
+      <section class="card" aria-label="Microfone e som" style="padding:20px;border-radius:20px;background:var(--bg1);display:flex;flex-wrap:wrap;gap:16px">
+        <label style="flex:1 1 260px;display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:700;color:var(--tx2)">Microfone</span>
+          <select style="height:44px;border:0;border-radius:12px;background:var(--bg3);color:var(--tx);padding:0 12px"><option>Padrão do sistema</option><option>Headset USB</option></select></label>
+        <label style="flex:1 1 260px;display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:700;color:var(--tx2)">Saída de som</span>
+          <select style="height:44px;border:0;border-radius:12px;background:var(--bg3);color:var(--tx);padding:0 12px"><option>Padrão do sistema</option><option>Caixas de som</option></select></label>
+      </section>
+      <section class="card" aria-label="Câmera" style="padding:20px;border-radius:20px;background:var(--bg1);display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start;animation-delay:.05s">
+        <div style="flex:1 1 260px;display:flex;flex-direction:column;gap:14px">
+          <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:700;color:var(--tx2)">Câmera</span>
+            <select style="height:44px;border:0;border-radius:12px;background:var(--bg3);color:var(--tx);padding:0 12px"><option>Webcam HD</option></select></label>
+          <label style="display:flex;align-items:center;gap:12px;cursor:pointer">
+            <input class="tg" type="checkbox" checked="{{mirror}}" onChange="{{flipMirror}}">
+            <span style="display:flex;flex-direction:column"><span style="font-weight:700">Espelhar minha câmera</span><span style="font-size:12px;color:var(--tx3)">Só pra você. Os outros te veem normal.</span></span>
+          </label>
+        </div>
+        <div style="flex:1 1 260px;height:170px;border-radius:16px;background:#2A3550;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+          <span style="width:72px;height:72px;border-radius:50%;background:#7FB2F0;color:#14161B;font-weight:800;font-size:28px;display:flex;align-items:center;justify-content:center;transform:{{mirrorTf}};transition:transform .3s">F</span>
+          <span style="position:absolute;left:10px;bottom:10px;padding:3px 8px;border-radius:7px;background:rgba(14,15,19,.78);color:#ECEDEF;font-size:12px;font-weight:700">Prévia · {{mirrorText}}</span>
+        </div>
+      </section>
+    </sc-if>
+
+    <!-- Minha conta -->
+    <sc-if value="{{isAccount}}" hint-placeholder-val="{{false}}">
+      <h1 style="margin:0;font-size:26px;font-weight:800;letter-spacing:-.02em">Minha conta</h1>
+      <p style="margin:-8px 0 0;color:var(--tx2)">Como você entra no Resenha. Só você vê isto.</p>
+      <section class="card" aria-label="Acesso" style="border-radius:20px;background:var(--bg1);display:flex;flex-direction:column">
+        <div style="display:flex;align-items:center;gap:14px;padding:18px 20px;flex-wrap:wrap">
+          <div style="flex:1;min-width:200px"><div style="font-size:13px;font-weight:700;color:var(--tx2)">E-mail</div><div style="font-weight:700;margin-top:2px">vo•••••@email.com</div></div>
+          <button onClick="{{editEmail}}" style="height:40px;padding:0 16px;border:0;border-radius:12px;background:var(--bg4);color:var(--tx);font-weight:700;font-size:14px">Alterar e-mail</button>
+        </div>
+        <sc-if value="{{isEditEmail}}" hint-placeholder-val="{{false}}">
+          <div class="card" style="display:flex;gap:10px;padding:0 20px 18px;flex-wrap:wrap">
+            <input type="email" placeholder="Novo e-mail" aria-label="Novo e-mail" style="flex:1;min-width:220px;height:44px;border:0;border-radius:12px;background:var(--bg3);color:var(--tx);padding:0 14px;outline:0">
+            <button style="height:44px;padding:0 16px;border:0;border-radius:12px;background:var(--ac);color:var(--acTx);font-weight:800">Mandar link de confirmação</button>
+          </div>
+        </sc-if>
+        <div style="height:1px;background:var(--line);margin:0 20px"></div>
+        <div style="display:flex;align-items:center;gap:14px;padding:18px 20px;flex-wrap:wrap">
+          <div style="flex:1;min-width:200px"><div style="font-size:13px;font-weight:700;color:var(--tx2)">Senha</div><div style="font-weight:700;margin-top:2px">Trocada há 3 meses</div></div>
+          <button onClick="{{editPass}}" style="height:40px;padding:0 16px;border:0;border-radius:12px;background:var(--bg4);color:var(--tx);font-weight:700;font-size:14px">Trocar senha</button>
+        </div>
+        <sc-if value="{{isEditPass}}" hint-placeholder-val="{{false}}">
+          <div class="card" style="display:flex;gap:10px;padding:0 20px 18px;flex-wrap:wrap">
+            <input type="password" placeholder="Senha atual" aria-label="Senha atual" style="flex:1;min-width:180px;height:44px;border:0;border-radius:12px;background:var(--bg3);color:var(--tx);padding:0 14px;outline:0">
+            <input type="password" placeholder="Nova senha" aria-label="Nova senha" style="flex:1;min-width:180px;height:44px;border:0;border-radius:12px;background:var(--bg3);color:var(--tx);padding:0 14px;outline:0">
+            <button style="height:44px;padding:0 16px;border:0;border-radius:12px;background:var(--ac);color:var(--acTx);font-weight:800">Salvar senha</button>
+          </div>
+        </sc-if>
+        <div style="height:1px;background:var(--line);margin:0 20px"></div>
+        <div style="display:flex;align-items:center;gap:14px;padding:18px 20px;flex-wrap:wrap">
+          <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24"><path fill="currentColor" d="M21.6 12.2c0-.7-.1-1.3-.2-1.9H12v3.6h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.2zM12 22c2.7 0 5-.9 6.6-2.4l-3.2-2.5c-.9.6-2 1-3.4 1-2.6 0-4.8-1.8-5.6-4.1H3.1v2.6A10 10 0 0 0 12 22zM6.4 14c-.2-.6-.3-1.3-.3-2s.1-1.4.3-2V7.4H3.1a10 10 0 0 0 0 9.2L6.4 14zM12 6c1.5 0 2.8.5 3.8 1.5l2.9-2.9A10 10 0 0 0 3.1 7.4L6.4 10C7.2 7.7 9.4 6 12 6z"></path></svg>
+          <div style="flex:1;min-width:200px"><div style="font-weight:700">Entrar com Google</div><div style="font-size:13px;color:var(--tx3)">Conectado</div></div>
+          <button style="height:40px;padding:0 16px;border:0;border-radius:12px;background:transparent;color:var(--tx2);font-weight:700;font-size:14px;box-shadow:inset 0 0 0 1px var(--line)">Desconectar</button>
+        </div>
+      </section>
+      <section class="card" aria-label="Zona de perigo" style="padding:18px 20px;border-radius:20px;background:var(--bg1);display:flex;align-items:center;gap:14px;flex-wrap:wrap;animation-delay:.05s">
+        <div style="flex:1;min-width:200px"><div style="font-weight:800;color:#FF7377">Excluir conta</div><div style="font-size:13px;color:var(--tx3)">Apaga seu perfil e suas mensagens. Não dá para desfazer.</div></div>
+        <button style="height:40px;padding:0 16px;border:0;border-radius:12px;background:rgba(229,72,77,.16);color:#FF7377;font-weight:800;font-size:14px">Excluir conta</button>
+      </section>
+    </sc-if>
+
+    <!-- Perfil -->
+    <sc-if value="{{isProfile}}" hint-placeholder-val="{{false}}">
+      <h1 style="margin:0;font-size:26px;font-weight:800;letter-spacing:-.02em">Perfil</h1>
+      <p style="margin:-8px 0 0;color:var(--tx2)">É assim que a galera te vê quando clica no seu nome.</p>
+      <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start">
+        <section class="card" aria-label="Editar perfil" style="flex:1 1 320px;padding:20px;border-radius:20px;background:var(--bg1);display:flex;flex-direction:column;gap:16px">
+          <div style="display:flex;align-items:center;gap:14px">
+            <span style="width:64px;height:64px;border-radius:50%;background:#7FB2F0;color:#14161B;font-weight:800;font-size:26px;display:flex;align-items:center;justify-content:center">{{initial}}</span>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <button style="height:38px;padding:0 14px;border:0;border-radius:11px;background:var(--bg4);color:var(--tx);font-weight:700;font-size:14px">Trocar foto</button>
+              <span style="font-size:12px;color:var(--tx3)">JPG ou PNG, até 4 MB</span>
+            </div>
+          </div>
+          <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:700;color:var(--tx2)">Nome que aparece</span>
+            <input value="{{dispName}}" onInput="{{setDisp}}" maxlength="32" style="height:44px;border:0;border-radius:12px;background:var(--bg3);color:var(--tx);padding:0 14px;outline:0"></label>
+          <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:700;color:var(--tx2)">Recado</span>
+            <input value="{{recado}}" onInput="{{setRecado}}" maxlength="80" style="height:44px;border:0;border-radius:12px;background:var(--bg3);color:var(--tx);padding:0 14px;outline:0"></label>
+          <div style="display:flex;flex-direction:column;gap:8px"><span style="font-size:13px;font-weight:700;color:var(--tx2)">Cor do fundo do cartão</span>
+            <div role="radiogroup" aria-label="Cor do fundo do cartão" style="display:flex;gap:10px">
+              <sc-for list="{{banners}}" as="b" hint-placeholder-count="5">
+                <button class="sw" role="radio" aria-checked="{{b.checked}}" aria-label="Cor {{b.hex}}" onClick="{{b.pick}}" style="width:36px;height:36px;border:0;border-radius:50%;background:{{b.hex}};box-shadow:{{b.ring}}"></button>
+              </sc-for>
+            </div>
+          </div>
+          <button onClick="{{save}}" style="align-self:flex-start;height:44px;padding:0 18px;border:0;border-radius:12px;background:var(--ac);color:var(--acTx);font-weight:800">{{saveLabel}}</button>
+        </section>
+        <section class="card" aria-label="Prévia do cartão" style="flex:0 1 300px;border-radius:20px;background:var(--bg1);overflow:hidden;animation-delay:.05s">
+          <div style="height:96px;background:{{banner}};transition:background .3s"></div>
+          <div style="padding:0 18px 18px;display:flex;flex-direction:column;gap:8px">
+            <span style="margin-top:-36px;width:72px;height:72px;border-radius:50%;background:#7FB2F0;color:#14161B;font-weight:800;font-size:28px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 6px var(--bg1)">{{initial}}</span>
+            <span style="font-weight:800;font-size:18px">{{dispName}}</span>
+            <span style="font-size:14px;color:var(--tx2)">{{recado}}</span>
+            <span style="font-size:12px;color:var(--tx3)">No Resenha desde set/2026</span>
+          </div>
+        </section>
+      </div>
+    </sc-if>
+
+    <!-- Outras seções -->
+    <sc-if value="{{isOther}}" hint-placeholder-val="{{false}}">
+      <h1 style="margin:0;font-size:26px;font-weight:800;letter-spacing:-.02em">{{otherName}}</h1>
+      <p style="margin:-8px 0 0;color:var(--tx2)">{{otherDesc}}</p>
+      <div style="padding:20px;border-radius:20px;background:var(--bg1);color:var(--tx3);font-size:14px">[conteúdo de {{otherName}}]</div>
+    </sc-if>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { pane: 'look', mode: 'dark', ac: '#FF6B3D', mirror: true, dispName: 'Felipe', recado: 'Pelada quinta, não falto', banner: '#2A3550', saved: false, editing: '' };
+  }
+  renderVals() {
+    const s = this.state;
+    const item = (id, name) => {
+      const on = s.pane === id;
+      return { name, current: on ? 'page' : 'false', bg: on ? 'var(--bg4)' : 'transparent', fg: on ? 'var(--tx)' : 'var(--tx2)', pick: () => this.setState({ pane: id }) };
+    };
+    const mine = [['account', 'Minha conta'], ['profile', 'Perfil'], ['audio', 'Áudio e vídeo'], ['notif', 'Notificações'], ['zoeira', 'Zoeira']].map((x) => item(...x));
+    const app = [['look', 'Aparência'], ['keys', 'Atalhos'], ['about', 'Sobre o Resenha']].map((x) => item(...x));
+    const desc = {
+      notif: ['Notificações', 'O que toca e o que aparece, por sala.'],
+      zoeira: ['Zoeira', 'Quais zoeiras podem te pegar e quem pode mandar.'],
+      keys: ['Atalhos', 'Atalhos de teclado, como mutar e sair da call.'],
+      about: ['Sobre o Resenha', 'Versão e novidades.']
+    };
+    const light = s.mode === 'light';
+    const modes = [
+      ['dark', 'Escuro', '#0E0F13', '#191B21', '#3A3F4B'],
+      ['light', 'Claro', '#E9E8E4', '#FBFBF9', '#C9C8C3'],
+      ['system', 'Seguir o sistema', 'linear-gradient(90deg,#0E0F13 50%,#E9E8E4 50%)', '#262A33', '#8A909C']
+    ].map(([id, name, g0, g1, g2]) => ({
+      name, g0, g1, g2, checked: s.mode === id ? 'true' : 'false',
+      ring: s.mode === id ? '0 0 0 2px var(--ac)' : '0 0 0 1px var(--line)',
+      pick: () => this.setState({ mode: id })
+    }));
+    const colors = [
+      ['Laranja', '#FF6B3D'], ['Azul', '#4C8DFF'], ['Verde', '#2FBF71'], ['Roxo', '#9B6BFF'],
+      ['Rosa', '#FF5C9A'], ['Amarelo', '#F2B630'], ['Vermelho', '#E5484D']
+    ].map(([name, hex]) => {
+      const on = s.ac.toLowerCase() === hex.toLowerCase();
+      return { name, hex, on, checked: on ? 'true' : 'false', ring: on ? '0 0 0 3px var(--bg1),0 0 0 5px ' + hex : 'none', pick: () => this.setState({ ac: hex }) };
+    });
+    const other = desc[s.pane];
+    return {
+      themeCls: light ? 't light' : 't', ac: s.ac,
+      mine, app, modes, colors,
+      isLook: s.pane === 'look', isAudio: s.pane === 'audio', isOther: Boolean(other),
+      isAccount: s.pane === 'account', isProfile: s.pane === 'profile',
+      dispName: s.dispName, recado: s.recado, banner: s.banner,
+      initial: (s.dispName.trim().charAt(0) || 'F').toUpperCase(),
+      setDisp: (e) => this.setState({ dispName: e.target.value, saved: false }),
+      setRecado: (e) => this.setState({ recado: e.target.value, saved: false }),
+      banners: ['#2A3550', '#3A2D22', '#1F2B26', '#2A2240', '#3A1F2A'].map((hex) => ({
+        hex, checked: s.banner === hex ? 'true' : 'false',
+        ring: s.banner === hex ? '0 0 0 3px var(--bg1),0 0 0 5px var(--ac)' : 'none',
+        pick: () => this.setState({ banner: hex, saved: false })
+      })),
+      saveLabel: s.saved ? 'Salvo' : 'Salvar perfil',
+      save: () => this.setState({ saved: true }),
+      editing: s.editing, isEditEmail: s.editing === 'email', isEditPass: s.editing === 'pass',
+      editEmail: () => this.setState({ editing: s.editing === 'email' ? '' : 'email' }),
+      editPass: () => this.setState({ editing: s.editing === 'pass' ? '' : 'pass' }),
+      otherName: other ? other[0] : '', otherDesc: other ? other[1] : '',
+      pickCustom: (e) => this.setState({ ac: e.target.value }),
+      mirror: s.mirror, flipMirror: () => this.setState({ mirror: !s.mirror }),
+      mirrorTf: s.mirror ? 'scaleX(-1)' : 'none', mirrorText: s.mirror ? 'espelhada' : 'normal'
+    };
+  }
+}
+</script>
+</body>
+</html>

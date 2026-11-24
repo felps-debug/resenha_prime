@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Resenha — fixar tela e câmera</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0E0F13}
+*{scrollbar-width:none}*::-webkit-scrollbar{display:none}
+button{font:inherit;color:inherit;cursor:pointer}
+.tile{position:relative;overflow:hidden;border-radius:18px;transition:box-shadow .2s,transform .2s cubic-bezier(.2,.8,.2,1)}
+.tile .pin{opacity:0;transform:translateY(-4px);transition:opacity .15s,transform .15s,background .15s}
+.tile:hover .pin,.tile .pin.on{opacity:1;transform:none}
+.pin:hover{background:#FF6B3D !important;color:#1A0F0A !important}
+.slot{transition:all .35s cubic-bezier(.2,.8,.2,1)}
+.enter{animation:enter .35s cubic-bezier(.2,.8,.2,1) both}
+.seg{transition:background .15s,color .15s}
+.seg:hover{color:#ECEDEF !important}
+.pip{position:absolute;width:280px;aspect-ratio:16/9;border-radius:16px;box-shadow:0 18px 40px -12px rgba(0,0,0,.85),0 0 0 2px #0E0F13;transition:left .35s cubic-bezier(.2,.8,.2,1),top .35s cubic-bezier(.2,.8,.2,1),right .35s,bottom .35s,width .3s}
+.pip .corners{opacity:0;transition:opacity .15s}
+.pip:hover .corners{opacity:1}
+.dock{transition:background .15s,transform .12s}
+.dock:hover{transform:translateY(-2px)}
+@keyframes enter{from{opacity:0;transform:scale(.97)}to{opacity:1;transform:none}}
+@media (max-width:900px){.hide-sm{display:none !important}}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width:100%;height:900px;display:flex;flex-direction:column;background:#0E0F13;color:#ECEDEF;font-family:'Geist',system-ui,sans-serif;font-size:15px;overflow:hidden">
+
+  <header style="height:64px;flex:none;padding:0 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+    <div style="display:flex;flex-direction:column">
+      <h1 style="margin:0;font-size:17px;font-weight:800">Call · Resenha dos amigos</h1>
+      <span style="font-size:12px;color:#8A909C">{{hint}}</span>
+    </div>
+    <div style="flex:1"></div>
+    <div role="radiogroup" aria-label="Layout da call" style="display:flex;gap:4px;padding:4px;border-radius:14px;background:#191B21">
+      <sc-for list="{{modes}}" as="m" hint-placeholder-count="3">
+        <button class="seg" role="radio" aria-checked="{{m.checked}}" onClick="{{m.pick}}" style="height:36px;padding:0 14px;border:0;border-radius:10px;background:{{m.bg}};color:{{m.fg}};font-weight:700;font-size:13px;display:flex;align-items:center;gap:8px">
+          <span aria-hidden="true" style="display:flex;gap:2px;align-items:stretch;width:22px;height:14px">
+            <sc-if value="{{m.isFocus}}" hint-placeholder-val="{{true}}"><span style="flex:1;display:flex;flex-direction:column;gap:2px"><span style="flex:3;border-radius:2px;background:currentColor"></span><span style="flex:1;border-radius:2px;background:currentColor;opacity:.5"></span></span></sc-if>
+            <sc-if value="{{m.isSplit}}" hint-placeholder-val="{{false}}"><span style="flex:1;border-radius:2px;background:currentColor"></span><span style="flex:1;border-radius:2px;background:currentColor"></span></sc-if>
+            <sc-if value="{{m.isPip}}" hint-placeholder-val="{{false}}"><span style="flex:1;position:relative;border-radius:2px;background:currentColor;opacity:.55"><span style="position:absolute;right:1px;bottom:1px;width:9px;height:6px;border-radius:1px;background:#0E0F13;box-shadow:inset 0 0 0 1.5px currentColor"></span></span></sc-if>
+          </span>
+          {{m.name}}
+        </button>
+      </sc-for>
+    </div>
+  </header>
+
+  <div style="flex:1;min-height:0;display:flex;flex-direction:column;gap:14px;padding:0 20px 16px">
+
+    <!-- Palco -->
+    <section aria-label="Palco" style="flex:1;min-height:0;position:relative;display:flex;flex-wrap:{{wrap}};gap:14px">
+
+      <!-- Destaque e lado a lado -->
+      <sc-for list="{{mainTiles}}" as="t" hint-placeholder-count="1">
+        <div class="tile slot enter" style="flex:{{t.flex}};min-width:0;background:{{t.bg}};display:flex;align-items:center;justify-content:center">
+          <sc-if value="{{t.isScreen}}" hint-placeholder-val="{{true}}">
+            <div aria-hidden="true" style="width:78%;max-width:760px;aspect-ratio:16/10;border-radius:12px;background:#1E2230;box-shadow:0 0 0 1px #2C3142;display:flex;flex-direction:column;overflow:hidden">
+              <div style="height:28px;background:#262B3A;display:flex;align-items:center;gap:6px;padding:0 10px"><span style="width:9px;height:9px;border-radius:50%;background:#FF5F57"></span><span style="width:9px;height:9px;border-radius:50%;background:#FEBC2E"></span><span style="width:9px;height:9px;border-radius:50%;background:#28C840"></span></div>
+              <div style="flex:1;padding:18px;display:flex;flex-direction:column;gap:10px"><span style="height:10px;width:62%;border-radius:5px;background:#7FB2F0;opacity:.6"></span><span style="height:10px;width:44%;border-radius:5px;background:#C9A7F5;opacity:.6"></span><span style="height:10px;width:70%;border-radius:5px;background:#8BD3A8;opacity:.6"></span><span style="height:10px;width:30%;border-radius:5px;background:#F2A65A;opacity:.6"></span></div>
+            </div>
+          </sc-if>
+          <sc-if value="{{t.isCam}}" hint-placeholder-val="{{false}}">
+            <div aria-hidden="true" style="display:flex;flex-direction:column;align-items:center;gap:10px;color:rgba(255,255,255,.75)">
+              <span style="width:96px;height:96px;border-radius:50%;background:{{t.color}};color:#14161B;font-weight:800;font-size:38px;display:flex;align-items:center;justify-content:center">{{t.initial}}</span>
+              <span style="font-size:13px">[câmera ao vivo]</span>
+            </div>
+          </sc-if>
+          <span style="position:absolute;left:14px;bottom:14px;display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:9px;background:rgba(14,15,19,.78);font-size:13px;font-weight:700">
+            <sc-if value="{{t.isScreen}}" hint-placeholder-val="{{true}}"><span style="font-size:10px;font-weight:800;color:#fff;background:#E5484D;border-radius:5px;padding:2px 6px">AO VIVO</span></sc-if>
+            {{t.label}}
+          </span>
+          <button class="pin on" onClick="{{t.unpin}}" aria-label="Desafixar {{t.label}}" title="Desafixar" style="position:absolute;right:14px;top:14px;height:36px;padding:0 12px;border:0;border-radius:10px;background:rgba(14,15,19,.78);color:#FFB091;font-weight:700;font-size:13px;display:flex;align-items:center;gap:6px">
+            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5M9 3h6l-1 6 4 4H6l4-4z"></path></svg>
+            Fixado
+          </button>
+        </div>
+      </sc-for>
+
+      <!-- Câmera flutuante (picture-in-picture) -->
+      <sc-if value="{{hasPip}}" hint-placeholder-val="{{false}}">
+        <div class="tile pip" style="{{pipPos}};width:{{pipW}};background:{{pip.bg}};display:flex;align-items:center;justify-content:center">
+          <span style="width:64px;height:64px;border-radius:50%;background:{{pip.color}};color:#14161B;font-weight:800;font-size:26px;display:flex;align-items:center;justify-content:center">{{pip.initial}}</span>
+          <span style="position:absolute;left:10px;bottom:10px;padding:3px 8px;border-radius:7px;background:rgba(14,15,19,.78);font-size:12px;font-weight:700">{{pip.label}}</span>
+          <div class="corners" style="position:absolute;inset:0;display:flex;flex-direction:column;justify-content:space-between;padding:8px;background:rgba(14,15,19,.35)">
+            <div style="display:flex;justify-content:space-between">
+              <button onClick="{{toTL}}" aria-label="Levar pro canto superior esquerdo" style="width:30px;height:30px;border:0;border-radius:8px;background:rgba(14,15,19,.8);color:#ECEDEF">↖</button>
+              <button onClick="{{toTR}}" aria-label="Levar pro canto superior direito" style="width:30px;height:30px;border:0;border-radius:8px;background:rgba(14,15,19,.8);color:#ECEDEF">↗</button>
+            </div>
+            <div style="display:flex;justify-content:center;gap:6px">
+              <button onClick="{{toggleSize}}" style="height:30px;padding:0 10px;border:0;border-radius:8px;background:rgba(14,15,19,.8);color:#ECEDEF;font-size:12px;font-weight:700">{{sizeLabel}}</button>
+              <button onClick="{{swap}}" style="height:30px;padding:0 10px;border:0;border-radius:8px;background:rgba(14,15,19,.8);color:#ECEDEF;font-size:12px;font-weight:700">Trocar</button>
+            </div>
+            <div style="display:flex;justify-content:space-between">
+              <button onClick="{{toBL}}" aria-label="Levar pro canto inferior esquerdo" style="width:30px;height:30px;border:0;border-radius:8px;background:rgba(14,15,19,.8);color:#ECEDEF">↙</button>
+              <button onClick="{{toBR}}" aria-label="Levar pro canto inferior direito" style="width:30px;height:30px;border:0;border-radius:8px;background:rgba(14,15,19,.8);color:#ECEDEF">↘</button>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+    </section>
+
+    <!-- Faixa com o resto -->
+    <div style="height:132px;flex:none;display:flex;gap:12px">
+      <sc-for list="{{strip}}" as="t" hint-placeholder-count="3">
+        <div class="tile" style="flex:0 1 220px;min-width:0;background:{{t.bg}};display:flex;align-items:center;justify-content:center">
+          <sc-if value="{{t.isScreen}}" hint-placeholder-val="{{false}}"><span aria-hidden="true" style="width:60%;aspect-ratio:16/10;border-radius:6px;background:#1E2230;box-shadow:0 0 0 1px #2C3142"></span></sc-if>
+          <sc-if value="{{t.isCam}}" hint-placeholder-val="{{true}}"><span style="width:52px;height:52px;border-radius:50%;background:{{t.color}};color:#14161B;font-weight:800;font-size:20px;display:flex;align-items:center;justify-content:center">{{t.initial}}</span></sc-if>
+          <span style="position:absolute;left:8px;bottom:8px;padding:3px 8px;border-radius:7px;background:rgba(14,15,19,.78);font-size:12px;font-weight:700">{{t.label}}</span>
+          <button class="{{t.pinCls}}" onClick="{{t.pin}}" aria-label="{{t.pinAria}}" title="{{t.pinAria}}" style="position:absolute;right:8px;top:8px;height:30px;padding:0 10px;border:0;border-radius:9px;background:rgba(14,15,19,.85);color:{{t.pinFg}};font-weight:700;font-size:12px;display:flex;align-items:center;gap:5px">
+            <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="{{t.pinFill}}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5M9 3h6l-1 6 4 4H6l4-4z"></path></svg>
+            {{t.pinText}}
+          </button>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- Controles -->
+    <div style="flex:none;display:flex;justify-content:center">
+      <div style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:22px;background:#191B21">
+        <button class="dock" aria-label="Desativar microfone" title="Desativar microfone" style="width:52px;height:52px;border:0;border-radius:16px;background:#262A33;color:#ECEDEF;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3"></path></svg></button>
+        <button class="dock" aria-label="Desligar câmera" title="Desligar câmera" aria-pressed="true" style="width:52px;height:52px;border:0;border-radius:16px;background:#ECEDEF;color:#14161B;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="12" rx="2"></rect><path d="m16 10 6-3v10l-6-3"></path></svg></button>
+        <button class="dock" aria-label="Parar transmissão" title="Parar transmissão" aria-pressed="true" style="width:52px;height:52px;border:0;border-radius:16px;background:#FF6B3D;color:#1A0F0A;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"></rect><path d="M8 21h8M12 17v4"></path></svg></button>
+        <span aria-hidden="true" style="width:1px;height:32px;background:#2A2E38;margin:0 4px"></span>
+        <button class="dock" style="height:52px;padding:0 20px;border:0;border-radius:16px;background:#FF5A5F;color:#fff;font-weight:800;font-size:14px">Sair</button>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { mode: 'pip', pinned: ['s-felipe', 'c-felipe'], corner: 'br', big: false };
+  }
+  renderVals() {
+    const s = this.state;
+    const all = [
+      { id: 's-felipe', kind: 'screen', label: 'Sua tela', bg: '#14161B' },
+      { id: 'c-felipe', kind: 'cam', label: 'Sua câmera', initial: 'F', color: '#7FB2F0', bg: '#2A3550' },
+      { id: 'c-bia', kind: 'cam', label: 'Bia', initial: 'B', color: '#F2A65A', bg: '#3A2D22' },
+      { id: 'c-caio', kind: 'cam', label: 'Caio', initial: 'C', color: '#8BD3A8', bg: '#1F2B26' }
+    ];
+    const byId = (id) => all.find((x) => x.id === id);
+    const pinned = s.pinned.filter(byId);
+    const deco = (x) => ({ ...x, isScreen: x.kind === 'screen', isCam: x.kind === 'cam' });
+    const unpin = (id) => () => this.setState({ pinned: s.pinned.filter((p) => p !== id) });
+    const pin = (id) => () => {
+      const next = [...s.pinned.filter((p) => p !== id), id];
+      this.setState({ pinned: next.slice(-4) });
+    };
+
+    let main = [], pip = null;
+    if (s.mode === 'focus') main = pinned.slice(0, 1);
+    if (s.mode === 'split') main = pinned.slice(0, 4);
+    if (s.mode === 'pip') { main = pinned.slice(0, 1); pip = pinned[1] ? byId(pinned[1]) : null; }
+    if (!main.length) main = ['s-felipe'];
+    const onStage = new Set([...main, ...(pip ? [pip.id] : [])]);
+
+    const many = main.length > 2;
+    const mainTiles = main.map((id) => ({ ...deco(byId(id)), flex: many ? '1 1 calc(50% - 7px)' : '1 1 0', unpin: unpin(id) }));
+    const strip = all.filter((x) => !onStage.has(x.id)).map((x) => {
+      const on = s.pinned.includes(x.id);
+      return {
+        ...deco(x), pin: on ? unpin(x.id) : pin(x.id),
+        pinCls: on ? 'pin on' : 'pin', pinText: on ? 'Fixado' : 'Fixar', pinFill: on ? 'currentColor' : 'none',
+        pinFg: on ? '#FFB091' : '#ECEDEF', pinAria: (on ? 'Desafixar ' : 'Fixar ') + x.label
+      };
+    });
+
+    const pos = { tl: 'left:16px;top:16px', tr: 'right:16px;top:16px', bl: 'left:16px;bottom:16px', br: 'right:16px;bottom:16px' };
+    const modes = [['focus', 'Destaque'], ['split', 'Lado a lado'], ['pip', 'Câmera flutuante']].map(([id, name]) => ({
+      name, checked: s.mode === id ? 'true' : 'false',
+      bg: s.mode === id ? '#262A33' : 'transparent', fg: s.mode === id ? '#ECEDEF' : '#A9AEB8',
+      isFocus: id === 'focus', isSplit: id === 'split', isPip: id === 'pip',
+      pick: () => this.setState({ mode: id })
+    }));
+    const hints = {
+      focus: 'Destaque: o que você fixou fica grande, o resto vai pra faixa de baixo',
+      split: 'Lado a lado: tudo que você fixar (até 4: telas, câmeras ou avatares) divide o palco',
+      pip: 'Câmera flutuante: a tela fica gigante e a câmera fixada flutua num canto'
+    };
+    return {
+      modes, mainTiles, strip, hint: hints[s.mode], wrap: many ? 'wrap' : 'nowrap',
+      hasPip: Boolean(pip), pip: pip || {},
+      pipPos: pos[s.corner], pipW: s.big ? '400px' : '280px', sizeLabel: s.big ? 'Diminuir' : 'Aumentar',
+      toTL: () => this.setState({ corner: 'tl' }), toTR: () => this.setState({ corner: 'tr' }),
+      toBL: () => this.setState({ corner: 'bl' }), toBR: () => this.setState({ corner: 'br' }),
+      toggleSize: () => this.setState({ big: !s.big }),
+      swap: () => this.setState({ pinned: [...s.pinned].reverse() })
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -94,6 +94,7 @@ app.use(express.static(path.join(__dirname, 'public'), {
 }));
 
 app.get(['/health', '/api/health'], (req, res) => res.send('ok'));
+app.get('/lista', (req, res) => res.sendFile(path.join(__dirname, 'public', 'lista.html')));
 
 app.get(['/config', '/api/config'], (req, res) => {
   res.json({ supabaseUrl: SUPABASE_URL, supabaseKey: SUPABASE_KEY, livekitUrl: LIVEKIT_URL, livekitReady, shopReady });
@@ -117,6 +118,41 @@ setInterval(() => {
   const now = Date.now();
   for (const [k, v] of hits) if (now - v.start > 120000) hits.delete(k);
 }, 60000).unref();
+
+// ---------- Lista de testes (inscrição do beta) ----------
+// Valida aqui e repassa para a planilha do Google (script em scripts/lista-planilha.gs).
+const LISTA_URL = process.env.LISTA_SHEETS_URL || '';
+const LISTA_TOKEN = process.env.LISTA_SHEETS_TOKEN || '';
+app.post('/api/lista', rateLimit(5, 10 * 60000), async (req, res) => {
+  const b = req.body || {};
+  if (b.site) return res.json({ ok: true }); // armadilha para robô: humano não vê esse campo
+  const nome = String(b.nome || '').trim().replace(/\s+/g, ' ');
+  const insta = String(b.instagram || '').trim()
+    .replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/[/?#].*$/, '').replace(/^@+/, '').toLowerCase();
+  const idade = Number(b.idade);
+  let zap = String(b.whatsapp || '').replace(/\D/g, '');
+  if (zap.length <= 11) zap = '55' + zap;
+  if (nome.length < 2 || nome.length > 60) return res.status(400).json({ error: 'Coloca seu nome.' });
+  if (!/^[a-z0-9._]{1,30}$/.test(insta)) return res.status(400).json({ error: 'Confere o @ do Instagram.' });
+  if (!Number.isInteger(idade) || idade < 12 || idade > 99) return res.status(400).json({ error: 'Confere sua idade.' });
+  if (!/^55\d{10,11}$/.test(zap)) return res.status(400).json({ error: 'Confere o WhatsApp com DDD.' });
+  if (!LISTA_URL || !LISTA_TOKEN) return res.status(503).json({ error: 'A lista ainda não abriu. Volta daqui a pouco.' });
+  try {
+    const r = await fetch(LISTA_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ token: LISTA_TOKEN, nome, instagram: '@' + insta, idade, whatsapp: zap }),
+      redirect: 'follow',
+      signal: AbortSignal.timeout(12000)
+    });
+    const j = await r.json().catch(() => null);
+    if (!j || !j.ok) throw new Error((j && j.error) || `resposta ${r.status}`);
+    res.json({ ok: true, repetido: Boolean(j.repetido), posicao: Number(j.posicao) || null });
+  } catch (err) {
+    console.error('lista:', err.message);
+    res.status(502).json({ error: 'Não deu pra salvar agora. Tenta de novo em 1 minuto.' });
+  }
+});
 
 // ---------- Autenticação via Supabase ----------
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

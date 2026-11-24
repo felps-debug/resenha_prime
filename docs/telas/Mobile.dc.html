@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Resenha — chat no celular</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Outfit:wght@400;500;600;700;800&amp;family=Sora:wght@400;500;600;700;800&amp;family=DM+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0E0F13}
+*{scrollbar-width:none}*::-webkit-scrollbar{display:none}
+a{color:#FF8A62}a:hover{color:#FFB091}
+button{font:inherit;color:inherit;cursor:pointer}
+.msg{animation:msgIn .32s cubic-bezier(.2,.8,.2,1) both}
+.press:active{transform:scale(.94)}
+.press{transition:transform .12s,background .15s}
+.react{transition:transform .15s,background .15s}
+.react.mine{animation:pop .28s cubic-bezier(.3,1.6,.5,1)}
+.speak{animation:ring 1.4s ease-out infinite}
+.live{animation:blink 2s ease-in-out infinite}
+.dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:#A9AEB8;animation:bounce 1.1s infinite}
+.dot:nth-child(2){animation-delay:.15s}.dot:nth-child(3){animation-delay:.3s}
+.sheet{animation:sheetUp .3s cubic-bezier(.2,.8,.2,1)}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{transform:scale(.6)}100%{transform:scale(1)}}
+@keyframes ring{0%{box-shadow:0 0 0 0 rgba(61,214,140,.55)}100%{box-shadow:0 0 0 6px rgba(61,214,140,0)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.45}}
+@keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-4px);opacity:1}}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width:390px;height:844px;position:relative;display:flex;flex-direction:column;background:#191B21;color:#ECEDEF;font-family:{{font}};font-size:15px;overflow:hidden">
+
+  <header style="flex:none;padding:14px 12px 10px;display:flex;align-items:center;gap:10px;border-bottom:1px solid #22252D">
+    <button class="press" aria-label="Abrir salas e canais" style="width:44px;height:44px;border:0;border-radius:12px;background:#20232B;color:#ECEDEF;display:flex;align-items:center;justify-content:center">
+      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+    </button>
+    <div style="flex:1;min-width:0">
+      <div style="letter-spacing:-.01em;font-weight:700;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Resenha dos amigos</div>
+      <div style="font-size:12px;color:#8A909C"># chat · 4 online</div>
+    </div>
+    <button class="press" aria-label="Membros" style="width:44px;height:44px;border:0;border-radius:12px;background:transparent;color:#A9AEB8;display:flex;align-items:center;justify-content:center">
+      <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="4"/><path d="M2 21a7 7 0 0 1 14 0M17 4a4 4 0 0 1 0 8M22 21a7 7 0 0 0-4-6.3"/></svg>
+    </button>
+  </header>
+
+  <!-- Faixa da call ativa -->
+  <a href="MobileCall.dc.html" class="press" style="margin:10px 12px 0;padding:10px 12px;border-radius:16px;background:#14161B;display:flex;align-items:center;gap:10px;text-decoration:none;color:#ECEDEF">
+    <span class="live" style="width:8px;height:8px;border-radius:50%;background:#3DD68C"></span>
+    <span style="display:flex">
+      <span class="speak" style="width:26px;height:26px;border-radius:50%;background:#F2A65A;color:#14161B;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;border:2px solid #14161B">B</span>
+      <span style="width:26px;height:26px;border-radius:50%;background:#8BD3A8;color:#14161B;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;border:2px solid #14161B;margin-left:-8px">C</span>
+      <span style="width:26px;height:26px;border-radius:50%;background:#C9A7F5;color:#14161B;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center;border:2px solid #14161B;margin-left:-8px">D</span>
+    </span>
+    <span style="flex:1;font-size:14px;font-weight:700">3 na call</span>
+    <span style="height:34px;padding:0 14px;border-radius:10px;background:#FF6B3D;color:#1A0F0A;font-weight:800;font-size:13px;display:flex;align-items:center">Entrar</span>
+  </a>
+
+  <div style="flex:1;min-height:0;overflow:auto;padding:10px 0;display:flex;flex-direction:column;justify-content:flex-end;gap:2px">
+    <sc-for list="{{msgs}}" as="m" hint-placeholder-count="4">
+      <article class="msg" style="display:flex;gap:10px;padding:{{m.pad}};background:{{m.bg}}">
+        <div style="width:34px;flex:none">
+          <sc-if value="{{m.showHead}}" hint-placeholder-val="{{true}}">
+            <span style="width:34px;height:34px;border-radius:50%;background:{{m.color}};color:#14161B;font-weight:800;display:flex;align-items:center;justify-content:center">{{m.initial}}</span>
+          </sc-if>
+        </div>
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
+          <sc-if value="{{m.showHead}}" hint-placeholder-val="{{true}}">
+            <div style="display:flex;align-items:baseline;gap:8px"><span style="font-weight:800;color:{{m.nameColor}}">{{m.name}}</span><span style="font-size:12px;color:#8A909C">{{m.time}}</span></div>
+          </sc-if>
+          <p style="margin:0;line-height:1.5;color:#DADCE0">{{m.pre}}<sc-if value="{{m.hasMention}}" hint-placeholder-val="{{false}}"><span style="background:rgba(255,107,61,.18);color:#FFB091;font-weight:700;border-radius:6px;padding:1px 5px">{{m.mention}}</span></sc-if>{{m.post}}</p>
+          <sc-if value="{{m.hasReactions}}" hint-placeholder-val="{{false}}">
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <sc-for list="{{m.reactions}}" as="rx" hint-placeholder-count="1">
+                <button class="{{rx.cls}}" onClick="{{rx.toggle}}" aria-pressed="{{rx.pressed}}" aria-label="{{rx.label}}" style="height:32px;padding:0 10px;border-radius:999px;border:1px solid {{rx.border}};background:{{rx.bg}};color:#ECEDEF;font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px">{{rx.e}} <span style="color:{{rx.countColor}}">{{rx.n}}</span></button>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </article>
+    </sc-for>
+  </div>
+
+  <div style="flex:none;padding:0 12px 10px">
+    <div style="height:24px;display:flex;align-items:center;gap:8px;padding:0 4px;font-size:12px;color:#A9AEB8">
+      <span style="display:inline-flex;gap:3px;align-items:center"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>
+      <span><strong style="color:#ECEDEF">Gabi</strong> está digitando…</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;min-height:52px;padding:6px;border-radius:18px;background:#20232B">
+      <button class="press" aria-label="Mais opções: imagem, sorteador, emojis" onClick="{{openSheet}}" style="width:40px;height:40px;border:0;border-radius:12px;background:#2A2E38;color:#ECEDEF;display:flex;align-items:center;justify-content:center">
+        <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+      <label style="flex:1;display:flex">
+        <span style="position:absolute;width:1px;height:1px;overflow:hidden">Mensagem</span>
+        <input placeholder="Mensagem" style="flex:1;border:0;outline:0;background:transparent;color:#ECEDEF;font:inherit;font-size:16px;padding:0 4px">
+      </label>
+      <button class="press" aria-label="Enviar" style="width:40px;height:40px;border:0;border-radius:12px;background:#FF6B3D;color:#1A0F0A;display:flex;align-items:center;justify-content:center">
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Folha de ações -->
+  <sc-if value="{{sheet}}" hint-placeholder-val="{{false}}">
+    <div style="position:absolute;inset:0;background:rgba(5,6,8,.6);display:flex;align-items:flex-end">
+      <div class="sheet" role="dialog" aria-label="Enviar" style="width:100%;padding:10px 16px 24px;border-radius:24px 24px 0 0;background:#14161B;display:flex;flex-direction:column;gap:6px">
+        <span aria-hidden="true" style="align-self:center;width:40px;height:4px;border-radius:2px;background:#3A3F4B;margin-bottom:8px"></span>
+        <button class="press" style="height:54px;border:0;border-radius:14px;background:#1D2027;color:#ECEDEF;display:flex;align-items:center;gap:12px;padding:0 14px;font-weight:700;text-align:left">
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg>Foto ou GIF</button>
+        <button class="press" style="height:54px;border:0;border-radius:14px;background:#1D2027;color:#ECEDEF;display:flex;align-items:center;gap:12px;padding:0 14px;font-weight:700;text-align:left">
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 8h.01M16 8h.01M12 12h.01M8 16h.01M16 16h.01"/></svg>Sorteador</button>
+        <button class="press" style="height:54px;border:0;border-radius:14px;background:#1D2027;color:#ECEDEF;display:flex;align-items:center;gap:12px;padding:0 14px;font-weight:700;text-align:left">
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg>Emojis</button>
+        <button class="press" onClick="{{closeSheet}}" style="height:50px;margin-top:6px;border:0;border-radius:14px;background:transparent;color:#A9AEB8;font-weight:700">Cancelar</button>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"font":{"editor":"enum","options":["Geist","Plus Jakarta Sans","Outfit","Sora","DM Sans","Inter"],"default":"Geist","section":"Tipografia"},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { sheet: false, mine: {} };
+  }
+  renderVals() {
+    const s = this.state;
+    const react = (id, list) => list.map((x) => {
+      const key = id + '|' + x.e;
+      const on = Boolean(s.mine[key]);
+      return {
+        e: x.e, n: x.n + (on ? 1 : 0), pressed: on ? 'true' : 'false',
+        label: x.e + ' ' + (x.n + (on ? 1 : 0)) + ' reações',
+        cls: 'react press' + (on ? ' mine' : ''),
+        bg: on ? 'rgba(255,107,61,.16)' : '#20232B',
+        border: on ? 'rgba(255,107,61,.55)' : '#262A33',
+        countColor: on ? '#FFB091' : '#A9AEB8',
+        toggle: () => this.setState({ mine: { ...s.mine, [key]: !on } })
+      };
+    });
+    const msgs = [
+      { id: 'm1', name: 'Bia', color: '#F2A65A', time: '21:02', pre: 'Quem topa call hoje às 22h?', reactions: [{ e: '👍', n: 3 }] },
+      { id: 'm2', name: 'Caio', color: '#8BD3A8', nameColor: '#8BD3A8', time: '21:03', pre: 'Eu topo. Levo o notebook.' },
+      { id: 'm3', name: 'Caio', color: '#8BD3A8', cont: true, pre: '', mention: '@Felipe', post: ' vai dar?', mentionsMe: true },
+      { id: 'm4', name: 'Duda', color: '#C9A7F5', nameColor: '#C9A7F5', time: '21:10', pre: 'Fechou, 22h então. Já entrei pra testar o microfone.', reactions: [{ e: '🔥', n: 2 }] }
+    ].map((m) => {
+      const reactions = m.reactions ? react(m.id, m.reactions) : [];
+      return {
+        ...m, initial: m.name.charAt(0), showHead: !m.cont,
+        pad: m.cont ? '2px 12px' : '8px 12px 2px',
+        bg: m.mentionsMe ? 'rgba(255,107,61,.07)' : 'transparent',
+        nameColor: m.nameColor || '#ECEDEF',
+        pre: m.pre || '', post: m.post || '', mention: m.mention || '', hasMention: Boolean(m.mention),
+        hasReactions: reactions.length > 0, reactions
+      };
+    });
+    return {
+      font: "'" + (this.props.font ?? 'Geist') + "',system-ui,sans-serif",
+      msgs,
+      sheet: s.sheet,
+      openSheet: () => this.setState({ sheet: true }),
+      closeSheet: () => this.setState({ sheet: false })
+    };
+  }
+}
+</script>
+</body>
+</html>

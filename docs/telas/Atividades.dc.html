@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Resenha — atividades da call</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0E0F13}
+*{scrollbar-width:none}*::-webkit-scrollbar{display:none}
+button{font:inherit;color:inherit;cursor:pointer}
+input{font:inherit}
+input[type=range]{appearance:none;-webkit-appearance:none;background:transparent;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:#262A33}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;margin-top:-5px;border-radius:50%;background:#ECEDEF;border:3px solid #FF6B3D;box-sizing:border-box}
+.ctl{transition:background .15s,transform .12s}
+.ctl:hover{background:#2E323C !important}
+.ctl:active{transform:scale(.92)}
+
+/* ---- Barra de baixo em pílula: o ativo ganha fundo e o nome cresce ---- */
+.navbar{display:flex;align-items:center;gap:4px;padding:6px;border-radius:999px;background:#191B21;box-shadow:0 18px 40px -18px rgba(0,0,0,.9),inset 0 0 0 1px #22252D}
+.nb{position:relative;height:48px;padding:0 14px;border:0;border-radius:999px;background:transparent;color:#A9AEB8;display:flex;align-items:center;gap:0;transition:background .38s cubic-bezier(.3,1.3,.5,1),color .2s,padding .38s cubic-bezier(.3,1.3,.5,1),gap .38s cubic-bezier(.3,1.3,.5,1)}
+.nb:hover{color:#ECEDEF}
+.nb .lbl{max-width:0;opacity:0;overflow:hidden;white-space:nowrap;font-weight:800;font-size:14px;transform:translateX(-6px);transition:max-width .38s cubic-bezier(.3,1.3,.5,1),opacity .22s ease,transform .38s cubic-bezier(.3,1.3,.5,1)}
+.nb.on{background:#ECEDEF;color:#14161B;padding:0 18px 0 14px;gap:8px}
+.nb.on .lbl{max-width:140px;opacity:1;transform:none}
+.nb.on svg{animation:hop .45s cubic-bezier(.3,1.6,.5,1)}
+.nb:active{transform:scale(.94)}
+.nb.toggle.off{color:#FF7377;background:rgba(255,90,95,.14)}
+@keyframes hop{0%{transform:scale(1)}40%{transform:scale(1.25) rotate(-8deg)}100%{transform:scale(1)}}
+
+/* ---- Card do vinil: o disco sai da capa e gira ---- */
+.album{position:relative;width:236px;height:140px;flex:none}
+.sleeve{position:absolute;left:0;top:0;width:140px;height:140px;border-radius:12px;z-index:2;box-shadow:0 14px 30px -12px rgba(0,0,0,.8);transition:transform .5s cubic-bezier(.2,.8,.2,1);overflow:hidden}
+.vinyl{position:absolute;left:8px;top:6px;width:128px;height:128px;border-radius:50%;z-index:1;background:repeating-radial-gradient(circle at 50% 50%,#121317 0 2px,#1C1E24 2px 3px);box-shadow:0 10px 24px -8px rgba(0,0,0,.9),inset 0 0 0 2px #0B0C0F;transition:transform .6s cubic-bezier(.2,.8,.2,1)}
+.vinyl .disc{position:absolute;inset:0;border-radius:50%}
+.vinyl .shine{position:absolute;inset:0;border-radius:50%;background:conic-gradient(from 30deg,transparent 0 40deg,rgba(255,255,255,.10) 55deg,transparent 75deg 220deg,rgba(255,255,255,.07) 235deg,transparent 255deg)}
+.vinyl .label{position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;box-shadow:inset 0 0 0 3px rgba(0,0,0,.25)}
+.vinyl .hole{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:#0B0C0F}
+.album.out .vinyl{transform:translateX(88px)}
+.album:hover .vinyl{transform:translateX(96px)}
+.album:hover .sleeve{transform:rotate(-3deg) translateY(-2px)}
+.album.spin .disc{animation:spin 2.6s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.tile{position:relative;border-radius:20px;background:#191B21;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;overflow:hidden;transition:box-shadow .2s}
+.tile .pin{opacity:0;transform:translateY(-4px);transition:opacity .15s,transform .15s,background .15s}
+.tile:hover .pin,.tile .pin.on{opacity:1;transform:none}
+.pin:hover{background:#FF6B3D !important;color:#1A0F0A !important}
+.row{animation:rowIn .35s cubic-bezier(.2,.8,.2,1) both;transition:background .15s}
+.row:hover{background:#20232B !important}
+.row .rm{opacity:0;transition:opacity .15s}
+.row:hover .rm{opacity:1}
+.panel{animation:panelIn .4s cubic-bezier(.2,.8,.2,1) both}
+.speak{animation:ring 1.4s ease-out infinite}
+.field{transition:box-shadow .18s}
+.field:focus-within{box-shadow:0 0 0 2px rgba(255,107,61,.55)}
+.player .ov{opacity:0;transition:opacity .2s}
+.player:hover .ov{opacity:1}
+.react{animation:floatUp 2.4s ease-out both}
+.pipv{position:absolute;right:16px;bottom:16px;width:220px;aspect-ratio:16/9;border-radius:14px;background:#2A3550;box-shadow:0 18px 40px -12px rgba(0,0,0,.85),0 0 0 2px #0E0F13;display:flex;align-items:center;justify-content:center;animation:panelIn .35s cubic-bezier(.2,.8,.2,1) both}
+@keyframes rowIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes panelIn{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+@keyframes ring{0%{box-shadow:0 0 0 0 rgba(61,214,140,.55)}100%{box-shadow:0 0 0 8px rgba(61,214,140,0)}}
+@keyframes floatUp{0%{opacity:0;transform:translateY(10px) scale(.8)}15%{opacity:1;transform:none}100%{opacity:0;transform:translateY(-120px)}}
+@media (max-width:1000px){.side{flex-basis:100% !important;max-width:none !important}}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width:100%;min-height:900px;display:flex;flex-wrap:wrap;background:#0E0F13;color:#ECEDEF;font-family:'Geist',system-ui,sans-serif;font-size:15px">
+
+  <!-- Palco -->
+  <section style="flex:999 1 640px;min-width:0;box-sizing:border-box;padding:16px 20px;display:flex;flex-direction:column;gap:14px;height:900px">
+    <header style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <h1 style="margin:0;font-size:17px;font-weight:800">Call · Resenha</h1>
+      <span style="font-size:12px;color:#8A909C">4 na call · passe o mouse em qualquer quadro para fixar</span>
+    </header>
+
+    <!-- Call e música: quadros de todo mundo -->
+    <sc-if value="{{showGrid}}" hint-placeholder-val="{{true}}">
+      <div style="flex:1;min-height:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:minmax(0,1fr);gap:14px">
+        <sc-for list="{{tiles}}" as="p" hint-placeholder-count="4">
+          <div class="tile" style="grid-column:{{p.span}};order:{{p.order}};background:{{p.bg}}">
+            <sc-if value="{{p.isScreen}}" hint-placeholder-val="{{false}}">
+              <span aria-hidden="true" style="width:70%;max-width:560px;aspect-ratio:16/10;border-radius:10px;background:#1E2230;box-shadow:0 0 0 1px #2C3142"></span>
+            </sc-if>
+            <sc-if value="{{p.isPerson}}" hint-placeholder-val="{{true}}">
+              <span class="{{p.cls}}" style="width:84px;height:84px;border-radius:50%;background:{{p.color}};color:#14161B;font-weight:800;font-size:32px;display:flex;align-items:center;justify-content:center">{{p.initial}}</span>
+            </sc-if>
+            <span style="position:absolute;left:12px;bottom:12px;display:flex;align-items:center;gap:6px;padding:4px 9px;border-radius:8px;background:rgba(14,15,19,.78);font-size:13px;font-weight:700">
+              <sc-if value="{{p.isScreen}}" hint-placeholder-val="{{false}}"><span style="font-size:10px;font-weight:800;color:#fff;background:#E5484D;border-radius:5px;padding:2px 6px">AO VIVO</span></sc-if>{{p.name}}
+            </span>
+            <button class="{{p.pinCls}}" onClick="{{p.togglePin}}" aria-label="{{p.pinAria}}" style="position:absolute;right:12px;top:12px;height:34px;padding:0 12px;border:0;border-radius:10px;background:rgba(14,15,19,.82);color:{{p.pinFg}};font-weight:700;font-size:13px;display:flex;align-items:center;gap:6px">
+              <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="{{p.pinFill}}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5M9 3h6l-1 6 4 4H6l4-4z"></path></svg>{{p.pinText}}
+            </button>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <!-- Assistir junto: o vídeo ocupa o palco -->
+    <sc-if value="{{isWatch}}" hint-placeholder-val="{{false}}">
+      <div class="player" style="flex:1;min-height:0;position:relative;border-radius:22px;background:#000;overflow:hidden;display:flex;align-items:center;justify-content:center">
+        <span style="color:#4A4F5B;font-size:15px">[vídeo do YouTube tocando pra todo mundo]</span>
+        <sc-for list="{{reactions}}" as="r" hint-placeholder-count="0">
+          <span class="react" style="position:absolute;bottom:90px;left:{{r.x}};padding:6px 12px;border-radius:999px;background:rgba(14,15,19,.85);font-size:14px;font-weight:800;color:{{r.color}}">{{r.text}}</span>
+        </sc-for>
+        <div style="position:absolute;left:16px;top:16px;display:flex;gap:8px;align-items:center">
+          <span style="font-size:11px;font-weight:800;color:#fff;background:#E5484D;border-radius:6px;padding:4px 8px">JUNTOS</span>
+          <span style="font-size:12px;font-weight:700;background:rgba(14,15,19,.75);border-radius:6px;padding:4px 8px">Sincronizado · Bia controla</span>
+        </div>
+        <sc-if value="{{hasPipv}}" hint-placeholder-val="{{false}}">
+          <div class="pipv" style="background:{{pipv.bg}}">
+            <span style="width:52px;height:52px;border-radius:50%;background:{{pipv.color}};color:#14161B;font-weight:800;font-size:22px;display:flex;align-items:center;justify-content:center">{{pipv.initial}}</span>
+            <span style="position:absolute;left:8px;bottom:8px;padding:3px 8px;border-radius:7px;background:rgba(14,15,19,.78);font-size:12px;font-weight:700">{{pipv.name}} · fixado</span>
+          </div>
+        </sc-if>
+        <div class="ov" style="position:absolute;left:0;right:0;bottom:0;padding:16px;background:linear-gradient(transparent,rgba(0,0,0,.85));display:flex;flex-direction:column;gap:10px">
+          <div style="height:5px;border-radius:3px;background:rgba(255,255,255,.25);position:relative"><span style="position:absolute;left:0;top:0;bottom:0;width:{{progress}};border-radius:3px;background:#FF6B3D"></span></div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <button class="ctl" onClick="{{togglePlay}}" aria-label="{{playLabel}}" style="width:40px;height:40px;border:0;border-radius:12px;background:rgba(255,255,255,.12);color:#fff;display:flex;align-items:center;justify-content:center">
+              <sc-if value="{{playing}}" hint-placeholder-val="{{true}}"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"></rect><rect x="14" y="5" width="4" height="14" rx="1"></rect></svg></sc-if>
+              <sc-if value="{{paused}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l12-7z"></path></svg></sc-if>
+            </button>
+            <span style="font-family:'JetBrains Mono',monospace;font-size:13px">{{timeText}}</span>
+            <span style="flex:1;font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{cur.title}}</span>
+            <button class="ctl" style="height:36px;padding:0 12px;border:0;border-radius:10px;background:rgba(255,255,255,.12);color:#fff;font-weight:700;font-size:13px">Passar controle</button>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <sc-for list="{{chips}}" as="p" hint-placeholder-count="4">
+          <button class="ctl" onClick="{{p.togglePin}}" aria-pressed="{{p.pressed}}" title="{{p.pinAria}}" style="display:flex;align-items:center;gap:8px;height:40px;padding:0 12px 0 6px;border:0;border-radius:20px;background:{{p.chipBg}};color:#ECEDEF;font-size:13px;font-weight:700">
+            <span class="{{p.cls}}" style="width:28px;height:28px;border-radius:50%;background:{{p.color}};color:#14161B;font-weight:800;font-size:12px;display:flex;align-items:center;justify-content:center">{{p.initial}}</span>{{p.name}}
+            <svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="{{p.pinFill}}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:{{p.pinFg}}"><path d="M12 17v5M9 3h6l-1 6 4 4H6l4-4z"></path></svg>
+          </button>
+        </sc-for>
+        <div style="flex:1"></div>
+        <sc-for list="{{quick}}" as="q" hint-placeholder-count="3">
+          <button class="ctl" onClick="{{q.send}}" style="height:40px;padding:0 14px;border:0;border-radius:20px;background:#191B21;color:#ECEDEF;font-weight:800;font-size:13px">{{q.text}}</button>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <!-- Barra de baixo -->
+    <div style="display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap">
+      <nav class="navbar" aria-label="Controles da call">
+        <button class="{{micCls}}" onClick="{{toggleMic}}" aria-pressed="{{micPressed}}" aria-label="{{micLabel}}" title="{{micLabel}}">
+          <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3"></path></svg>
+        </button>
+        <button class="nb" aria-label="Ligar câmera" title="Ligar câmera">
+          <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="14" height="12" rx="2"></rect><path d="m16 10 6-3v10l-6-3"></path></svg>
+        </button>
+        <span aria-hidden="true" style="width:1px;height:28px;background:#2A2E38;margin:0 4px"></span>
+        <sc-for list="{{views}}" as="v" hint-placeholder-count="3">
+          <button class="{{v.cls}}" onClick="{{v.pick}}" aria-pressed="{{v.pressed}}" aria-label="{{v.name}}" title="{{v.name}}">
+            <sc-if value="{{v.isCall}}" hint-placeholder-val="{{true}}"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="8" height="7" rx="2"></rect><rect x="13" y="4" width="8" height="7" rx="2"></rect><rect x="3" y="13" width="8" height="7" rx="2"></rect><rect x="13" y="13" width="8" height="7" rx="2"></rect></svg></sc-if>
+            <sc-if value="{{v.isMusic}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg></sc-if>
+            <sc-if value="{{v.isWatch}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="3"></rect><path d="m10 9 5 3-5 3z"></path></svg></sc-if>
+            <span class="lbl">{{v.name}}</span>
+          </button>
+        </sc-for>
+      </nav>
+      <button class="ctl" style="height:60px;padding:0 22px;border:0;border-radius:999px;background:#FF5A5F;color:#fff;font-weight:800;font-size:14px">Sair</button>
+    </div>
+  </section>
+
+  <!-- Painel lateral (só com música ou vídeo aberto) -->
+  <sc-if value="{{hasPanel}}" hint-placeholder-val="{{true}}">
+    <aside class="side panel" aria-label="{{panelTitle}}" style="flex:0 1 380px;max-width:380px;box-sizing:border-box;background:#14161B;padding:18px 16px;display:flex;flex-direction:column;gap:14px;min-height:900px">
+      <h2 style="margin:0;font-size:16px;font-weight:800">{{panelTitle}}</h2>
+
+      <sc-if value="{{isMusic}}" hint-placeholder-val="{{true}}">
+        <div style="padding:16px;border-radius:20px;background:#191B21;display:flex;flex-direction:column;gap:14px;overflow:hidden">
+          <div class="{{albumCls}}" title="Passe o mouse">
+            <div class="vinyl"><div class="disc"><span class="shine"></span><span class="label" style="background:{{coverB}}"></span><span class="hole"></span></div></div>
+            <div class="sleeve" style="background:linear-gradient(135deg,{{coverA}},{{coverB}})">
+              <span style="position:absolute;left:12px;bottom:10px;right:12px;font-weight:800;font-size:15px;line-height:1.15;color:#fff;text-shadow:0 1px 8px rgba(0,0,0,.4)">{{now.title}}</span>
+              <span aria-hidden="true" style="position:absolute;right:-20px;top:-20px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,.14)"></span>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:3px">
+            <span style="font-size:11px;font-weight:800;letter-spacing:.08em;color:#8A909C">TOCANDO PRA CALL</span>
+            <span style="font-weight:800;font-size:17px">{{now.title}}</span>
+            <span style="font-size:13px;color:#A9AEB8">{{now.artist}} · pedido por {{now.by}}</span>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="height:6px;border-radius:3px;background:#262A33;position:relative"><span style="position:absolute;left:0;top:0;bottom:0;width:{{progress}};border-radius:3px;background:#FF6B3D"></span></div>
+            <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:12px;color:#8A909C"><span>{{elapsed}}</span><span>{{now.lenText}}</span></div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:center;gap:12px">
+            <button class="ctl" onClick="{{togglePlay}}" aria-label="{{playLabel}}" style="width:56px;height:56px;border:0;border-radius:50%;background:#FF6B3D;color:#1A0F0A;display:flex;align-items:center;justify-content:center">
+              <sc-if value="{{playing}}" hint-placeholder-val="{{true}}"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"></rect><rect x="14" y="5" width="4" height="14" rx="1"></rect></svg></sc-if>
+              <sc-if value="{{paused}}" hint-placeholder-val="{{false}}"><svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M7 5v14l12-7z"></path></svg></sc-if>
+            </button>
+            <button class="ctl" onClick="{{voteSkip}}" style="height:44px;padding:0 14px;border:0;border-radius:12px;background:#262A33;color:#ECEDEF;font-weight:700;font-size:13px">{{skipLabel}}</button>
+          </div>
+          <label style="display:flex;align-items:center;gap:10px;font-size:13px;color:#A9AEB8">
+            <span style="flex:none">Volume pra você</span>
+            <input type="range" min="0" max="100" value="{{vol}}" onInput="{{setVol}}" style="flex:1">
+            <span style="font-family:'JetBrains Mono',monospace;color:#ECEDEF;width:36px;text-align:right">{{vol}}%</span>
+          </label>
+        </div>
+      </sc-if>
+
+      <label style="display:flex;flex-direction:column;gap:6px">
+        <span style="font-size:13px;font-weight:700;color:#A9AEB8">{{addLabel}}</span>
+        <span class="field" style="height:48px;border-radius:14px;background:#191B21;display:flex;align-items:center;gap:6px;padding:0 6px 0 14px">
+          <input value="{{draft}}" onInput="{{setDraft}}" placeholder="Cole um link do YouTube ou busque" style="flex:1;min-width:0;border:0;outline:0;background:transparent;color:#ECEDEF">
+          <button onClick="{{add}}" style="height:36px;padding:0 12px;border:0;border-radius:10px;background:#FF6B3D;color:#1A0F0A;font-weight:800;font-size:13px">Adicionar</button>
+        </span>
+        <sc-if value="{{isMusic}}" hint-placeholder-val="{{true}}"><span style="font-size:12px;color:#8A909C">No chat também funciona: /tocar nome da música</span></sc-if>
+      </label>
+
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <div style="font-size:11px;font-weight:800;letter-spacing:.08em;color:#8A909C;padding:4px 4px 6px">{{queueTitle}}</div>
+        <sc-for list="{{queue}}" as="q" hint-placeholder-count="3">
+          <div class="row" style="display:flex;align-items:center;gap:12px;padding:8px;border-radius:12px;background:transparent">
+            <span style="width:52px;height:36px;flex:none;border-radius:8px;background:{{q.thumb}}"></span>
+            <span style="flex:1;min-width:0;display:flex;flex-direction:column">
+              <span style="font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{q.title}}</span>
+              <span style="font-size:12px;color:#8A909C">{{q.lenText}} · {{q.by}}</span>
+            </span>
+            <sc-if value="{{q.mine}}" hint-placeholder-val="{{false}}">
+              <button class="rm" onClick="{{q.remove}}" aria-label="Tirar da fila" style="width:32px;height:32px;border:0;border-radius:9px;background:#262A33;color:#A9AEB8;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg></button>
+            </sc-if>
+          </div>
+        </sc-for>
+      </div>
+    </aside>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      view: 'music', playing: true, t: 74, vol: 60, skips: 1, draft: '', reacts: [], seq: 0, mic: true,
+      pinned: ['s-caio'],
+      music: [
+        { title: 'Evidências', artist: 'Chitãozinho & Xororó', by: 'Bia', len: 284, a: '#FF6B3D', b: '#7A2E8E' },
+        { title: 'Sorte grande', artist: 'Ivete Sangalo', by: 'Caio', len: 211, a: '#F2C14E', b: '#E5484D' },
+        { title: 'Ainda gosto dela', artist: 'Skank', by: 'Você', len: 246, a: '#4C8DFF', b: '#2FBF71' }
+      ],
+      videos: [
+        { title: 'Melhores momentos: final do campeonato', by: 'Bia', len: 612 },
+        { title: 'React do trailer novo', by: 'Você', len: 438 }
+      ]
+    };
+  }
+  componentDidMount() {
+    this.iv = setInterval(() => { if (this.state.playing) this.setState((st) => ({ t: st.t + 1 })); }, 1000);
+  }
+  componentWillUnmount() { clearInterval(this.iv); clearTimeout(this.rt); }
+  renderVals() {
+    const s = this.state;
+    const fmt = (n) => Math.floor(n / 60) + ':' + String(n % 60).padStart(2, '0');
+    const isMusic = s.view === 'music', isWatch = s.view === 'watch';
+    const key = isWatch ? 'videos' : 'music';
+    const list = s[key];
+    const cur = list[0] || { title: '', artist: '', by: '', len: 1, a: '#262A33', b: '#191B21' };
+    const t = Math.min(s.t, cur.len);
+    const thumbs = ['#3A2D22', '#1F2B26', '#2A2240', '#2A3550'];
+
+    const members = [
+      { id: 's-caio', name: 'Tela do Caio', screen: true, bg: '#14161B' },
+      { id: 'bia', name: 'Bia', color: '#F2A65A', speak: true },
+      { id: 'caio', name: 'Caio', color: '#8BD3A8' },
+      { id: 'duda', name: 'Duda', color: '#C9A7F5' },
+      { id: 'voce', name: 'Você', color: '#7FB2F0' }
+    ];
+    const togglePin = (id) => () => {
+      const on = s.pinned.includes(id);
+      this.setState({ pinned: on ? s.pinned.filter((x) => x !== id) : [...s.pinned, id] });
+    };
+    const deco = (m) => {
+      const on = s.pinned.includes(m.id);
+      return {
+        ...m, initial: m.name.charAt(0), isScreen: Boolean(m.screen), isPerson: !m.screen,
+        cls: m.speak ? 'speak' : '', bg: m.bg || '#191B21',
+        span: on ? '1 / -1' : 'auto', order: on ? -1 : 0,
+        pinCls: on ? 'pin on' : 'pin', pinText: on ? 'Fixado' : 'Fixar', pinFill: on ? 'currentColor' : 'none',
+        pinFg: on ? '#FFB091' : '#ECEDEF', pinAria: (on ? 'Desafixar ' : 'Fixar ') + m.name, pressed: on ? 'true' : 'false',
+        chipBg: on ? '#2E323C' : '#191B21',
+        togglePin: togglePin(m.id)
+      };
+    };
+    const tiles = members.map(deco);
+    const pinnedPeople = tiles.filter((x) => s.pinned.includes(x.id) && x.isPerson);
+
+    const views = [['call', 'Call'], ['music', 'Música'], ['watch', 'Assistir junto']].map(([id, name]) => ({
+      name, isCall: id === 'call', isMusic: id === 'music', isWatch: id === 'watch',
+      cls: s.view === id ? 'nb on' : 'nb', pressed: s.view === id ? 'true' : 'false',
+      pick: () => this.setState({ view: id, t: id === 'watch' ? 251 : 74 })
+    }));
+    const queue = list.slice(1).map((q, i) => ({
+      ...q, lenText: fmt(q.len), thumb: q.a ? 'linear-gradient(135deg,' + q.a + ',' + q.b + ')' : thumbs[i % thumbs.length], mine: q.by === 'Você',
+      remove: () => this.setState({ [key]: s[key].filter((x) => x !== q) })
+    }));
+    const sendReact = (text, color) => () => {
+      const id = s.seq + 1;
+      this.setState({ seq: id, reacts: [...s.reacts.slice(-6), { id, text, color, x: (15 + (id * 23) % 70) + '%' }] });
+      clearTimeout(this.rt);
+      this.rt = setTimeout(() => this.setState({ reacts: [] }), 2600);
+    };
+    return {
+      views, tiles, chips: tiles.filter((x) => x.isPerson),
+      showGrid: !isWatch, isWatch, isMusic, hasPanel: isMusic || isWatch,
+      panelTitle: isMusic ? 'Música da call' : 'Assistir junto',
+      hasPipv: isWatch && pinnedPeople.length > 0, pipv: pinnedPeople[0] || {},
+      micCls: s.mic ? 'nb toggle' : 'nb toggle off', micPressed: s.mic ? 'false' : 'true',
+      micLabel: s.mic ? 'Desativar microfone' : 'Ativar microfone', toggleMic: () => this.setState({ mic: !s.mic }),
+      cur, now: { ...cur, lenText: fmt(cur.len) }, coverA: cur.a || '#262A33', coverB: cur.b || '#191B21',
+      albumCls: 'album' + (s.playing ? ' spin' : ''),
+      elapsed: fmt(t), timeText: fmt(t) + ' / ' + fmt(cur.len), progress: Math.round((t / cur.len) * 100) + '%',
+      playing: s.playing, paused: !s.playing,
+      playLabel: s.playing ? 'Pausar pra todo mundo' : 'Tocar pra todo mundo',
+      togglePlay: () => this.setState({ playing: !s.playing }),
+      skipLabel: 'Pular · ' + s.skips + ' de 3 votos',
+      voteSkip: () => {
+        if (s.skips + 1 >= 3) this.setState({ music: s.music.slice(1), skips: 0, t: 0 });
+        else this.setState({ skips: s.skips + 1 });
+      },
+      vol: s.vol, setVol: (e) => this.setState({ vol: Number(e.target.value) }),
+      addLabel: isMusic ? 'Pedir música' : 'Adicionar vídeo',
+      queueTitle: (isMusic ? 'PRÓXIMAS · ' : 'PRÓXIMOS VÍDEOS · ') + queue.length,
+      queue,
+      draft: s.draft, setDraft: (e) => this.setState({ draft: e.target.value }),
+      add: () => {
+        const title = s.draft.trim();
+        if (!title) return;
+        const item = isMusic ? { title, artist: 'YouTube', by: 'Você', len: 200, a: '#9B6BFF', b: '#FF5C9A' } : { title, by: 'Você', len: 300 };
+        this.setState({ [key]: [...s[key], item], draft: '' });
+      },
+      quick: [['KKKKK', '#F2C14E'], ['GOOOL', '#3DD68C'], ['NÃÃÃO', '#FF7377']].map(([text, color]) => ({ text, send: sendReact(text, color) })),
+      reactions: s.reacts
+    };
+  }
+}
+</script>
+</body>
+</html>

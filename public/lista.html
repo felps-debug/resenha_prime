@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Lista de testes · Resenha</title>
+  <meta name="description" content="Conversa e transmite no mesmo lugar. Entra na lista de testes do Resenha.">
+  <meta name="theme-color" content="#0E0F13">
+  <meta property="og:title" content="Lista de testes do Resenha">
+  <meta property="og:description" content="Conversa e transmite no mesmo lugar. As primeiras pessoas da lista entram no teste fechado.">
+  <meta property="og:image" content="/icons/icon-512.png">
+  <link rel="icon" type="image/svg+xml" href="/icons/logo.svg">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&display=swap">
+  <style>
+    :root { --bg0:#0E0F13; --bg1:#14161B; --bg2:#191B21; --bg3:#20232B; --line:#262A33; --tx:#ECEDEF; --tx2:#A9AEB8; --tx3:#8A909C; --ac:#FF6B3D; --ac2:#FF7F57; --on:#1A0F0A; --ok:#3DD68C; --err:#FF7377; }
+    * { box-sizing: border-box; scrollbar-width: none; }
+    *::-webkit-scrollbar { display: none; }
+    html, body { margin: 0; min-height: 100%; background: var(--bg0); color: var(--tx); font-family: "Geist", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; font-size: 16px; -webkit-font-smoothing: antialiased; }
+    button, input { font: inherit; color: inherit; }
+    [hidden] { display: none !important; }
+    .page { min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; align-items: center; padding: 28px 16px 40px; }
+    .wrap { width: 100%; max-width: 440px; display: flex; flex-direction: column; gap: 22px; }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 20px; letter-spacing: -.02em; }
+    .brand .mark { width: 40px; height: 40px; border-radius: 12px; background: var(--ac); color: #fff; display: flex; align-items: center; justify-content: center; }
+    .brand .dot { color: var(--ac); }
+    .tag { align-self: flex-start; font-size: 11px; font-weight: 800; letter-spacing: .08em; color: var(--on); background: var(--ac); border-radius: 6px; padding: 4px 8px; }
+    h1 { margin: 0; font-size: 34px; line-height: 1.08; font-weight: 800; letter-spacing: -.02em; }
+    .lead { margin: 0; color: var(--tx2); line-height: 1.55; }
+    .perks { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; }
+    .perks li { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 14px; background: var(--bg1); color: var(--tx2); font-size: 14px; line-height: 1.45; }
+    .perks b { color: var(--tx); }
+    .perks .ic { flex: none; width: 22px; height: 22px; border-radius: 7px; background: var(--bg3); color: var(--ac2); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; }
+    .card { padding: 22px; border-radius: 22px; background: var(--bg1); border: 1px solid var(--line); display: flex; flex-direction: column; gap: 14px; animation: rise .45s cubic-bezier(.2,.8,.2,1) both; }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 13px; font-weight: 700; color: var(--tx2); }
+    .box { display: flex; align-items: center; height: 52px; padding: 0 14px; border-radius: 14px; background: var(--bg2); border: 2px solid transparent; transition: border-color .18s, background .18s; }
+    .box:focus-within { border-color: rgba(255,107,61,.6); background: #1D2027; }
+    .box.bad { border-color: rgba(255,115,119,.6); }
+    .box .pre { color: var(--tx3); font-weight: 700; margin-right: 2px; }
+    .box input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; font-size: 16px; }
+    .box input::placeholder { color: var(--tx3); }
+    .row { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 10px; }
+    .field { min-width: 0; }
+    html, body { overflow-x: hidden; }
+    .hint { font-size: 12px; color: var(--err); min-height: 0; }
+    .trap { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+    .btn { position: relative; overflow: hidden; height: 54px; border: 0; border-radius: 14px; background: var(--ac); color: var(--on); font-weight: 800; font-size: 16px; cursor: pointer; transition: background .15s, transform .12s, opacity .15s; }
+    .btn:hover { background: var(--ac2); }
+    .btn:active { transform: scale(.98); }
+    .btn:disabled { opacity: .55; cursor: wait; }
+    .btn.ghost { background: var(--bg3); color: var(--tx); }
+    .btn.ghost:hover { background: var(--line); }
+    .ripple { position: absolute; border-radius: 50%; background: rgba(255,255,255,.5); transform: scale(0); animation: ripple .65s ease-out forwards; pointer-events: none; }
+    .msg { margin: 0; font-size: 14px; color: var(--err); min-height: 0; }
+    .fine { margin: 0; font-size: 12px; color: var(--tx3); line-height: 1.5; text-align: center; }
+    .done { text-align: center; align-items: center; }
+    .check { width: 80px; height: 80px; border-radius: 50%; background: var(--ok); color: #0E2A1C; display: flex; align-items: center; justify-content: center; animation: pop .5s cubic-bezier(.3,1.6,.5,1) both; }
+    .pos { font-size: 15px; color: var(--tx2); }
+    .pos b { font-size: 22px; color: var(--tx); }
+    .actions { width: 100%; display: grid; gap: 8px; }
+    .cf { position: fixed; top: -14px; width: 8px; height: 12px; border-radius: 2px; pointer-events: none; animation: fall 2.6s linear forwards; }
+    a { color: #FF8A62; }
+    @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+    @keyframes ripple { to { transform: scale(1); opacity: 0; } }
+    @keyframes pop { from { transform: scale(.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    @keyframes fall { to { transform: translateY(110vh) rotate(360deg); } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="wrap">
+      <div class="brand">
+        <span class="mark" aria-hidden="true"><svg viewBox="0 0 48 48" width="26" height="26"><circle cx="24" cy="24" r="13" fill="none" stroke="currentColor" stroke-width="4"/><circle cx="24" cy="11" r="5.5" fill="currentColor"/><circle cx="35.3" cy="30.5" r="5.5" fill="currentColor"/><circle cx="12.7" cy="30.5" r="5.5" fill="currentColor"/></svg></span>
+        <span>resenha<span class="dot">.</span></span>
+      </div>
+
+      <section id="intro" style="display:flex;flex-direction:column;gap:14px">
+        <h1>Conversa e transmite no mesmo lugar.</h1>
+        <p class="lead">Chega de conversar num app e abrir o Meet só pra mostrar a tela. Estou construindo o Resenha e as primeiras pessoas desta lista de testes entram no teste fechado.</p>
+        <ul class="perks">
+          <li><span class="ic">1</span><span><b>Transmissão de tela em 1080p</b>, várias pessoas ao mesmo tempo, com o som junto.</span></li>
+          <li><span class="ic">2</span><span><b>Chat, call e salas</b> pra sua galera, sem pedir documento.</span></li>
+          <li><span class="ic">3</span><span><b>Insígnia de membro fundador</b> pra quem entrar no teste.</span></li>
+        </ul>
+      </section>
+
+      <form id="form" class="card" novalidate>
+        <div class="field">
+          <label for="nome">Seu nome</label>
+          <div class="box" data-for="nome"><input id="nome" name="nome" autocomplete="name" maxlength="60" placeholder="Como te chamam" required></div>
+          <span class="hint" id="nome-hint"></span>
+        </div>
+        <div class="field">
+          <label for="instagram">Seu @ do Instagram</label>
+          <div class="box" data-for="instagram"><span class="pre" aria-hidden="true">@</span><input id="instagram" name="instagram" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="40" placeholder="seuarroba" required></div>
+          <span class="hint" id="instagram-hint"></span>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="idade">Idade</label>
+            <div class="box" data-for="idade"><input id="idade" name="idade" inputmode="numeric" maxlength="2" placeholder="18" required></div>
+          </div>
+          <div class="field">
+            <label for="whatsapp">WhatsApp com DDD</label>
+            <div class="box" data-for="whatsapp"><input id="whatsapp" name="whatsapp" type="tel" inputmode="tel" autocomplete="tel-national" maxlength="16" placeholder="(98) 99999-9999" required></div>
+          </div>
+        </div>
+        <span class="hint" id="row-hint"></span>
+        <div class="trap" aria-hidden="true"><label for="site">Não preencha</label><input id="site" name="site" tabindex="-1" autocomplete="off"></div>
+        <button class="btn" id="send" type="submit">Quero entrar no teste</button>
+        <p class="msg" id="msg" role="alert"></p>
+        <p class="fine">Ao enviar, você topa que a gente te chame no WhatsApp pra liberar seu acesso. Seus dados só servem pra isso.</p>
+      </form>
+
+      <section id="done" class="card done" hidden aria-live="polite">
+        <span class="check" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span>
+        <h1 id="done-title" style="font-size:28px">Você tá na lista!</h1>
+        <p class="lead" id="done-text">Quando chegar sua vez, eu te chamo no WhatsApp com o convite.</p>
+        <p class="pos" id="done-pos" hidden></p>
+        <div class="actions">
+          <button class="btn" id="share" type="button">Chamar a galera pra lista</button>
+          <a class="btn ghost" id="insta" href="https://www.instagram.com/eufelpsoliver/" target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;justify-content:center;text-decoration:none">Acompanhar a construção no Instagram</a>
+        </div>
+      </section>
+    </div>
+  </main>
+  <script src="/lista.js" defer></script>
+</body>
+</html>

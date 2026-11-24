@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Resenha — vaquinha do mascote</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0E0F13}
+*{scrollbar-width:none}*::-webkit-scrollbar{display:none}
+a{color:#FF8A62}a:hover{color:#FFB091}
+button{font:inherit;color:inherit;cursor:pointer}
+.press{transition:transform .12s,background .15s}
+.press:active{transform:scale(.96)}
+.btnp:hover{background:#FF7F57 !important}
+.m1{animation:breathe 3s ease-in-out infinite}
+.m2{animation:bob 1.4s ease-in-out infinite}
+.m3{animation:shake .25s linear infinite}
+.grow{transition:transform .6s cubic-bezier(.3,1.6,.5,1)}
+.blink{transform-box:fill-box;transform-origin:center;animation:blink 3.5s infinite}
+.flash{animation:flash .7s ease-out both}
+.shard{position:absolute;left:50%;top:50%;width:14px;height:14px;border-radius:4px;animation:shard 1s cubic-bezier(.2,.8,.2,1) both}
+.reveal{animation:reveal .5s cubic-bezier(.2,.8,.2,1) both}
+.fill{transition:stroke-dashoffset 1s cubic-bezier(.2,.8,.2,1)}
+.row{animation:reveal .4s cubic-bezier(.2,.8,.2,1) both}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes shake{0%,100%{transform:translate(0,0) rotate(0)}25%{transform:translate(-3px,1px) rotate(-2deg)}75%{transform:translate(3px,-1px) rotate(2deg)}}
+@keyframes blink{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+@keyframes flash{from{opacity:1}to{opacity:0}}
+@keyframes shard{from{transform:translate(-50%,-50%) rotate(0) translate(0)}to{transform:translate(-50%,-50%) rotate(var(--a)) translate(220px) rotate(200deg);opacity:0}}
+@keyframes reveal{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div style="width:100%;min-height:900px;box-sizing:border-box;padding:28px;background:#191B21;color:#ECEDEF;font-family:{{font}};font-size:15px;display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start">
+
+  <!-- Palco do mascote -->
+  <section aria-label="Mascote da sala" style="flex:999 1 560px;min-width:0;border-radius:24px;background:#14161B;padding:24px;display:flex;flex-direction:column;gap:18px">
+    <div style="display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
+      <div style="flex:1 1 300px">
+        <span style="font-size:11px;font-weight:800;letter-spacing:.08em;color:#1A0F0A;background:#FF6B3D;border-radius:6px;padding:3px 8px">VAQUINHA DA SALA · RODADA 3</span>
+        <h1 style="margin:10px 0 4px;font-size:28px;font-weight:900;letter-spacing:-.02em">{{headline}}</h1>
+        <p style="margin:0;color:#A9AEB8;line-height:1.5;max-width:520px">{{sub}}</p>
+      </div>
+      <div role="img" aria-label="{{potAria}}" style="position:relative;width:110px;height:110px;flex:none">
+        <svg width="110" height="110" viewBox="0 0 110 110" aria-hidden="true" style="transform:rotate(-90deg)"><circle cx="55" cy="55" r="46" fill="none" stroke="#262A33" stroke-width="10"></circle><circle class="fill" cx="55" cy="55" r="46" fill="none" stroke="#FF6B3D" stroke-width="10" stroke-linecap="round" stroke-dasharray="289.03" stroke-dashoffset="{{offset}}"></circle></svg>
+        <span style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><span style="font-family:'JetBrains Mono',monospace;font-weight:700;font-size:18px">{{potLabel}}</span><span style="font-size:11px;color:#8A909C">de R$ 10,00</span></span>
+      </div>
+    </div>
+
+    <div style="position:relative;height:340px;border-radius:20px;background:#101216;display:flex;align-items:center;justify-content:center;overflow:hidden">
+      <sc-if value="{{alive}}" hint-placeholder-val="{{true}}">
+        <div class="grow" style="transform:scale({{scale}})">
+          <div class="{{moodCls}}">
+            <svg aria-hidden="true" width="170" height="150" viewBox="0 0 90 80">
+              <ellipse cx="45" cy="76" rx="24" ry="3.5" fill="#000" opacity=".45"></ellipse>
+              <path d="M45 8c20 0 34 16 34 36 0 16-12 26-34 26S11 60 11 44C11 24 25 8 45 8z" fill="#FF6B3D"></path>
+              <path d="M30 12c-3-7 2-11 6-8M58 11c3-7-2-11-6-8" stroke="#FF6B3D" stroke-width="4" fill="none" stroke-linecap="round"></path>
+              <g class="blink"><ellipse cx="35" cy="40" rx="5" ry="{{eyeRy}}" fill="#1A0F0A"></ellipse><ellipse cx="55" cy="40" rx="5" ry="{{eyeRy}}" fill="#1A0F0A"></ellipse></g>
+              <path d="{{mouth}}" stroke="#1A0F0A" stroke-width="3" fill="none" stroke-linecap="round"></path>
+              <circle cx="27" cy="50" r="4" fill="#FFB091"></circle><circle cx="63" cy="50" r="4" fill="#FFB091"></circle>
+              <sc-if value="{{cracked}}" hint-placeholder-val="{{false}}">
+                <path d="M45 9 41 18 47 24 42 32M70 30l-7 5 3 6M20 34l7 4-2 7" stroke="#FFD166" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"></path>
+              </sc-if>
+            </svg>
+          </div>
+        </div>
+        <span style="position:absolute;bottom:14px;font-size:13px;color:#8A909C">{{stageLabel}}</span>
+      </sc-if>
+      <sc-if value="{{exploded}}" hint-placeholder-val="{{false}}">
+        <span class="flash" aria-hidden="true" style="position:absolute;inset:0;background:#FFD166"></span>
+        <sc-for list="{{shards}}" as="sh" hint-placeholder-count="14">
+          <span class="shard" aria-hidden="true" style="--a:{{sh.a}};background:{{sh.c}};animation-delay:{{sh.d}}"></span>
+        </sc-for>
+        <div class="reveal" style="position:relative;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;animation-delay:.5s">
+          <span style="font-size:44px;font-weight:900;letter-spacing:-.03em;color:#FFD166">BUM!</span>
+          <span style="color:#DADCE0">O Brasinha estourou e espalhou presente pra quem colocou.</span>
+        </div>
+      </sc-if>
+    </div>
+
+    <sc-if value="{{alive}}" hint-placeholder-val="{{true}}">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <span style="font-weight:700;color:#A9AEB8;margin-right:4px">Colocar</span>
+        <sc-for list="{{chips}}" as="c" hint-placeholder-count="3">
+          <button class="press btnp" onClick="{{c.give}}" style="height:46px;padding:0 18px;border:0;border-radius:12px;background:#FF6B3D;color:#1A0F0A;font-weight:800;font-family:'JetBrains Mono',monospace">{{c.label}}</button>
+        </sc-for>
+        <span style="font-size:12px;color:#8A909C;margin-left:auto">Cada um paga pelo Stripe. O mascote reage na hora.</span>
+      </div>
+    </sc-if>
+    <sc-if value="{{exploded}}" hint-placeholder-val="{{false}}">
+      <button class="press btnp" onClick="{{restart}}" style="align-self:flex-start;height:46px;padding:0 18px;border:0;border-radius:12px;background:#FF6B3D;color:#1A0F0A;font-weight:800">Chocar o próximo mascote</button>
+    </sc-if>
+  </section>
+
+  <!-- Lateral: recompensas e quem colocou -->
+  <aside style="flex:1 1 340px;max-width:420px;display:flex;flex-direction:column;gap:16px">
+    <section aria-label="Recompensas" style="padding:18px;border-radius:20px;background:#14161B;display:flex;flex-direction:column;gap:10px">
+      <h2 style="margin:0;font-size:16px;font-weight:800">{{rewardsTitle}}</h2>
+      <sc-for list="{{rewards}}" as="r" hint-placeholder-count="3">
+        <div class="row" style="display:flex;align-items:center;gap:12px;padding:10px;border-radius:14px;background:{{r.bg}};animation-delay:{{r.d}}">
+          <span style="width:40px;height:40px;flex:none;border-radius:12px;background:{{r.iconBg}};display:flex;align-items:center;justify-content:center;font-weight:900;color:#1A0F0A">{{r.icon}}</span>
+          <span style="flex:1;min-width:0;display:flex;flex-direction:column"><span style="font-weight:800">{{r.name}}</span><span style="font-size:12px;color:#8A909C">{{r.who}}</span></span>
+          <sc-if value="{{r.won}}" hint-placeholder-val="{{false}}"><span style="font-size:10px;font-weight:800;color:#0E2A1C;background:#3DD68C;border-radius:5px;padding:2px 6px">É SEU</span></sc-if>
+        </div>
+      </sc-for>
+    </section>
+    <section aria-label="Quem colocou" style="padding:18px;border-radius:20px;background:#14161B;display:flex;flex-direction:column;gap:10px">
+      <h2 style="margin:0;font-size:16px;font-weight:800">Quem colocou</h2>
+      <sc-for list="{{donors}}" as="d" hint-placeholder-count="4">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="width:22px;font-family:'JetBrains Mono',monospace;font-size:13px;color:#8A909C">{{d.pos}}</span>
+          <span style="width:32px;height:32px;border-radius:50%;background:{{d.color}};color:#14161B;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center">{{d.initial}}</span>
+          <span style="flex:1;font-weight:700">{{d.name}}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-weight:700;color:#FFB091">{{d.amount}}</span>
+        </div>
+      </sc-for>
+    </section>
+  </aside>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"font":{"editor":"enum","options":["Geist","Plus Jakarta Sans","Outfit","Sora","DM Sans","Inter"],"default":"Geist","section":"Tipografia"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { pot: 420, mine: 100, boom: false };
+  }
+  renderVals() {
+    const s = this.state;
+    const font = "'" + (this.props.font ?? 'Geist') + "',system-ui,sans-serif";
+    const GOAL = 1000;
+    const brl = (c) => 'R$ ' + (c / 100).toFixed(2).replace('.', ',');
+    const pct = Math.min(1, s.pot / GOAL);
+    const stage = pct < 0.34 ? 1 : pct < 0.67 ? 2 : 3;
+    const give = (v) => () => {
+      const pot = Math.min(GOAL, s.pot + v);
+      this.setState({ pot, mine: s.mine + v });
+      if (pot >= GOAL) setTimeout(() => this.setState({ boom: true }), 450);
+    };
+    const donorsRaw = [['Bia', '#F2A65A', 300], ['Caio', '#8BD3A8', 120], ['Você', '#7FB2F0', s.mine], ['Duda', '#C9A7F5', 50]].sort((a, b) => b[2] - a[2]);
+    const donors = donorsRaw.map(([name, color, v], i) => ({ name, color, initial: name.charAt(0), amount: brl(v), pos: (i + 1) + 'º' }));
+    const myRank = donorsRaw.findIndex((d) => d[0] === 'Você');
+    const rewardsDef = [
+      ['P', 'Moldura Pedaço do Brasinha', 'Pra todo mundo que colocou', '#FFD166', true],
+      ['3', 'Insígnia Padrinho do Brasinha', 'Pros 3 que mais colocaram', '#7FB2F0', myRank < 3],
+      ['1', 'Brasinha de estimação no perfil', 'Pra quem mais colocou', '#F28DA6', myRank === 0]
+    ];
+    const rewards = rewardsDef.map(([icon, name, who, iconBg, mineWon], i) => ({
+      icon, name, who, iconBg, won: s.boom && mineWon, bg: s.boom && mineWon ? '#1F2A22' : '#1D2027', d: s.boom ? (0.6 + i * 0.15).toFixed(2) + 's' : '0s'
+    }));
+    const shardColors = ['#FF6B3D', '#FFD166', '#FFB091', '#F28DA6'];
+    const shards = Array.from({ length: 16 }, (_, i) => ({ a: (i * 22.5) + 'deg', c: shardColors[i % 4], d: (i % 4 * 0.04).toFixed(2) + 's' }));
+    const mouths = { 1: 'M39 54q6 3 12 0', 2: 'M37 52q8 8 16 0', 3: 'M38 56q7-6 14 0' };
+    return {
+      font, donors, rewards, shards,
+      alive: !s.boom, exploded: s.boom,
+      headline: s.boom ? 'O Brasinha explodiu!' : 'Alimente o Brasinha',
+      sub: s.boom ? 'Os presentes já foram pro perfil de quem colocou. Um ovo novo aparece na sala pra próxima rodada.' : 'Cada real deixa o mascote maior. Quando bater R$ 10, ele explode e solta presentes exclusivos pra quem colocou: quanto mais você ajudou, melhor o presente.',
+      scale: (0.75 + pct * 0.55).toFixed(2), moodCls: 'm' + stage,
+      eyeRy: stage === 3 ? 4 : 7, mouth: mouths[stage], cracked: stage === 3,
+      stageLabel: stage === 1 ? 'Ainda dormindo' : stage === 2 ? 'Crescendo e animado' : 'Tá quase estourando!',
+      offset: (289.03 * (1 - pct)).toFixed(2), potLabel: brl(s.pot), potAria: 'Vaquinha: ' + brl(s.pot) + ' de R$ 10,00',
+      chips: [[50, 'R$ 0,50'], [100, 'R$ 1,00'], [200, 'R$ 2,00']].map(([v, label]) => ({ label, give: give(v) })),
+      rewardsTitle: s.boom ? 'Presentes liberados' : 'Quando estourar, solta',
+      restart: () => this.setState({ pot: 0, mine: 0, boom: false })
+    };
+  }
+}
+</script>
+</body>
+</html>

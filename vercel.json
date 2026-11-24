@@ -4,7 +4,8 @@
   "buildCommand": "npm run build",
   "rewrites": [
     { "source": "/config", "destination": "/api/config" },
-    { "source": "/health", "destination": "/api/health" }
+    { "source": "/health", "destination": "/api/health" },
+    { "source": "/lista", "destination": "/lista.html" }
   ],
   "headers": [
     {

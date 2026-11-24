@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Resenha — boas-vindas</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Outfit:wght@400;500;600;700;800&amp;family=Sora:wght@400;500;600;700;800&amp;family=DM+Sans:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600;700;800&amp;family=JetBrains+Mono:wght@500;700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0E0F13}
+*{scrollbar-width:none}*::-webkit-scrollbar{display:none}
+a{color:#FF8A62}
+button{font:inherit;color:inherit;cursor:pointer}
+input{font:inherit}
+.t{--bg0:#0E0F13;--bg1:#14161B;--bg2:#191B21;--bg3:#20232B;--bg4:#262A33;--tx:#ECEDEF;--tx2:#A9AEB8;--tx3:#8A909C;--dot:rgba(255,255,255,.05)}
+.t.light{--bg0:#EFEEEA;--bg1:#FFFFFF;--bg2:#F6F5F2;--bg3:#ECEBE7;--bg4:#E2E1DC;--tx:#14161B;--tx2:#4A4F5B;--tx3:#626875;--dot:rgba(20,22,27,.06)}
+::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
+.press{position:relative;overflow:hidden;transition:transform .12s,background .15s,border-color .15s,color .15s}
+.press:active{transform:scale(.97)}
+.btnp:hover{background:#FF7F57 !important}
+.rip{position:absolute;border-radius:50%;background:rgba(255,255,255,.5);transform:scale(0);animation:rip .65s ease-out forwards;pointer-events:none}
+@property --ang{syntax:'<angle>';initial-value:0deg;inherits:false}
+.beam{position:relative}
+.beam::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;background:conic-gradient(from var(--ang),transparent 0deg,transparent 270deg,#FF6B3D 320deg,#FFD166 345deg,transparent 360deg);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;animation:beam 4s linear infinite;pointer-events:none;z-index:3}
+.glare{position:relative;overflow:hidden}
+.glare::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.18) 48%,rgba(255,255,255,.05) 52%,transparent 65%);background-size:260% 260%;background-repeat:no-repeat;background-position:130% 0;transition:background-position .75s cubic-bezier(.2,.8,.2,1)}
+.glare:hover::after{background-position:-30% 0}
+.step{animation:stepIn .45s cubic-bezier(.2,.8,.2,1) both}
+.item{animation:listIn .55s cubic-bezier(.34,1.56,.64,1) both}
+.pb{position:absolute;left:0;right:0;bottom:0;height:70px;pointer-events:none}
+.pb span{position:absolute;inset:0}
+.pb span:nth-child(1){backdrop-filter:blur(1px);-webkit-mask-image:linear-gradient(to top,#000,transparent);mask-image:linear-gradient(to top,#000,transparent)}
+.pb span:nth-child(2){backdrop-filter:blur(3px);-webkit-mask-image:linear-gradient(to top,#000 0%,transparent 60%);mask-image:linear-gradient(to top,#000 0%,transparent 60%)}
+.pb span:nth-child(3){backdrop-filter:blur(6px);-webkit-mask-image:linear-gradient(to top,#000 0%,transparent 30%);mask-image:linear-gradient(to top,#000 0%,transparent 30%)}
+.ring circle.val{transition:stroke-dashoffset .8s cubic-bezier(.2,.8,.2,1)}
+.on{animation:pop .3s cubic-bezier(.3,1.6,.5,1)}
+.cf{position:absolute;top:-12px;width:8px;height:12px;border-radius:2px;animation:fall 2.6s linear infinite}
+.big{animation:pop .6s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes rip{to{transform:scale(1);opacity:0}}
+@keyframes beam{to{--ang:360deg}}
+@keyframes stepIn{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes listIn{from{opacity:0;transform:translateY(-14px) scale(.94)}to{opacity:1;transform:none}}
+@keyframes pop{from{transform:scale(.7);opacity:.4}to{transform:scale(1);opacity:1}}
+@keyframes fall{from{transform:translateY(0) rotate(0)}to{transform:translateY(900px) rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</helmet>
+<div class="{{themeCls}}" style="width:100%;min-height:900px;position:relative;overflow:hidden;background:var(--bg0);background-image:radial-gradient(var(--dot) 1px,transparent 1px);background-size:22px 22px;color:var(--tx);font-family:{{font}};font-size:15px;display:flex;flex-direction:column">
+
+  <header style="padding:24px 28px;display:flex;align-items:center;gap:12px">
+    <span style="width:38px;height:38px;border-radius:12px;background:#FF6B3D;color:#fff;display:flex;align-items:center;justify-content:center"><svg aria-hidden="true" width="24" height="24" viewBox="0 0 48 48"><circle cx="24" cy="24" r="13" fill="none" stroke="currentColor" stroke-width="4"></circle><circle cx="24" cy="11" r="5.5" fill="currentColor"></circle><circle cx="35.3" cy="30.5" r="5.5" fill="currentColor"></circle><circle cx="12.7" cy="30.5" r="5.5" fill="currentColor"></circle></svg></span>
+    <span style="font-weight:800;font-size:19px;letter-spacing:-.02em">resenha</span>
+    <div style="flex:1"></div>
+    <sc-if value="{{showSkip}}" hint-placeholder-val="{{true}}"><a href="Main.dc.html" style="font-size:14px;font-weight:700;color:var(--tx3);text-decoration:none;margin-right:8px">Pular tudo</a></sc-if>
+    <div class="ring" role="img" aria-label="{{ringAria}}" style="position:relative;width:52px;height:52px">
+      <svg width="52" height="52" viewBox="0 0 52 52" aria-hidden="true" style="transform:rotate(-90deg)"><circle cx="26" cy="26" r="21" fill="none" stroke="var(--bg4)" stroke-width="5"></circle><circle class="val" cx="26" cy="26" r="21" fill="none" stroke="#FF6B3D" stroke-width="5" stroke-linecap="round" stroke-dasharray="131.95" stroke-dashoffset="{{ringOffset}}"></circle></svg>
+      <span style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:12px">{{ringText}}</span>
+    </div>
+  </header>
+
+  <main style="flex:1;display:flex;align-items:center;justify-content:center;padding:8px 16px 40px">
+    <div class="beam" style="width:100%;max-width:560px;border-radius:28px;background:var(--bg1);box-shadow:0 30px 80px -40px rgba(0,0,0,.6)">
+      <div style="padding:32px;display:flex;flex-direction:column;gap:22px">
+
+        <!-- 1. Boas-vindas com lista animada -->
+        <sc-if value="{{s0}}" hint-placeholder-val="{{true}}">
+          <div class="step" style="display:flex;flex-direction:column;gap:20px">
+            <div><h1 style="margin:0;font-size:32px;font-weight:800;letter-spacing:-.01em">{{hello}}</h1><p style="margin:8px 0 0;color:var(--tx2);line-height:1.5">Sua conta está pronta. Em um minuto a gente deixa tudo com a sua cara.</p></div>
+            <div style="position:relative;height:250px;overflow:hidden">
+              <div style="display:flex;flex-direction:column-reverse;justify-content:flex-end;gap:8px">
+                <sc-for list="{{feed}}" as="f" hint-placeholder-count="3">
+                  <div class="item" style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:16px;background:var(--bg3)">
+                    <span style="width:36px;height:36px;flex:none;border-radius:{{f.radius}};background:{{f.color}};color:#14161B;font-weight:800;display:flex;align-items:center;justify-content:center">{{f.initial}}</span>
+                    <span style="flex:1;min-width:0;display:flex;flex-direction:column"><span style="font-weight:800;font-size:14px">{{f.who}}</span><span style="font-size:14px;color:var(--tx2)">{{f.text}}</span></span>
+                    <span style="font-size:11px;color:var(--tx3)">agora</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div class="pb" aria-hidden="true"><span></span><span></span><span></span></div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- 2. Sua cara -->
+        <sc-if value="{{s1}}" hint-placeholder-val="{{false}}">
+          <div class="step" style="display:flex;flex-direction:column;gap:18px">
+            <div><h1 style="margin:0;font-size:30px;font-weight:800;letter-spacing:-.01em">Bota sua cara</h1><p style="margin:8px 0 0;color:var(--tx2)">É assim que a galera vai te ver. Passa o mouse no cartão.</p></div>
+            <div class="glare" style="border-radius:22px;background:var(--bg2)">
+              <div style="height:86px;background:{{color}}"></div>
+              <div style="padding:0 18px 18px;display:flex;align-items:flex-end;gap:14px">
+                <span class="big" style="margin-top:-36px;width:78px;height:78px;flex:none;border-radius:50%;background:{{color}};color:#14161B;font-weight:800;font-size:30px;display:flex;align-items:center;justify-content:center;border:6px solid var(--bg2)">{{initial}}</span>
+                <span style="display:flex;flex-direction:column;padding-bottom:4px;min-width:0"><span style="font-weight:800;font-size:19px">{{name}}</span><span style="font-size:13px;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{shownBio}}</span></span>
+              </div>
+            </div>
+            <div role="radiogroup" aria-label="Cor" style="display:flex;gap:10px;flex-wrap:wrap">
+              <sc-for list="{{colors}}" as="c" hint-placeholder-count="7"><button class="press" role="radio" aria-checked="{{c.checked}}" aria-label="{{c.label}}" onClick="{{c.pick}}" style="width:34px;height:34px;border-radius:50%;border:3px solid {{c.ring}};background:{{c.hex}}"></button></sc-for>
+            </div>
+            <label style="display:flex;flex-direction:column;gap:6px"><span style="font-size:13px;font-weight:700;color:var(--tx2)">Uma frase sobre você</span>
+              <input value="{{bio}}" onInput="{{setBio}}" maxlength="60" placeholder="Ex.: goleiro reserva e DJ de churrasco" style="height:50px;border:0;border-radius:14px;background:var(--bg3);color:var(--tx);padding:0 14px;outline:0"></label>
+          </div>
+        </sc-if>
+
+        <!-- 3. Interesses -->
+        <sc-if value="{{s2}}" hint-placeholder-val="{{false}}">
+          <div class="step" style="display:flex;flex-direction:column;gap:18px">
+            <div><h1 style="margin:0;font-size:30px;font-weight:800;letter-spacing:-.01em">Do que você curte?</h1><p style="margin:8px 0 0;color:var(--tx2)">A gente usa pra achar salas pra você.</p></div>
+            <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px">
+              <sc-for list="{{interests}}" as="i" hint-placeholder-count="8">
+                <button class="{{i.cls}}" onClick="{{i.toggle}}" aria-pressed="{{i.pressed}}" style="height:84px;border-radius:16px;border:2px solid {{i.border}};background:{{i.bg}};color:var(--tx);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;font-weight:800;font-size:13px">
+                  <span style="font-size:22px;font-weight:800;color:{{i.glyphColor}}">{{i.glyph}}</span>{{i.name}}
+                </button>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- 4. Tema com transição circular -->
+        <sc-if value="{{s3}}" hint-placeholder-val="{{false}}">
+          <div class="step" style="display:flex;flex-direction:column;gap:18px">
+            <div><h1 style="margin:0;font-size:30px;font-weight:800;letter-spacing:-.01em">Escuro ou claro?</h1><p style="margin:8px 0 0;color:var(--tx2)">Clica e vê a mudança. Dá pra trocar quando quiser no sol/lua lá em cima.</p></div>
+            <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px">
+              <sc-for list="{{themes}}" as="th" hint-placeholder-count="2">
+                <button class="press glare" onClick="{{th.pick}}" aria-pressed="{{th.pressed}}" style="padding:10px;border-radius:18px;border:2px solid {{th.border}};background:var(--bg2);color:var(--tx);display:flex;flex-direction:column;gap:10px;text-align:left">
+                  <span aria-hidden="true" style="height:110px;border-radius:12px;background:{{th.bg}};display:flex;gap:8px;padding:10px;box-sizing:border-box">
+                    <span style="width:18px;border-radius:6px;background:{{th.rail}}"></span>
+                    <span style="flex:1;display:flex;flex-direction:column;gap:6px"><span style="height:10px;width:60%;border-radius:4px;background:{{th.line}}"></span><span style="height:10px;width:85%;border-radius:4px;background:{{th.line}}"></span><span style="height:10px;width:40%;border-radius:4px;background:#FF6B3D"></span></span>
+                  </span>
+                  <span style="font-weight:800;padding:0 4px 4px">{{th.name}}</span>
+                </button>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- 5. Salas pra você -->
+        <sc-if value="{{s4}}" hint-placeholder-val="{{false}}">
+          <div class="step" style="display:flex;flex-direction:column;gap:18px">
+            <div><h1 style="margin:0;font-size:30px;font-weight:800;letter-spacing:-.01em">Salas pra você</h1><p style="margin:8px 0 0;color:var(--tx2)">{{roomsSub}}</p></div>
+            <div style="position:relative;max-height:280px;overflow:auto;display:flex;flex-direction:column;gap:8px;padding-bottom:30px">
+              <sc-for list="{{rooms}}" as="r" hint-placeholder-count="3">
+                <div class="item glare" style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:16px;background:var(--bg3);animation-delay:{{r.d}}">
+                  <span style="width:44px;height:44px;flex:none;border-radius:14px;background:{{r.color}};color:#1A0F0A;font-weight:800;font-size:18px;display:flex;align-items:center;justify-content:center">{{r.initial}}</span>
+                  <span style="flex:1;min-width:0;display:flex;flex-direction:column"><span style="font-weight:800">{{r.name}}</span><span style="font-size:12px;color:var(--tx3)">{{r.meta}}</span></span>
+                  <button class="press" onClick="{{r.toggle}}" aria-pressed="{{r.pressed}}" style="height:38px;padding:0 14px;border:0;border-radius:11px;background:{{r.btnBg}};color:{{r.btnFg}};font-weight:800;font-size:13px">{{r.btn}}</button>
+                </div>
+              </sc-for>
+            </div>
+            <a href="Explorar.dc.html" style="font-size:14px;font-weight:700;text-decoration:none">Tenho um convite ou quero criar minha sala</a>
+          </div>
+        </sc-if>
+
+        <!-- 6. Pronto -->
+        <sc-if value="{{s5}}" hint-placeholder-val="{{false}}">
+          <div class="step" style="display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;padding:10px 0">
+            <span class="big" style="width:100px;height:100px;border-radius:50%;background:{{color}};color:#14161B;font-weight:800;font-size:40px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 6px var(--bg1),0 0 0 9px #FF6B3D">{{initial}}</span>
+            <h1 style="margin:6px 0 0;font-size:32px;font-weight:800;letter-spacing:-.01em">{{doneTitle}}</h1>
+            <p style="margin:0;color:var(--tx2);max-width:400px;line-height:1.5">{{doneText}}</p>
+          </div>
+        </sc-if>
+
+        <!-- Botões -->
+        <div style="display:flex;align-items:center;gap:10px">
+          <sc-if value="{{canBack}}" hint-placeholder-val="{{false}}"><button class="press" onClick="{{back}}" style="height:52px;padding:0 18px;border:0;border-radius:14px;background:var(--bg3);color:var(--tx);font-weight:700">Voltar</button></sc-if>
+          <div style="flex:1"></div>
+          <sc-if value="{{notLast}}" hint-placeholder-val="{{true}}">
+            <button class="press btnp" onClick="{{next}}" style="height:52px;padding:0 28px;border:0;border-radius:14px;background:#FF6B3D;color:#1A0F0A;font-weight:800;font-size:16px">
+              <sc-for list="{{rips}}" as="rp" hint-placeholder-count="0"><span class="rip" style="left:{{rp.x}};top:{{rp.y}};width:{{rp.s}};height:{{rp.s}}"></span></sc-for>
+              <span style="position:relative">{{nextLabel}}</span>
+            </button>
+          </sc-if>
+          <sc-if value="{{isLast}}" hint-placeholder-val="{{false}}"><a href="Main.dc.html" class="press btnp" style="height:52px;padding:0 28px;border-radius:14px;background:#FF6B3D;color:#1A0F0A;font-weight:800;font-size:16px;display:flex;align-items:center;text-decoration:none">Entrar no Resenha</a></sc-if>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <sc-if value="{{s5}}" hint-placeholder-val="{{false}}">
+    <div aria-hidden="true" style="position:absolute;inset:0;pointer-events:none"><sc-for list="{{confetti}}" as="c" hint-placeholder-count="20"><span class="cf" style="left:{{c.left}};background:{{c.color}};animation-delay:{{c.delay}};animation-duration:{{c.dur}}"></span></sc-for></div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"font":{"editor":"enum","options":["Geist","Plus Jakarta Sans","Outfit","Sora","DM Sans","Inter"],"default":"Geist","section":"Tipografia"},"$preview":{"width":1440,"height":900}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { step: 0, name: 'Felipe', bio: '', color: '#7FB2F0', likes: [], light: false, joined: [], feed: [], fi: 0, rips: [] };
+  }
+  componentDidMount() {
+    const pool = [
+      { who: 'Resenha', text: 'Chegou gente nova na área!', color: '#FF6B3D', initial: 'R', radius: '12px' },
+      { who: 'Bia', text: 'eae Felipe! cola na call hoje', color: '#F2A65A', initial: 'B', radius: '50%' },
+      { who: 'Caio', text: 'já te zoei com chapéu de palhaço kkk', color: '#8BD3A8', initial: 'C', radius: '50%' },
+      { who: 'Sorteador', text: 'te sorteou pro time 2 de quinta', color: '#C9A7F5', initial: 'S', radius: '12px' }
+    ];
+    this.timer = setInterval(() => {
+      this.setState((st) => (st.fi >= pool.length ? null : { feed: [...st.feed, pool[st.fi]], fi: st.fi + 1 }));
+    }, 900);
+  }
+  componentWillUnmount() { clearInterval(this.timer); }
+  renderVals() {
+    const s = this.state;
+    const font = "'" + (this.props.font ?? 'Geist') + "',system-ui,sans-serif";
+    const LAST = 5;
+    const C = 131.95;
+    const pct = s.step / LAST;
+    const colorDefs = [['#7FB2F0', 'Azul'], ['#FF6B3D', 'Laranja'], ['#8BD3A8', 'Verde'], ['#C9A7F5', 'Lilás'], ['#F28DA6', 'Rosa'], ['#F2A65A', 'Pêssego'], ['#E8D07A', 'Amarelo']];
+    const colors = colorDefs.map(([hex, label]) => ({ hex, label: 'Cor ' + label, checked: s.color === hex ? 'true' : 'false', ring: s.color === hex ? 'var(--tx)' : 'transparent', pick: () => this.setState({ color: hex }) }));
+    const IDEF = [['Jogos', '◆', '#7FB2F0'], ['Futebol', '●', '#8BD3A8'], ['Música', '♪', '#FFD166'], ['Filmes', '▶', '#F28DA6'], ['Estudo', '✎', '#C9A7F5'], ['Papo', '…', '#FF8A62'], ['Anime', '✦', '#F2A65A'], ['Tecnologia', '⌘', '#7FD6D0']];
+    const interests = IDEF.map(([name, glyph, gc]) => {
+      const on = s.likes.includes(name);
+      return { name, glyph, glyphColor: gc, pressed: on ? 'true' : 'false', cls: 'press glare' + (on ? ' on' : ''), border: on ? '#FF6B3D' : 'transparent', bg: on ? 'rgba(255,107,61,.14)' : 'var(--bg3)',
+        toggle: () => this.setState({ likes: on ? s.likes.filter((x) => x !== name) : [...s.likes, name] }) };
+    });
+    const pickTheme = (light) => (e) => {
+      if (light === s.light) return;
+      const btn = e.currentTarget; const doc = btn.ownerDocument; const win = doc.defaultView;
+      const reduce = win.matchMedia && win.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!doc.startViewTransition || reduce) { this.setState({ light }); return; }
+      const r = btn.getBoundingClientRect(); const x = r.left + r.width / 2, y = r.top + r.height / 2;
+      const R = Math.hypot(Math.max(x, doc.documentElement.clientWidth - x), Math.max(y, doc.documentElement.clientHeight - y));
+      const t = doc.startViewTransition(() => new Promise((res) => this.setState({ light }, res)));
+      t.ready.then(() => doc.documentElement.animate({ clipPath: ['circle(0px at ' + x + 'px ' + y + 'px)', 'circle(' + R + 'px at ' + x + 'px ' + y + 'px)'] }, { duration: 650, easing: 'ease-in-out', pseudoElement: '::view-transition-new(root)' }));
+    };
+    const themes = [
+      { name: 'Escuro', light: false, bg: '#0E0F13', rail: '#191B21', line: '#262A33' },
+      { name: 'Claro', light: true, bg: '#F6F5F2', rail: '#E2E1DC', line: '#D7D5CF' }
+    ].map((t) => ({ ...t, pressed: s.light === t.light ? 'true' : 'false', border: s.light === t.light ? '#FF6B3D' : 'transparent', pick: pickTheme(t.light) }));
+    const ROOMS = [['Liga do fim de semana', 'Jogos', '#7FB2F0', 48], ['Pelada de quinta', 'Futebol', '#8BD3A8', 22], ['Roda de pagode', 'Música', '#FFD166', 31], ['Cine Resenha', 'Filmes', '#F28DA6', 27], ['Grupo de estudo ENEM', 'Estudo', '#C9A7F5', 40], ['Papo de madrugada', 'Papo', '#FF8A62', 64], ['Anime de domingo', 'Anime', '#F2A65A', 18], ['Dev e café', 'Tecnologia', '#7FD6D0', 25]];
+    const pool = s.likes.length ? ROOMS.filter((r) => s.likes.includes(r[1])) : ROOMS;
+    const rooms = (pool.length ? pool : ROOMS).slice(0, 4).map(([name, cat, color, n], i) => {
+      const on = s.joined.includes(name);
+      return { name, color, initial: name.charAt(0), meta: cat + ' · ' + n + ' membros', d: (i * 0.12).toFixed(2) + 's',
+        pressed: on ? 'true' : 'false', btn: on ? 'Entrou' : 'Entrar', btnBg: on ? '#1F2A22' : '#FF6B3D', btnFg: on ? '#3DD68C' : '#1A0F0A',
+        toggle: () => this.setState({ joined: on ? s.joined.filter((x) => x !== name) : [...s.joined, name] }) };
+    });
+    const doneText = s.joined.length ? (s.joined.length === 1 ? 'Você já está em ' + s.joined[0] + '. A galera te espera lá.' : 'Você já está em ' + s.joined.length + ' salas. A galera te espera.') : 'Quando quiser, entre numa sala pelo + ou por um convite.';
+    const colorsC = ['#FF6B3D', '#FFD166', '#3DD68C', '#7FB2F0', '#F28DA6', '#C9A7F5'];
+    const labels = ['Bora começar', 'Continuar', 'Continuar', 'Continuar', 'Concluir'];
+    return {
+      font, colors, interests, themes, rooms, feed: s.feed,
+      themeCls: s.light ? 't light' : 't',
+      ringOffset: (C * (1 - pct)).toFixed(2), ringText: Math.round(pct * 100) + '%', ringAria: 'Progresso: ' + Math.round(pct * 100) + '%',
+      showSkip: s.step < LAST,
+      s0: s.step === 0, s1: s.step === 1, s2: s.step === 2, s3: s.step === 3, s4: s.step === 4, s5: s.step === 5,
+      hello: 'Bem-vindo, ' + s.name + '!', name: s.name, initial: s.name.charAt(0), color: s.color,
+      bio: s.bio, setBio: (e) => this.setState({ bio: e.target.value }), shownBio: s.bio.trim() || 'Sua frase aparece aqui',
+      roomsSub: s.likes.length ? 'Pelo que você curte, essas combinam com você.' : 'Algumas salas públicas bombando agora.',
+      doneTitle: 'Tudo pronto, ' + s.name + '!', doneText,
+      confetti: Array.from({ length: 24 }, (_, i) => ({ left: ((i * 41) % 100) + '%', color: colorsC[i % 6], delay: ((i * 0.12) % 2).toFixed(2) + 's', dur: (2.2 + (i % 5) * 0.3).toFixed(2) + 's' })),
+      canBack: s.step > 0 && s.step < LAST, notLast: s.step < LAST, isLast: s.step === LAST,
+      nextLabel: labels[s.step] || 'Continuar', rips: s.rips,
+      next: (e) => {
+        const r = e.currentTarget.getBoundingClientRect(); const size = r.width * 2.2; const id = Date.now();
+        this.setState({ rips: [...s.rips, { id, x: (e.clientX - r.left - size / 2) + 'px', y: (e.clientY - r.top - size / 2) + 'px', s: size + 'px' }] });
+        setTimeout(() => this.setState((st) => ({ step: Math.min(LAST, st.step + 1), rips: st.rips.filter((x) => x.id !== id) })), 280);
+      },
+      back: () => this.setState({ step: Math.max(0, s.step - 1) })
+    };
+  }
+}
+</script>
+</body>
+</html>
