@@ -450,8 +450,9 @@ function personTile(item) {
   if (item.speaking) tile.classList.add('speaking');
   if (cam) tile.append(videoFor(`${item.identity}:cam`, cam));
   // Espelha só a sua própria imagem, como um espelho; os outros continuam vendo normal.
-  if (cam && item.local && loadSettings().mirrorCam) tile.classList.add('mirror');
-  else tile.append(avatar(item.identity, item.name, 'lg', call.avatarUrl ? call.avatarUrl(item.identity) : null));
+  if (cam) {
+    if (item.local && loadSettings().mirrorCam) tile.classList.add('mirror');
+  } else tile.append(avatar(item.identity, item.name, 'lg', call.avatarUrl ? call.avatarUrl(item.identity) : null));
   tile.append(h('div', { class: 'label' },
     item.muted ? h('span', { html: ICON.smallMicOff, style: { display: 'inline-flex' } }) : null,
     h('span', null, item.name + (item.local ? ' (você)' : ''))));
