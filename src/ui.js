@@ -161,7 +161,11 @@ export function toast(text, ms = 2800) {
 }
 
 // ---------- Menu de contexto ----------
-export function closeMenu() { $('menu-layer').innerHTML = ''; }
+export function closeMenu() {
+  const layer = $('menu-layer');
+  for (const m of layer.children) { if (m._ro) m._ro.disconnect(); }
+  layer.innerHTML = '';
+}
 
 // items: [{label, onClick, danger, icon}, 'sep', {title}, {node}]
 export function openMenu(anchor, items, opts = {}) {
@@ -183,10 +187,20 @@ export function openMenu(anchor, items, opts = {}) {
   let y = opts.side === 'right' ? r.top : r.bottom + 6;
   if (opts.above) y = r.top - mh - 6;
   if (opts.at) { x = opts.at.x; y = opts.at.y; } // botão direito: abre no ponteiro
-  x = Math.max(8, Math.min(x, innerWidth - mw - 8));
-  y = Math.max(8, Math.min(y, innerHeight - mh - 8));
-  menu.style.left = x + 'px';
-  menu.style.top = y + 'px';
+  // Nunca passa do tamanho da tela: se for maior, rola por dentro. Se crescer depois de abrir (foto carregando), reposiciona.
+  menu.style.maxHeight = (innerHeight - 16) + 'px';
+  menu.style.overflowY = 'auto';
+  const place = () => {
+    const w = menu.offsetWidth, hgt = menu.offsetHeight;
+    menu.style.left = Math.max(8, Math.min(x, innerWidth - w - 8)) + 'px';
+    menu.style.top = Math.max(8, Math.min(opts.above && !opts.at ? r.top - hgt - 6 : y, innerHeight - hgt - 8)) + 'px';
+  };
+  place();
+  if (typeof ResizeObserver === 'function') {
+    const ro = new ResizeObserver(place);
+    ro.observe(menu);
+    menu._ro = ro;
+  }
   const first = menu.querySelector('button');
   if (first) first.focus({ preventScroll: true });
   setTimeout(() => {
