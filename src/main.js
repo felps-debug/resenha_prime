@@ -10,7 +10,7 @@ import { badgeIcon, badgeRow, RARITY_LABEL } from './badges.js';
 import { COMMANDS, parseCommand, resultCard, BOT_ICON } from './draw.js';
 import { createChatCache } from './chat-cache.js';
 import { initTheme, attachAccount } from './theme.js';
-import { openConfig } from './config.js';
+import { openConfig, openShell, closeConfig } from './config.js';
 import { moveFocus } from './focus-navigation.js';
 import {
   call, joinCall, leaveCall, toggleMic, setDeafened, toggleCam, toggleScreen, participants, renderStage,
@@ -392,7 +392,7 @@ async function loadRooms() {
     if (loading && list && list.length) { cachedRailRooms = list; renderRail(); }
   }).catch(() => {});
   const { data, error } = await sb.from('room_members')
-    .select('joined_at, rooms(id, name, is_public, invite_code, owner_id, kind)')
+    .select('joined_at, rooms(id, name, is_public, invite_code, owner_id, kind, description, category, color, icon_url)')
     .eq('user_id', me.id)
     .order('joined_at', { ascending: true });
   loading = false;
@@ -786,9 +786,9 @@ function renderRail() {
   const railRooms = rooms.length ? rooms : cachedRailRooms;
   for (const r of railRooms) {
     const b = h('button', {
-      class: 'rail-room' + (mode === 'rooms' && current && current.id === r.id ? ' active' : ''),
-      title: r.name, 'aria-label': r.name, disabled: !rooms.length, style: { background: current && current.id === r.id ? '' : undefined }
-    }, r.name.trim().charAt(0).toUpperCase());
+      class: 'rail-room' + (mode === 'rooms' && current && current.id === r.id ? ' active' : '') + (r.icon_url ? ' has-icon' : ''),
+      title: r.name, 'aria-label': r.name, disabled: !rooms.length, style: r.icon_url ? { backgroundImage: `url("${r.icon_url}")` } : (r.color ? { '--room-color': r.color } : {})
+    }, r.icon_url ? '' : r.name.trim().charAt(0).toUpperCase());
     if (call.room && call.roomId === r.id) b.append(h('span', { class: 'live-dot', title: 'Você está na call desta sala' }));
     const u = unread.get(r.id);
     if (u && u.n) b.classList.add('has-unread');
@@ -2544,7 +2544,7 @@ async function exploreModal() {
         } catch (err) { toast(err.message); btn.disabled = false; }
       });
       return h('article', { class: 'ex-card', style: { '--i': String(Math.min(i, 12)) } },
-        h('div', { class: 'ex-card-top' }, avatar(r.id, r.name, 'lg'), h('div', { class: 'ex-card-title' }, h('b', null, r.name), r.category ? h('small', null, catLabel(r.category)) : null)),
+        h('div', { class: 'ex-card-top' }, roomAvatar(r, 'lg'), h('div', { class: 'ex-card-title' }, h('b', null, r.name), r.category ? h('small', null, catLabel(r.category)) : null)),
         r.description ? h('p', { class: 'ex-card-desc' }, r.description) : null,
         h('div', { class: 'ex-card-meta' }, h('span', null, `${r.member_count} ${Number(r.member_count) === 1 ? 'membro' : 'membros'}`), live.has(r.id) ? h('span', { class: 'live-badge' }, 'CALL AO VIVO') : null),
         btn);
@@ -2595,7 +2595,7 @@ function createRoomModal() {
     try {
       const room = await rpc('create_room', { p_name: name.value.trim(), p_public: pub.checked });
       // Perfil e canais do modelo: se algo falhar aqui a sala já existe, então só avisa.
-      try { await rpc('set_room_profile', { p_room: room.id, p_description: null, p_category: tpl.category }); } catch (_) {}
+      try { await rpc('set_room_profile', { p_room: room.id, p_description: null, p_category: tpl.category, p_color: null, p_icon: null }); } catch (_) {}
       for (const [kind, nm] of tpl.channels) { try { await rpc('create_channel', { p_room: room.id, p_kind: kind, p_name: nm, p_private: false, p_roles: [] }); } catch (_) {} }
       closeModal();
       closeExplore();
@@ -2654,7 +2654,7 @@ function inviteModal() {
     });
     body.push(reset);
   }
-  openModal({ title: `Convidar para ${current.name}`, body });
+  presentPanel({ title: `Convidar para ${current.name}`, body });
 }
 
 async function handleInvite(code) {
@@ -2678,39 +2678,165 @@ async function handleInvite(code) {
   } catch (err) { toast(err.message); }
 }
 
-function roomSettingsModal() {
-  const name = h('input', { maxlength: '50', value: current.name });
-  const pub = h('input', { type: 'checkbox', checked: current.is_public });
-  const save = h('button', { class: 'btn primary' }, 'Salvar');
-  const del = h('button', { class: 'btn danger', style: { marginRight: 'auto' } }, 'Excluir sala');
-  openModal({
-    title: 'Configurações da sala',
-    body: [field('Nome da sala', name), h('label', { class: 'check' }, pub, 'Sala pública (aparece em Explorar)')],
-    actions: [del, h('button', { class: 'btn secondary', onClick: closeModal }, 'Cancelar'), save]
+// ---------- Configurações da sala (tela cheia) ----------
+const ROOM_COLORS = ['#FF6B3D', '#FFD166', '#8BD3A8', '#7FB2F0', '#C9A7F5', '#F28FAA'];
+function roomAvatar(r, cls) {
+  const a = avatar(r.id, r.name, cls, r.icon_url || null);
+  if (!r.icon_url && r.color) a.style.background = r.color;
+  return a;
+}
+
+function roomSettingsModal(start) { roomSettingsScreen(start || 'overview'); }
+
+function roomSettingsScreen(start = 'overview') {
+  if (!current || isDm(current)) return;
+  const mine = myMember();
+  const owner = Boolean(mine && mine.base_role === 'owner');
+  const sections = [];
+  const mountPanel = (fn) => (body) => { configPane = body; Promise.resolve(fn()).catch(() => {}); };
+
+  if (owner) sections.push({ id: 'overview', name: 'Visão geral', title: 'Visão geral', paint: paintRoomOverview });
+  if (canManageChannels()) sections.push({ id: 'channels', name: 'Canais', count: () => channels.length, title: 'Canais', desc: 'Texto e voz. Só dono e moderadores criam e apagam.', paint: paintRoomChannels });
+  if (can('manage_roles')) sections.push({ id: 'roles', name: 'Cargos', count: () => roles.length, title: 'Cargos', paint: mountPanel(rolesModal) });
+  sections.push({ id: 'members', name: 'Membros', count: () => members.length, title: 'Membros', desc: 'Clique em alguém para dar cargo, expulsar ou banir.', paint: paintRoomMembers });
+  sections.push({ id: 'invites', name: 'Convites', title: 'Convites', paint: mountPanel(inviteModal) });
+  if (can('ban')) sections.push({ id: 'bans', name: 'Banidos', title: 'Banidos', paint: mountPanel(bansModal) });
+
+  const header = h('div', { class: 'cfg-me' }, roomAvatar(current, ''), h('span', { class: 'cfg-me-text' }, h('b', null, current.name)));
+  openShell({
+    label: 'Configurações da sala',
+    header,
+    sections,
+    start,
+    back: { label: '← Voltar pra sala' },
+    onClose: () => { configPane = null; }
   });
-  save.addEventListener('click', async () => {
+}
+
+function paintRoomOverview(body) {
+  const r = current;
+  const draft = { icon: r.icon_url || null, color: r.color || null, pendingIcon: null, removeIcon: false };
+  const name = h('input', { maxlength: '50', value: r.name });
+  const desc = h('textarea', { maxlength: '140', rows: '2', placeholder: 'Sobre o que é a sala' }, r.description || '');
+  const cat = h('select', null, h('option', { value: '' }, 'Sem categoria'), ...CATEGORIES.map(([id, label]) => h('option', { value: id }, label)));
+  cat.value = r.category || '';
+  const pub = h('input', { type: 'checkbox', class: 'cfg-switch', 'aria-label': 'Sala pública', checked: r.is_public });
+  const msg = h('p', { class: 'msg' });
+  const iconBox = h('div', { class: 'rs-icon' });
+  const colors = h('div', { class: 'cfg-swatches' });
+  let preview = null;
+  const paint = () => {
+    const view = { id: r.id, name: name.value || r.name, icon_url: draft.pendingIcon ? draft.pendingIcon.url : draft.removeIcon ? null : draft.icon, color: draft.color };
+    iconBox.replaceChildren(roomAvatar(view, 'xl'));
+    colors.replaceChildren(...ROOM_COLORS.map((hex) => h('button', {
+      type: 'button', class: 'cfg-swatch', role: 'radio', 'aria-label': `Cor ${hex}`, 'aria-checked': String((draft.color || '').toLowerCase() === hex.toLowerCase()),
+      style: { background: hex, '--ring': hex, width: '32px', height: '32px' }, onClick: () => { draft.color = hex; paint(); }
+    }, h('span', { html: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg>' }))));
+  };
+  name.addEventListener('input', paint);
+  const file = h('input', { type: 'file', accept: 'image/png,image/jpeg,image/webp,image/gif', hidden: true });
+  file.addEventListener('change', async () => {
+    const f = file.files && file.files[0];
+    file.value = '';
+    if (!f) return;
     try {
-      await rpc('update_room', { p_room: current.id, p_name: name.value.trim(), p_public: pub.checked });
-      closeModal(); await loadRooms(); openRoom(current.id); toast('Sala atualizada.');
-    } catch (err) { toast(err.message); }
+      const out = await prepareImage(f, 'avatar');
+      draft.pendingIcon = { ...out, url: URL.createObjectURL(out.blob) };
+      draft.removeIcon = false;
+      paint();
+    } catch (err) { msg.textContent = err.message; }
   });
+  const change = h('button', { type: 'button', class: 'btn secondary', onClick: () => file.click() }, 'Trocar ícone');
+  const clear = h('button', { type: 'button', class: 'btn secondary', onClick: () => { draft.pendingIcon = null; draft.removeIcon = true; paint(); } }, 'Tirar ícone');
+  const save = h('button', { class: 'btn primary', style: { alignSelf: 'flex-start' } }, 'Salvar');
+  save.addEventListener('click', async () => {
+    if (!name.value.trim()) { msg.textContent = 'Dê um nome para a sala.'; return; }
+    save.disabled = true; save.textContent = 'Salvando…'; msg.textContent = '';
+    try {
+      let icon = draft.removeIcon ? null : draft.icon;
+      if (draft.pendingIcon) {
+        const path = `${me.id}/room-${r.id}-${Date.now()}.${draft.pendingIcon.ext}`;
+        const up = await sb.storage.from('perfis').upload(path, draft.pendingIcon.blob, { contentType: draft.pendingIcon.type, cacheControl: '31536000', upsert: false });
+        if (up.error) throw new Error('Falha ao enviar o ícone: ' + up.error.message);
+        icon = sb.storage.from('perfis').getPublicUrl(path).data.publicUrl;
+      }
+      await rpc('update_room', { p_room: r.id, p_name: name.value.trim(), p_public: pub.checked });
+      await rpc('set_room_profile', { p_room: r.id, p_description: desc.value, p_category: cat.value || null, p_color: draft.color, p_icon: icon });
+      if (draft.pendingIcon) URL.revokeObjectURL(draft.pendingIcon.url);
+      draft.icon = icon; draft.pendingIcon = null; draft.removeIcon = false;
+      await loadRooms();
+      if (current && current.id === r.id) { $('room-title').textContent = findChat(r.id).name; current = findChat(r.id); }
+      renderRail();
+      toast('Sala atualizada.');
+    } catch (err) { msg.textContent = err.message; }
+    save.disabled = false; save.textContent = 'Salvar';
+  });
+  const del = h('button', { class: 'btn danger' }, 'Excluir sala');
   del.addEventListener('click', async () => {
-    const ok = await confirmModal({ title: `Excluir ${current.name}?`, text: 'Todas as mensagens e cargos serão apagados. Isso não tem volta.', confirm: 'Excluir', danger: true });
+    const ok = await confirmModal({ title: `Excluir ${r.name}?`, text: 'Todas as mensagens, canais e cargos serão apagados. Isso não tem volta.', confirm: 'Excluir', danger: true });
     if (!ok) return;
     try {
-      const id = current.id;
-      if (call.roomId === id) await leaveCall();
-      await rpc('delete_room', { p_room: id });
+      if (call.roomId === r.id) await leaveCall();
+      await rpc('delete_room', { p_room: r.id });
+      closeConfig();
       await loadRooms();
       if (rooms[0]) openRoom(rooms[0].id); else renderEmpty();
       toast('Sala excluída.');
     } catch (err) { toast(err.message); }
   });
+  paint();
+  body.append(
+    h('section', { class: 'cfg-card' },
+      h('div', { class: 'rs-top' },
+        h('div', { class: 'rs-icon-col' }, iconBox, change, draft.icon ? clear : null, file),
+        h('div', { class: 'rs-fields' }, field('Nome da sala', name), field('Descrição', desc), field('Categoria em Explorar', cat),
+          h('div', { class: 'field' }, h('span', { class: 'label' }, 'Cor da sala'), colors))),
+      msg, save),
+    h('section', { class: 'cfg-card' }, h('label', { class: 'cfg-row' }, h('span', { class: 'cfg-row-text' }, h('b', null, 'Sala pública'), h('small', null, 'Aparece em Explorar. Qualquer pessoa entra sem convite.')), pub)),
+    h('section', { class: 'cfg-card' }, h('div', { class: 'cfg-row' }, h('span', { class: 'cfg-row-text' }, h('b', null, 'Excluir sala'), h('small', null, 'Apaga mensagens, canais e cargos de todo mundo. Não tem volta.')), del)));
+  void preview;
+}
+
+function paintRoomChannels(body) {
+  const list = h('div', { class: 'cfg-card' });
+  const paint = () => {
+    list.replaceChildren(
+      h('div', { class: 'cfg-row' }, h('h2', null, 'Canais da sala'), h('button', { class: 'btn primary', onClick: () => createChannelModal('text') }, '+ Criar canal')),
+      ...(channels.length ? channels : []).map((c) => {
+        const del = h('button', { class: 'btn secondary' }, 'Apagar');
+        del.addEventListener('click', async () => {
+          if (!(await confirmModal({ title: `Apagar ${c.kind === 'text' ? '#' : ''}${c.name}?`, text: c.kind === 'text' ? 'As mensagens do canal também são apagadas.' : 'Quem estiver na call do canal sai dela.', confirm: 'Apagar', danger: true }))) return;
+          try { await rpc('delete_channel', { p_channel: c.id }); await loadChannels(); paint(); toast('Canal apagado.'); } catch (err) { toast(err.message); }
+        });
+        return h('div', { class: 'cfg-row' }, h('span', { class: 'cfg-row-text' }, h('b', null, (c.kind === 'text' ? '# ' : '🔊 ') + c.name), h('small', null, `${c.kind === 'text' ? 'Texto' : 'Voz'}${c.is_private ? ' · privado' : ''}`)), del);
+      }),
+      channels.length ? null : h('p', { class: 'cfg-hint' }, 'Nenhum canal além do chat e da call padrão da sala.'));
+  };
+  paint();
+  body.append(list);
+  const off = setInterval(() => { if (!list.isConnected) { clearInterval(off); return; } paint(); }, 4000);
+}
+
+function paintRoomMembers(body) {
+  const list = h('div', { class: 'cfg-card' });
+  const paint = () => {
+    list.replaceChildren(...members.slice().sort((a, b) => a.name.localeCompare(b.name)).map((m) => {
+      const role = roleOf(m);
+      const b = h('button', { class: 'cfg-row cfg-member', type: 'button' },
+        h('span', { class: 'cfg-member-who' }, avatarOf(m.user_id, m.name, '', true), h('b', { style: { color: nameColor(m) || '' } }, m.name)),
+        h('small', null, m.base_role === 'owner' ? 'Dono' : m.base_role === 'moderator' ? 'Moderador' : role ? role.name : 'Membro'));
+      b.addEventListener('click', () => memberMenu(b, m.user_id));
+      return b;
+    }));
+  };
+  paint();
+  body.append(list);
 }
 
 const ROLE_COLORS = ['#99aab5', '#1abc9c', '#2ecc71', '#3498db', '#9b59b6', '#e91e63', '#f1c40f', '#e67e22', '#e74c3c', '#607d8b'];
 
 function rolesModal() {
+  if (configPane) closeModal();
   const list = h('div', { class: 'list' });
   const render = () => {
     list.innerHTML = '';
@@ -2730,7 +2856,7 @@ function rolesModal() {
   render();
   const add = h('button', { class: 'btn primary' }, 'Criar cargo');
   add.addEventListener('click', () => roleEditModal(null));
-  openModal({
+  presentPanel({
     title: 'Cargos', wide: true,
     body: [h('p', { class: 'hint' }, 'Para dar um cargo a alguém, clique no nome da pessoa na lista de membros.'), list],
     actions: [h('button', { class: 'btn secondary', onClick: closeModal }, 'Fechar'), add]
@@ -2789,8 +2915,9 @@ function roleEditModal(role) {
 }
 
 async function bansModal() {
+  if (configPane) closeModal();
   const list = h('div', { class: 'list' }, h('p', { class: 'muted' }, 'Carregando…'));
-  openModal({ title: 'Banidos', body: list });
+  presentPanel({ title: 'Banidos', body: list });
   try {
     const data = await rpc('list_bans', { p_room: current.id });
     list.innerHTML = '';
@@ -2881,7 +3008,7 @@ function allBadgesSection() {
 let configPane = null;
 function presentPanel(opts) {
   if (!configPane) return openModal(opts);
-  const keep = (opts.actions || []).filter((b) => !['Pronto', 'Cancelar'].includes(b.textContent));
+  const keep = (opts.actions || []).filter((b) => !['Pronto', 'Cancelar', 'Fechar'].includes(b.textContent));
   const kids = [].concat(opts.body).filter(Boolean);
   configPane.replaceChildren(h('section', { class: 'cfg-card cfg-form' }, ...kids), ...(keep.length ? [h('div', { class: 'cfg-actions' }, keep)] : []));
   return configPane;
@@ -3137,9 +3264,7 @@ function roomMenu() {
   if (!current) return;
   const mine = myMember();
   const items = [{ label: 'Convidar pessoas', onClick: inviteModal }, { label: 'Sorteios', onClick: () => openDrawModal('teams') }];
-  if (mine && mine.base_role === 'owner') items.push({ label: 'Configurações da sala', onClick: roomSettingsModal });
-  if (can('manage_roles')) items.push({ label: 'Cargos', onClick: rolesModal });
-  if (can('ban')) items.push({ label: 'Banidos', onClick: bansModal });
+  items.push({ label: 'Configurações da sala', onClick: () => roomSettingsScreen(mine && mine.base_role === 'owner' ? 'overview' : 'members') });
   if (mine && mine.base_role !== 'owner') {
     items.push('sep', { label: 'Sair da sala', danger: true, onClick: async () => {
       if (!(await confirmModal({ title: `Sair de ${current.name}?`, text: 'Você pode voltar depois com um convite.', confirm: 'Sair', danger: true }))) return;

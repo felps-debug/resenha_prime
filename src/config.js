@@ -27,6 +27,7 @@ const DESC = {
 
 let root = null;
 let offTheme = null;
+let shellClose = null;
 
 export function isConfigOpen() { return Boolean(root); }
 
@@ -36,6 +37,7 @@ export function closeConfig() {
   offTheme = null;
   root.remove();
   root = null;
+  if (shellClose) { const f = shellClose; shellClose = null; f(); }
   document.removeEventListener('keydown', onKey, true);
   const app = $('app');
   if (app) app.removeAttribute('inert');
@@ -250,4 +252,43 @@ async function paintAbout(body, ctx) {
       h('div', null, h('b', null, u.titulo), h('small', null, ` · v${u.versao} · ${u.data}`)),
       h('ul', null, ...(u.itens || []).map((i) => h('li', null, i))))));
   } catch (_) { list.replaceChildren(h('p', { class: 'cfg-hint' }, 'Não deu para carregar as novidades.')); }
+}
+
+// ---------- Tela cheia genérica (Configurações da sala etc.) ----------
+// opts: { label, header: Node, sections: [{ id, name, count?, title?, desc?, paint(body) }], start, back: { label, onClick }, onClose }
+export function openShell(opts) {
+  closeConfig();
+  shellClose = opts.onClose || null;
+  let current = opts.start && opts.sections.some((s) => s.id === opts.start) ? opts.start : opts.sections[0].id;
+  const nav = h('nav', { class: 'cfg-nav', 'aria-label': opts.label });
+  const main = h('main', { class: 'cfg-main' });
+  const close = h('button', { class: 'cfg-close', 'aria-label': 'Fechar', title: 'Fechar (Esc)', onClick: closeConfig },
+    h('span', { html: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>' }));
+  root = h('div', { class: 'cfg', role: 'dialog', 'aria-modal': 'true', 'aria-label': opts.label }, nav, main, close);
+  document.body.append(root);
+  document.addEventListener('keydown', onKey, true);
+  $('app').setAttribute('inert', '');
+
+  function drawNav() {
+    nav.replaceChildren(
+      opts.header,
+      h('div', { class: 'cfg-cat', style: { padding: '8px 10px 4px' } }, ''),
+      ...opts.sections.map((s) => h('button', { class: 'cfg-item', 'aria-current': current === s.id ? 'page' : 'false', onClick: () => go(s.id) },
+        h('span', { class: 'cfg-item-name' }, s.name), s.count != null ? h('span', { class: 'cfg-count' }, String(typeof s.count === 'function' ? s.count() : s.count)) : null)),
+      h('div', { class: 'cfg-spacer' }),
+      opts.back ? h('button', { class: 'cfg-item cfg-back', onClick: () => { closeConfig(); opts.back.onClick && opts.back.onClick(); } }, opts.back.label) : null);
+  }
+  function go(id) {
+    current = id;
+    drawNav();
+    const s = opts.sections.find((x) => x.id === id);
+    const body = h('div', { class: 'cfg-body' });
+    main.replaceChildren(h('h1', { class: 'cfg-title' }, s.title || s.name), s.desc ? h('p', { class: 'cfg-desc' }, s.desc) : null, body);
+    main.scrollTop = 0;
+    s.paint(body);
+  }
+  go(current);
+  const first = nav.querySelector('[aria-current="page"]');
+  if (first) first.focus();
+  return { go };
 }

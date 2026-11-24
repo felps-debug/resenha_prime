@@ -1059,3 +1059,23 @@ kbd { font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 70
 .tpl-opt small { font-size: 11px; color: var(--text-3); text-align: center; }
 .tpl-opt[aria-checked="true"] { box-shadow: 0 0 0 2px var(--accent); }
 @media (max-width: 640px) { .ex-main { padding: 18px 16px 32px; } .ex-search { width: 100%; } .ex-head .btn { width: 100%; } }
+
+/* Configurações da sala (docs/telas/SalaConfig.dc.html) */
+.cfg-item { justify-content: space-between; gap: 8px; }
+.cfg-count { font-size: 12px; color: var(--text-3); font-weight: 600; }
+.cfg-item.cfg-back { color: var(--accent-ink); justify-content: flex-start; }
+.cfg-nav .cfg-me .avatar { width: 40px; height: 40px; border-radius: 12px; }
+.rs-top { display: flex; flex-wrap: wrap; gap: 24px; }
+.rs-icon-col { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.rs-icon .avatar { width: 88px; height: 88px; border-radius: 24px; font-size: 38px; }
+.rs-icon-col .btn { min-height: 36px; padding: 6px 12px; font-size: 13px; }
+.rs-fields { flex: 1 1 320px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.rs-fields textarea { min-height: 64px; resize: vertical; }
+.cfg-card .field select { background: var(--bg-input); border: 0; border-radius: var(--radius); padding: 12px 14px; font-size: 15px; width: 100%; color: var(--text); }
+.cfg-member { width: 100%; border: 0; background: transparent; color: var(--text); text-align: left; border-radius: 12px; padding: 8px; transition: background .15s; }
+.cfg-member:hover { background: var(--bg-hover); }
+.cfg-member-who { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.cfg-member small { color: var(--text-3); font-size: 13px; }
+.cfg-card .list { margin: 0; }
+.rail-room.has-icon { background-size: cover; background-position: center; color: transparent; }
+.rail-room:not(.active):not(.has-icon)[style*="--room-color"] { background: var(--room-color); color: #14161B; }
