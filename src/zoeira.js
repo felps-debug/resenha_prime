@@ -2,15 +2,16 @@
 // O pedido viaja pelo canal de dados do LiveKit (ver call.js); aqui só fica o desenho.
 import { h, avatar } from './ui.js';
 import { playAgua } from './agua.js';
+import { playChicote } from './chicote.js';
 
 export const ZOEIRA_TOPIC = 'zoeira';
-export const ZOEIRA_KINDS = { privada: 'Mandar pra privada', agua: 'Jogar água' };
+export const ZOEIRA_KINDS = { privada: 'Mandar pra privada', agua: 'Jogar água', chicote: 'Dar chicotada' };
 export const ZOEIRA_DURATION = 7;
 
 // Onde ficam os sons; dá pra trocar (ex.: página de demonstração).
 export const zoeiraConfig = { soundUrl: (name) => `/sfx/${name}.mp3` };
 
-const SFX = ['whoosh', 'splat', 'scream', 'boing', 'clack', 'flush', 'glub', 'pop', 'buzz', 'agua'];
+const SFX = ['whoosh', 'splat', 'scream', 'boing', 'clack', 'flush', 'glub', 'pop', 'buzz', 'agua', 'chicote'];
 const playing = new Map();
 let gsapPromise;
 function loadGsap() {
@@ -115,11 +116,11 @@ function findTile(identity) {
   return null;
 }
 
-// ---------- Golpe: água na câmera ----------
-function playAguaOn(identity, muted) {
+// ---------- Golpes desenhados por cima do quadro: água e chicote ----------
+function playOverlay(play, identity, options) {
   let done;
   const finished = new Promise((resolve) => { done = resolve; });
-  const stop = playAgua({ findTile: () => findTile(identity), soundUrl: zoeiraConfig.soundUrl('agua'), muted, onEnd: () => { playing.delete(identity); done(); } });
+  const stop = play({ ...options, findTile: () => findTile(identity), onEnd: () => { playing.delete(identity); done(); } });
   if (!stop) return false;
   playing.set(identity, stop);
   return finished;
@@ -128,7 +129,8 @@ function playAguaOn(identity, muted) {
 // ---------- Golpe: privada + cocô ----------
 export async function playZoeira({ kind, identity, name, avatarUrl, muted }) {
   if (!Object.hasOwn(ZOEIRA_KINDS, kind) || playing.has(identity)) return false;
-  if (kind === 'agua') return playAguaOn(identity, muted);
+  if (kind === 'agua') return playOverlay(playAgua, identity, { soundUrl: zoeiraConfig.soundUrl('agua'), muted });
+  if (kind === 'chicote') return playOverlay(playChicote, identity, { soundUrl: zoeiraConfig.soundUrl('chicote'), muted });
   const tile = findTile(identity);
   if (!tile) return false;
   let gsap;

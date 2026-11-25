@@ -15,5 +15,7 @@ test('jogar água é exclusivo de uma conta; a privada continua liberada', async
   assert.equal(canZoeira('agua', OWNER), true);
   assert.equal(canZoeira('agua', OTHER), false);
   assert.equal(canZoeira('agua', undefined), false);
+  assert.equal(canZoeira('chicote', OWNER), true);
+  assert.equal(canZoeira('chicote', OTHER), false);
   assert.equal(canZoeira('privada', OTHER), true);
 });

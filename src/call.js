@@ -241,6 +241,7 @@ function showZoeira(kind, target, fromName) {
   const targetName = nameOf(target);
   const isMe = call.room && target === call.room.localParticipant.identity;
   if (kind === 'agua') toast(isMe ? `${fromName} jogou água na tua câmera` : `${fromName} jogou água na câmera de ${targetName}`);
+  else if (kind === 'chicote') toast(isMe ? `${fromName} te deu uma chicotada` : `${fromName} deu uma chicotada em ${targetName}`);
   else toast(isMe ? `${fromName} te mandou pra privada` : `${fromName} mandou ${targetName} pra privada`);
   playZoeira({ kind, identity: target, name: targetName, avatarUrl: call.avatarUrl ? call.avatarUrl(target) : null, muted: call.deafened || loadSettings().zoeiraSound === false });
 }

@@ -1163,6 +1163,7 @@ function memberMenu(anchor, userId, at) {
     items.push('sep', { node: h('div', { class: 'menu-range' }, label, range) });
     items.push({ label: 'Mandar pra privada', onClick: () => sendZoeira('privada', userId) });
     if (canZoeira('agua', me.id)) items.push({ label: 'Jogar água', onClick: () => sendZoeira('agua', userId) });
+    if (canZoeira('chicote', me.id)) items.push({ label: 'Dar chicotada', onClick: () => sendZoeira('chicote', userId) });
   }
 
   if (m && current) {
