@@ -1,5 +1,5 @@
 // Golpe "Jogar água": esguichos de água grossa que abrem e fecham, fazem o arco e caem na cara.
-// A água é desenhada em bolas e um filtro SVG as funde num líquido viscoso; o som é gerado na hora.
+// A água é desenhada em bolas e um filtro SVG as funde num líquido viscoso; o som está em public/sfx/agua.mp3.
 import { h } from './ui.js';
 
 export const AGUA_DURATION = 5.8;
@@ -32,32 +32,52 @@ function pressureAt(t, [on, off, max]) {
   return max * Math.min(clamp((t - on) / RAMP, 0, 1), clamp((off + RAMP - t) / RAMP, 0, 1));
 }
 
+// Barulho: o mesmo esguicho gravado, tocado a cada jato e do lado de onde ele entra.
+// Agenda tudo de uma vez; elapsed é quanto do golpe já passou quando o arquivo terminou de carregar.
+export function scheduleAguaSound(ac, out, buffer, elapsed = 0) {
+  const t0 = ac.currentTime + 0.02 - elapsed;
+  for (const [on, off, force, side] of BURSTS) {
+    // jato longo repete o esguicho enquanto estiver aberto
+    for (let at = on; at < off - 0.1; at += 0.28) {
+      if (at < elapsed - 0.05) continue;
+      const src = ac.createBufferSource();
+      src.buffer = buffer;
+      src.playbackRate.value = rnd(0.94, 1.08);
+      const gain = ac.createGain();
+      gain.gain.value = 0.45 * force;
+      const pan = ac.createStereoPanner();
+      pan.pan.value = clamp((side - 0.5) * 1.4, -0.8, 0.8);
+      src.connect(gain).connect(pan).connect(out);
+      src.start(Math.max(ac.currentTime, t0 + at));
+    }
+  }
+}
+
 let audioCtx;
-function waterSound(force, seconds, muted) {
-  if (muted) return;
+let soundData;
+function loadSound(url) {
+  if (!soundData) {
+    soundData = fetch(url)
+      .then((r) => { if (!r.ok) throw new Error('som indisponível'); return r.arrayBuffer(); })
+      .then((bytes) => audioCtx.decodeAudioData(bytes))
+      .catch((err) => { soundData = null; throw err; });
+  }
+  return soundData;
+}
+// Devolve a função que corta o som (usada se o golpe for interrompido).
+function playSound(url, muted) {
+  if (muted) return () => {};
   try {
     audioCtx = audioCtx || new AudioContext();
     audioCtx.resume().catch(() => {});
-    const dur = seconds + RAMP;
-    const buffer = audioCtx.createBuffer(1, Math.ceil(audioCtx.sampleRate * dur), audioCtx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < data.length; i += 1) data[i] = (Math.random() * 2 - 1) * (0.7 + 0.3 * Math.sin(i / 900) * Math.sin(i / 2300));
-    const src = audioCtx.createBufferSource();
-    src.buffer = buffer;
-    const band = audioCtx.createBiquadFilter();
-    band.type = 'bandpass';
-    band.Q.value = 0.6;
-    band.frequency.value = 1100;
-    const t = audioCtx.currentTime;
-    const gain = audioCtx.createGain();
-    const peak = 0.1 + force * 0.14;
-    gain.gain.setValueAtTime(0.001, t);
-    gain.gain.exponentialRampToValueAtTime(peak, t + RAMP);
-    gain.gain.setValueAtTime(peak, t + Math.max(RAMP, seconds));
-    gain.gain.exponentialRampToValueAtTime(0.001, t + dur);
-    src.connect(band).connect(gain).connect(audioCtx.destination);
-    src.start(t);
-  } catch (_) { /* sem áudio, a animação segue */ }
+    const master = audioCtx.createGain();
+    master.connect(audioCtx.destination);
+    const asked = performance.now();
+    loadSound(url)
+      .then((buffer) => scheduleAguaSound(audioCtx, master, buffer, (performance.now() - asked) / 1000))
+      .catch(() => { /* sem áudio, a animação segue */ });
+    return () => master.disconnect();
+  } catch (_) { return () => {}; }
 }
 
 // Filtro que funde as bolas num líquido: borra, recorta a borda e põe contorno e brilho.
@@ -82,7 +102,7 @@ function gooFilter() {
 }
 
 // findTile é chamado a cada quadro porque o palco é redesenhado quando a call muda.
-export function playAgua({ findTile, muted, onEnd }) {
+export function playAgua({ findTile, soundUrl, muted, onEnd }) {
   const first = findTile();
   if (!first) return null;
   const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -99,7 +119,6 @@ export function playAgua({ findTile, muted, onEnd }) {
   const water = [];
   const splashes = [];
   const stuck = [];
-  let next = 0;
   let wet = 0;
   const owed = BURSTS.map(() => 0);
   let w = 0;
@@ -109,12 +128,14 @@ export function playAgua({ findTile, muted, onEnd }) {
   let prev = performance.now();
   const start = prev;
   let stopped = false;
+  const stopSound = playSound(soundUrl, muted);
 
   const stop = () => {
     if (stopped) return;
     stopped = true;
     cancelAnimationFrame(raf);
     clearTimeout(guard);
+    stopSound();
     root.remove();
     onEnd();
   };
@@ -166,12 +187,6 @@ export function playAgua({ findTile, muted, onEnd }) {
     }
     if (!w || !h_) return;
     Object.assign(box.style, { left: rect.left + 'px', top: rect.top + 'px', width: w + 'px', height: h_ + 'px', borderRadius: getComputedStyle(tile).borderRadius });
-
-    while (next < BURSTS.length && t >= BURSTS[next][0]) {
-      const [on, off, max] = BURSTS[next];
-      next += 1;
-      waterSound(max, off - on, muted);
-    }
 
     const unit = Math.min(w, h_);
     // O quanto o filtro funde as bolas acompanha o tamanho do quadro.

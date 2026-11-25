@@ -10,7 +10,7 @@ export const ZOEIRA_DURATION = 7;
 // Onde ficam os sons; dá pra trocar (ex.: página de demonstração).
 export const zoeiraConfig = { soundUrl: (name) => `/sfx/${name}.mp3` };
 
-const SFX = ['whoosh', 'splat', 'scream', 'boing', 'clack', 'flush', 'glub', 'pop', 'buzz'];
+const SFX = ['whoosh', 'splat', 'scream', 'boing', 'clack', 'flush', 'glub', 'pop', 'buzz', 'agua'];
 const playing = new Map();
 let gsapPromise;
 function loadGsap() {
@@ -119,7 +119,7 @@ function findTile(identity) {
 function playAguaOn(identity, muted) {
   let done;
   const finished = new Promise((resolve) => { done = resolve; });
-  const stop = playAgua({ findTile: () => findTile(identity), muted, onEnd: () => { playing.delete(identity); done(); } });
+  const stop = playAgua({ findTile: () => findTile(identity), soundUrl: zoeiraConfig.soundUrl('agua'), muted, onEnd: () => { playing.delete(identity); done(); } });
   if (!stop) return false;
   playing.set(identity, stop);
   return finished;
