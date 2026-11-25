@@ -1,9 +1,10 @@
 // Golpes de zoeira na call: animação por cima do quadro de alguém, vista por todos.
 // O pedido viaja pelo canal de dados do LiveKit (ver call.js); aqui só fica o desenho.
 import { h, avatar } from './ui.js';
+import { playAgua } from './agua.js';
 
 export const ZOEIRA_TOPIC = 'zoeira';
-export const ZOEIRA_KINDS = { privada: 'Mandar pra privada' };
+export const ZOEIRA_KINDS = { privada: 'Mandar pra privada', agua: 'Jogar água' };
 export const ZOEIRA_DURATION = 7;
 
 // Onde ficam os sons; dá pra trocar (ex.: página de demonstração).
@@ -114,9 +115,20 @@ function findTile(identity) {
   return null;
 }
 
+// ---------- Golpe: água na câmera ----------
+function playAguaOn(identity, muted) {
+  let done;
+  const finished = new Promise((resolve) => { done = resolve; });
+  const stop = playAgua({ findTile: () => findTile(identity), muted, onEnd: () => { playing.delete(identity); done(); } });
+  if (!stop) return false;
+  playing.set(identity, stop);
+  return finished;
+}
+
 // ---------- Golpe: privada + cocô ----------
 export async function playZoeira({ kind, identity, name, avatarUrl, muted }) {
-  if (kind !== 'privada' || playing.has(identity)) return false;
+  if (!Object.hasOwn(ZOEIRA_KINDS, kind) || playing.has(identity)) return false;
+  if (kind === 'agua') return playAguaOn(identity, muted);
   const tile = findTile(identity);
   if (!tile) return false;
   let gsap;

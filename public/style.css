@@ -762,6 +762,9 @@ button { cursor: pointer; }
 .zoeira-fx { position: fixed; inset: 0; z-index: 90; pointer-events: none; overflow: hidden; }
 .zoeira-fx .z-scene { position: absolute; left: 0; top: 0; width: 1080px; height: 1080px; transform-origin: 0 0; }
 .zoeira-fx .z-scene > * { position: absolute; }
+.agua-fx .agua-box { position: absolute; overflow: hidden; }
+.agua-fx .agua-box > * { position: absolute; inset: 0; width: 100%; height: 100%; }
+.agua-fx .agua-fog { opacity: 0; backdrop-filter: blur(3.5px) brightness(1.08) saturate(.85); background: rgba(190, 222, 245, .12); }
 .tile.zoeira-target > .avatar, .tile.zoeira-target > video { visibility: hidden; }
 .z-toilet { left: 280px; top: 450px; width: 520px; height: 560px; }
 .z-toilet-back { z-index: 3; }

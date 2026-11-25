@@ -1,6 +1,7 @@
 // Call de voz/vídeo/tela com LiveKit (SFU).
 import { $, h, ICON, avatar, toast, beep } from './ui.js';
 import { ZOEIRA_TOPIC, ZOEIRA_KINDS, playZoeira, preloadZoeira, stopAllZoeira, isZoeiraPlaying } from './zoeira.js';
+import { canZoeira } from './zoeira-rules.js';
 
 let Room, RoomEvent, Track, DisconnectReason, ScreenSharePresets, VideoPresets;
 let livekitPromise;
@@ -239,7 +240,8 @@ function nameOf(identity) {
 function showZoeira(kind, target, fromName) {
   const targetName = nameOf(target);
   const isMe = call.room && target === call.room.localParticipant.identity;
-  toast(isMe ? `${fromName} te mandou pra privada` : `${fromName} mandou ${targetName} pra privada`);
+  if (kind === 'agua') toast(isMe ? `${fromName} jogou água na tua câmera` : `${fromName} jogou água na câmera de ${targetName}`);
+  else toast(isMe ? `${fromName} te mandou pra privada` : `${fromName} mandou ${targetName} pra privada`);
   playZoeira({ kind, identity: target, name: targetName, avatarUrl: call.avatarUrl ? call.avatarUrl(target) : null, muted: call.deafened || loadSettings().zoeiraSound === false });
 }
 
@@ -247,6 +249,7 @@ function receiveZoeira(payload, participant) {
   let msg;
   try { msg = JSON.parse(new TextDecoder().decode(payload)); } catch (_) { return; }
   if (!msg || msg.v !== 1 || !Object.hasOwn(ZOEIRA_KINDS, msg.kind) || typeof msg.target !== 'string') return;
+  if (!canZoeira(msg.kind, participant.identity)) return;
   const room = call.room;
   if (!room) return;
   const targetInCall = msg.target === room.localParticipant.identity || room.remoteParticipants.has(msg.target);
@@ -264,14 +267,14 @@ export function zoeiraWait() {
 
 export async function sendZoeira(kind, target) {
   const room = call.room;
-  if (!room || !Object.hasOwn(ZOEIRA_KINDS, kind)) return;
+  if (!room || !Object.hasOwn(ZOEIRA_KINDS, kind) || !canZoeira(kind, room.localParticipant.identity)) return;
   if (target === room.localParticipant.identity || !room.remoteParticipants.has(target)) {
     toast('Essa pessoa não está na call.');
     return;
   }
   const wait = zoeiraWait();
   if (wait > 0) { toast(`Calma, espera ${wait}s pra zoar de novo.`); return; }
-  if (isZoeiraPlaying(target)) { toast(`${nameOf(target)} ainda está na privada.`); return; }
+  if (isZoeiraPlaying(target)) { toast(`${nameOf(target)} ainda está levando a última zoeira.`); return; }
   myLastZoeira = Date.now();
   try {
     const data = new TextEncoder().encode(JSON.stringify({ v: 1, kind, target }));

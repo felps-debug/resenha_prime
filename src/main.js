@@ -12,6 +12,7 @@ import { createChatCache } from './chat-cache.js';
 import { initTheme, attachAccount, resolvedTheme, setPrefs } from './theme.js';
 import { openConfig, openShell, closeConfig } from './config.js';
 import { initShopFx, onShopFx, shopRoom, shopLeave, owns, nickFor, isPink, decorateAvatar, getVaquinha, loadVaquinha, fire, CHAT_EFFECTS, SOUNDS, VOICES } from './shop-fx.js';
+import { canZoeira } from './zoeira-rules.js';
 import { initMusic, musicJoin, musicLeave, mountMusicPanel, setPanelOpen, setPanelView, setModerator, parseMusic, runChatCommand, musicCard, MUSIC_COMMANDS, onMusic, setMusicHooks, refreshMusicPanel } from './music.js';
 import { moveFocus } from './focus-navigation.js';
 import {
@@ -1161,6 +1162,7 @@ function memberMenu(anchor, userId, at) {
     range.addEventListener('input', () => { label.textContent = `Volume: ${range.value}%`; setVolume(userId, Number(range.value) / 100); });
     items.push('sep', { node: h('div', { class: 'menu-range' }, label, range) });
     items.push({ label: 'Mandar pra privada', onClick: () => sendZoeira('privada', userId) });
+    if (canZoeira('agua', me.id)) items.push({ label: 'Jogar água', onClick: () => sendZoeira('agua', userId) });
   }
 
   if (m && current) {
