@@ -1397,3 +1397,8 @@ kbd { font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 70
   .stage-bar .stage-sep { display: none; }
   .stage.grid .tile .avatar.lg { width: 56px; height: 56px; font-size: 22px; }
 }
+
+/* Música/assistir no celular: botão para liberar o som (o celular bloqueia tocar sozinho) e player tocável */
+.yt-unlock { position: fixed; left: 50%; bottom: calc(84px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 40; border: 0; border-radius: 999px; padding: 12px 20px; background: var(--accent); color: var(--on-accent); font-weight: 800; font-size: 15px; box-shadow: 0 12px 30px -10px rgba(0, 0, 0, .6); white-space: nowrap; }
+.yt-unlock[hidden] { display: none; }
+@media (hover: none) { .yt-frame.shown { pointer-events: auto; } .yt-frame.shown iframe { pointer-events: auto; } }

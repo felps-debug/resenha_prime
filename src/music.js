@@ -163,6 +163,51 @@ export function setVolume(v) {
 }
 
 // ---------- Player do YouTube ----------
+// Celular não deixa o player começar com som sem um toque da pessoa. Lá mostramos um botão "Toque para ouvir"
+// e o próprio player aceita toque (controles do YouTube ligados).
+const IS_MOBILE = (navigator.userAgentData && navigator.userAgentData.mobile)
+  || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+  || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+let unlockBtn = null;
+function showUnlock(show) {
+  if (show && !unlockBtn) {
+    unlockBtn = h('button', { type: 'button', class: 'yt-unlock' }, '▶ Toque para ouvir e ver junto');
+    unlockBtn.addEventListener('click', unlockPlayback);
+    document.body.append(unlockBtn);
+  }
+  if (unlockBtn) unlockBtn.hidden = !show;
+}
+function unlockPlayback() {
+  const p = st.player;
+  if (p && st.playerReady) {
+    try { p.unMute(); p.setVolume(st.vol); p.playVideo(); } catch (_) {}
+  }
+  showUnlock(false);
+  // Se o sistema ainda segurar, abre o painel para a pessoa tocar direto no vídeo
+  setTimeout(() => {
+    if (!isActuallyPlaying()) {
+      if (st.panel && !st.panel.classList.contains('open') && !document.querySelector('#stage .watch-slot')) setPanelOpen(true);
+      toast('Toque no vídeo para começar a tocar.', 4000);
+    }
+  }, 1500);
+}
+function isActuallyPlaying() {
+  const p = st.player;
+  if (!p || !st.playerReady) return false;
+  try { return p.getPlayerState() === 1 && !p.isMuted(); } catch (_) { return false; }
+}
+// Roda a cada segundo junto com syncPlayer: se faz mais de 2,5 s que devia estar tocando e não está, mostra o botão.
+let notPlayingSince = 0;
+function checkBlocked() {
+  const s = st.state;
+  if (!s || !s.current || s.paused_at || isActuallyPlaying()) { notPlayingSince = 0; showUnlock(false); return; }
+  if (!notPlayingSince) notPlayingSince = Date.now();
+  if (Date.now() - notPlayingSince > 2500) showUnlock(true);
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && st.player && st.playerReady) { syncPlayer(); }
+});
+
 let ytPromise = null;
 function loadYT() {
   if (window.YT && window.YT.Player) return Promise.resolve(window.YT);
@@ -186,10 +231,11 @@ async function ensurePlayer() {
     if (st.player) return;
     st.player = new YT.Player(host, {
       width: '100%', height: '100%',
-      playerVars: { controls: 0, disablekb: 1, rel: 0, playsinline: 1, modestbranding: 1, iv_load_policy: 3, fs: 0 },
+      playerVars: { controls: IS_MOBILE ? 1 : 0, disablekb: 1, rel: 0, playsinline: 1, modestbranding: 1, iv_load_policy: 3, fs: 0 },
       events: {
         onReady: () => { st.playerReady = true; try { st.player.setVolume(st.vol); } catch (_) {} syncPlayer(); },
         onStateChange: (e) => {
+          if (e.data === 1 && unlockBtn && !unlockBtn.hidden && isActuallyPlaying()) showUnlock(false);
           if (e.data === 0 && st.state && st.state.current) {
             const id = st.state.current.id;
             setTimeout(() => musicCommand('ended', { id, quiet: true }).catch(() => {}), Math.random() * 700);
@@ -206,7 +252,8 @@ function syncPlayer() {
   const p = st.player;
   if (!p || !st.playerReady) return;
   try {
-    if (!s || !s.current) { if (st.loadedId) { p.stopVideo(); st.loadedId = null; } return; }
+    if (!s || !s.current) { showUnlock(false); if (st.loadedId) { p.stopVideo(); st.loadedId = null; } return; }
+    checkBlocked();
     const id = s.current.id;
     const pos = targetPos();
     const paused = Boolean(s.paused_at);
