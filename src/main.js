@@ -3814,6 +3814,8 @@ function wireStatic() {
   $('cam-btn').addEventListener('click', toggleCam);
   $('cam-btn-2').addEventListener('click', toggleCam);
   $('speaker-btn-2').addEventListener('click', () => setDeafened(!call.deafened));
+  // Celular sem transmissão de tela (iPhone e a maioria dos Android): esconde o botão em vez de dar erro.
+  if (!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia)) { $('screen-btn').hidden = true; $('screen-btn-2').hidden = true; }
   $('screen-btn').addEventListener('click', shareAction);
   $('screen-btn-2').addEventListener('click', shareAction);
   $('hangup-btn').addEventListener('click', () => leaveCall().then(startPreviewPolling));

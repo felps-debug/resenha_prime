@@ -1386,3 +1386,14 @@ kbd { font-family: "JetBrains Mono", monospace; font-size: 12px; font-weight: 70
 .tile .sv output { font-family: "JetBrains Mono", monospace; font-size: 11px; min-width: 32px; text-align: right; }
 .tile .sv-ico { display: inline-flex; }
 @media (hover: none) { .tile .sv { opacity: 1; } }
+
+/* Celular: barra da call com botões de tamanho fixo. Se não couber numa linha, quebra em duas (nada some nem espreme). */
+@media (max-width: 560px) {
+  .stage { padding: 12px 10px 6px; }
+  .stage-bar { align-self: stretch; flex-wrap: wrap; justify-content: center; gap: 6px; padding: 6px; margin: 4px 8px calc(10px + env(safe-area-inset-bottom)); border-radius: 18px; }
+  .stage-bar > * { flex-shrink: 0; }
+  .stage-bar .round { width: min(44px, calc((100vw - 80px) / 8)); height: min(44px, calc((100vw - 80px) / 8)); min-width: 34px; min-height: 34px; border-radius: 12px; }
+  .stage-bar .act-tab { padding: 0; }
+  .stage-bar .stage-sep { display: none; }
+  .stage.grid .tile .avatar.lg { width: 56px; height: 56px; font-size: 22px; }
+}

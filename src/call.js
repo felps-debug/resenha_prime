@@ -12,6 +12,10 @@ function ensureLiveKit() {
   return livekitPromise;
 }
 
+const IS_MOBILE = (navigator.userAgentData && navigator.userAgentData.mobile)
+  || /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+  || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent)); // iPad se passa por Mac
+
 const SETTINGS_KEY = 'resenha:av';
 const VOL_KEY = 'resenha:volumes';
 
@@ -111,7 +115,9 @@ export async function joinCall(roomId, roomName, getToken, channelId = null, cha
     const room = new Room({
       adaptiveStream: true,
       dynacast: true,
-      webAudioMix: true,
+      // No celular o navegador suspende o AudioContext quando a aba vai para o fundo e a call fica muda.
+      // Lá o som sai direto pelos elementos <audio>, que continuam tocando em segundo plano.
+      webAudioMix: !IS_MOBILE,
       audioCaptureDefaults: audioOptions(s),
       audioOutput: s.audiooutput ? { deviceId: s.audiooutput } : undefined,
       videoCaptureDefaults: { deviceId: s.videoinput || undefined, resolution: VideoPresets.h720.resolution },
@@ -137,6 +143,7 @@ export async function joinCall(roomId, roomName, getToken, channelId = null, cha
     await syncAttributes();
     await applyMicChain();
     applyAllVolumes();
+    updateMediaSession();
     preloadZoeira();
     beep(660, 880);
   } catch (err) {
@@ -170,6 +177,7 @@ export async function leaveCall(silent) {
   for (const v of videoEls.values()) { if (v._track) { try { v._track.detach(v); } catch (_) {} } }
   videoEls.clear();
   if (room) { try { await room.disconnect(); } catch (_) {} }
+  updateMediaSession();
   if (!silent) beep(880, 520);
   call.onChange();
 }
@@ -213,6 +221,31 @@ function wireRoom(room) {
       else if (reason !== DisconnectReason.CLIENT_INITIATED) toast('A call caiu. Tente entrar de novo.', 4000);
       leaveCall(true);
     });
+}
+
+// Ao voltar para a aba (ou desbloquear a tela), religa o áudio que o sistema pausou.
+function resumeCallAudio() {
+  const room = call.room;
+  if (!room) return;
+  room.startAudio().catch(() => {});
+  for (const el of $('audio-bin').querySelectorAll('audio')) if (el.paused) el.play().catch(() => {});
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') resumeCallAudio(); });
+window.addEventListener('pageshow', resumeCallAudio);
+window.addEventListener('focus', resumeCallAudio);
+
+// Mostra a call nos controles de mídia do sistema: o celular trata a aba como "tocando" e não a congela.
+function updateMediaSession() {
+  if (!('mediaSession' in navigator)) return;
+  try {
+    if (call.room) {
+      navigator.mediaSession.metadata = new MediaMetadata({ title: call.roomName || 'Call', artist: 'Resenha' });
+      navigator.mediaSession.playbackState = 'playing';
+    } else {
+      navigator.mediaSession.metadata = null;
+      navigator.mediaSession.playbackState = 'none';
+    }
+  } catch (_) {}
 }
 
 $('audio-unlock').addEventListener('click', async () => {
