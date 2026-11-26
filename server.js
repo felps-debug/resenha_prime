@@ -65,7 +65,10 @@ function connectionOrigins(value) {
     if (!['https:', 'http:', 'wss:', 'ws:'].includes(url.protocol)) return [];
     const counterpart = new URL(url.origin);
     counterpart.protocol = ({ 'https:': 'wss:', 'http:': 'ws:', 'wss:': 'https:', 'ws:': 'http:' })[url.protocol];
-    return [url.origin, counterpart.origin];
+    const origins = [url.origin, counterpart.origin];
+    // LiveKit Cloud troca de região (ex.: <projeto>.osaopaulo1b.production.livekit.cloud) quando a principal falha.
+    if (url.hostname.endsWith('.livekit.cloud')) origins.push('https://*.livekit.cloud', 'wss://*.livekit.cloud');
+    return origins;
   } catch (_) { return []; }
 }
 const connectSources = ["'self'", ...new Set([...connectionOrigins(SUPABASE_URL), ...connectionOrigins(LIVEKIT_URL)])].join(' ');
@@ -83,11 +86,25 @@ app.use((req, res, next) => {
   next();
 });
 
-// HTML, JS e CSS: o navegador sempre confere se tem versão nova (atualizações aparecem na hora).
+// HTML nunca responde 304: a resposta 304 não traz a CSP, e o navegador continuaria usando a
+// CSP antiga guardada (ex.: depois de trocar o LIVEKIT_URL a call ficava bloqueada).
+// Sem ETag/Last-Modified no HTML, nem o Express nem a Vercel conseguem responder 304.
+const htmlPages = new Set(['index.html', 'lista.html']);
+app.use((req, res, next) => {
+  if (req.method !== 'GET' && req.method !== 'HEAD') return next();
+  const page = req.path === '/' ? 'index.html' : req.path.slice(1);
+  if (!htmlPages.has(page)) return next();
+  delete req.headers['if-none-match'];
+  delete req.headers['if-modified-since'];
+  res.sendFile(path.join(__dirname, 'public', page), { etag: false, lastModified: false, headers: { 'Cache-Control': 'no-store' } }, (err) => { if (err) next(err); });
+});
+
+// JS e CSS: o navegador sempre confere se tem versão nova (atualizações aparecem na hora).
 // Ícones: podem ficar guardados por 1 dia.
 app.use(express.static(path.join(__dirname, 'public'), {
   setHeaders(res, filePath) {
-    if (/^chunk-[A-Z0-9]+\.js$/.test(path.basename(filePath))) res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    if (/\.html$/.test(filePath)) res.setHeader('Cache-Control', 'no-store');
+    else if (/^chunk-[A-Z0-9]+\.js$/.test(path.basename(filePath))) res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
     else if (/\.(html|js|css|json|map)$/.test(filePath)) res.setHeader('Cache-Control', 'no-cache');
     else res.setHeader('Cache-Control', 'public, max-age=86400');
   }
