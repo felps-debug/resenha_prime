@@ -158,8 +158,18 @@ export async function runChatCommand(req) {
 export function setVolume(v) {
   st.vol = Math.max(0, Math.min(100, Math.round(v)));
   try { localStorage.setItem(VOL_KEY, String(st.vol)); } catch (_) {}
-  if (st.player && st.playerReady) { try { st.player.setVolume(st.vol); } catch (_) {} }
+  applyPlayerVolume();
   paint();
+}
+// No iPhone/iPad o YouTube ignora setVolume (só o botão físico muda o volume): lá o controle vira ligar/silenciar.
+const IS_IOS = /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(navigator.userAgent));
+function applyPlayerVolume() {
+  const p = st.player;
+  if (!p || !st.playerReady) return;
+  try {
+    p.setVolume(st.vol);
+    if (st.vol === 0) p.mute(); else if (p.isMuted()) p.unMute();
+  } catch (_) {}
 }
 
 // ---------- Player do YouTube ----------
@@ -180,7 +190,7 @@ function showUnlock(show) {
 function unlockPlayback() {
   const p = st.player;
   if (p && st.playerReady) {
-    try { p.unMute(); p.setVolume(st.vol); p.playVideo(); } catch (_) {}
+    try { applyPlayerVolume(); p.playVideo(); } catch (_) {}
   }
   showUnlock(false);
   // Se o sistema ainda segurar, abre o painel para a pessoa tocar direto no vídeo
@@ -194,7 +204,7 @@ function unlockPlayback() {
 function isActuallyPlaying() {
   const p = st.player;
   if (!p || !st.playerReady) return false;
-  try { return p.getPlayerState() === 1 && !p.isMuted(); } catch (_) { return false; }
+  try { return p.getPlayerState() === 1 && (st.vol === 0 || !p.isMuted()); } catch (_) { return false; }
 }
 // Roda a cada segundo junto com syncPlayer: se faz mais de 2,5 s que devia estar tocando e não está, mostra o botão.
 let notPlayingSince = 0;
@@ -233,7 +243,7 @@ async function ensurePlayer() {
       width: '100%', height: '100%',
       playerVars: { controls: IS_MOBILE ? 1 : 0, disablekb: 1, rel: 0, playsinline: 1, modestbranding: 1, iv_load_policy: 3, fs: 0 },
       events: {
-        onReady: () => { st.playerReady = true; try { st.player.setVolume(st.vol); } catch (_) {} syncPlayer(); },
+        onReady: () => { st.playerReady = true; applyPlayerVolume(); syncPlayer(); },
         onStateChange: (e) => {
           if (e.data === 1 && unlockBtn && !unlockBtn.hidden && isActuallyPlaying()) showUnlock(false);
           if (e.data === 0 && st.state && st.state.current) {
@@ -260,7 +270,7 @@ function syncPlayer() {
     if (st.loadedId !== id) {
       st.loadedId = id;
       p.loadVideoById({ videoId: id, startSeconds: pos });
-      p.setVolume(st.vol);
+      applyPlayerVolume();
       if (paused) setTimeout(() => { try { p.pauseVideo(); } catch (_) {} }, 700);
       return;
     }
@@ -321,6 +331,7 @@ export function mountMusicPanel(parent) {
         <div class="cd-times"><span id="cd-pos">0:00</span><span id="cd-dur"></span></div>
         <div class="cd-controls" id="cd-controls"></div>
         <label class="cd-vol"><span>Volume pra você</span><input type="range" min="0" max="100" id="cd-vol" aria-label="Volume pra você"><output id="cd-vol-out"></output></label>
+        <p class="hint cd-vol-ios" id="cd-vol-ios" hidden>No iPhone o volume da música segue o botão do aparelho. Aqui dá para silenciar: arraste até 0.</p>
         <div class="cd-reactions" id="cd-reactions" hidden></div>
       </div>
       <form class="ap-add" id="ap-add"><label class="label" for="ap-input" id="ap-add-label">Pedir música</label>
@@ -332,6 +343,7 @@ export function mountMusicPanel(parent) {
   st.panel = el;
   el.querySelector('#ap-close').addEventListener('click', () => { if (st.hooks.onClose) st.hooks.onClose(); else setPanelOpen(false); });
   el.querySelector('#cd-vol').value = String(st.vol);
+  el.querySelector('#cd-vol-ios').hidden = !IS_IOS;
   el.querySelector('#cd-vol').addEventListener('input', (e) => setVolume(Number(e.target.value)));
   el.querySelector('#ap-add').addEventListener('submit', async (e) => {
     e.preventDefault();
