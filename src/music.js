@@ -331,7 +331,7 @@ export function mountMusicPanel(parent) {
         <div class="cd-times"><span id="cd-pos">0:00</span><span id="cd-dur"></span></div>
         <div class="cd-controls" id="cd-controls"></div>
         <label class="cd-vol"><span>Volume pra você</span><input type="range" min="0" max="100" id="cd-vol" aria-label="Volume pra você"><output id="cd-vol-out"></output></label>
-        <p class="hint cd-vol-ios" id="cd-vol-ios" hidden>No iPhone o volume da música segue o botão do aparelho. Aqui dá para silenciar: arraste até 0.</p>
+        <div class="cd-vol-ios" id="cd-vol-ios" hidden><button type="button" class="btn" id="cd-mute">Silenciar música</button><p class="hint">No iPhone o volume da música segue o botão do aparelho. Aqui dá para silenciar ou ligar.</p></div>
         <div class="cd-reactions" id="cd-reactions" hidden></div>
       </div>
       <form class="ap-add" id="ap-add"><label class="label" for="ap-input" id="ap-add-label">Pedir música</label>
@@ -344,6 +344,10 @@ export function mountMusicPanel(parent) {
   el.querySelector('#ap-close').addEventListener('click', () => { if (st.hooks.onClose) st.hooks.onClose(); else setPanelOpen(false); });
   el.querySelector('#cd-vol').value = String(st.vol);
   el.querySelector('#cd-vol-ios').hidden = !IS_IOS;
+  if (IS_IOS) el.querySelector('.cd-vol').hidden = true;
+  el.querySelector('#cd-mute').addEventListener('click', () => {
+    if (st.vol === 0) setVolume(st.lastVol || 70); else { st.lastVol = st.vol; setVolume(0); }
+  });
   el.querySelector('#cd-vol').addEventListener('input', (e) => setVolume(Number(e.target.value)));
   el.querySelector('#ap-add').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -441,6 +445,7 @@ function paint() {
   el.querySelector('#cd-reactions').hidden = !(cur && s.mode === 'watch');
   el.querySelector('#cd-vol-out').textContent = st.vol + '%';
   el.querySelector('#cd-vol').value = String(st.vol);
+  el.querySelector('#cd-mute').textContent = st.vol === 0 ? 'Ligar som da música' : 'Silenciar música';
   el.querySelector('#ap-add-label').textContent = watch ? 'Pedir vídeo' : 'Pedir música';
   el.querySelector('#ap-input').placeholder = watch ? 'Cole o link do vídeo do YouTube' : 'Nome da música ou link (YouTube, Spotify, Deezer…)';
   el.querySelector('#ap-hint').textContent = watch ? 'No chat: m!play link do vídeo' : 'No chat também funciona: m!play nome da música';
