@@ -2535,10 +2535,10 @@ function shareAction() {
 
 function shareModal() {
   const saved = loadSettings();
-  const state = { surface: saved.screenSurface || 'window', quality: saved.screenQuality || 'nitida', audio: saved.screenAudio !== false };
+  const state = { surface: saved.screenSurface || 'browser', quality: saved.screenQuality || 'nitida', audio: saved.screenAudio !== false };
   const SURFACES = [
     ['monitor', 'Tela inteira', 'Tudo que aparece no monitor', '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>'],
-    ['window', 'Janela', 'Só um programa, como o jogo', '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/>'],
+    ['window', 'Janela', 'Só um programa (no Chrome vai sem som)', '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/>'],
     ['browser', 'Aba do navegador', 'Melhor pra vídeo com som', '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>']
   ];
   const QUALITIES = [['leve', 'Leve', '720p · 30', 'Gasta menos internet'], ['nitida', 'Nítida', '1080p · 30', 'O melhor pra quase tudo'], ['fluida', 'Fluida', '1080p · 60', 'Para jogos e movimento']];
@@ -2555,6 +2555,7 @@ function shareModal() {
     return b;
   });
   const qualityHint = h('p', { class: 'hint' });
+  const audioWarn = h('p', { class: 'hint', style: { color: 'var(--danger, #e5484d)' } });
   const audio = h('input', { type: 'checkbox', class: 'cfg-switch', 'aria-label': 'Transmitir o som' });
   audio.addEventListener('change', () => { state.audio = audio.checked; });
   const go = h('button', { class: 'btn primary' }, h('span', { html: ICON.screen, style: { display: 'inline-flex' } }), 'Transmitir');
@@ -2564,6 +2565,8 @@ function shareModal() {
     for (const b of qualityBtns) b.setAttribute('aria-checked', String(b.dataset.id === state.quality));
     qualityHint.textContent = (QUALITIES.find((q) => q[0] === state.quality) || [])[3] || '';
     audio.checked = state.audio;
+    audioWarn.textContent = state.audio && state.surface === 'window' ? 'O Chrome não manda o som de uma janela. Para o pessoal ouvir, escolha Aba do navegador (vídeo do YouTube) ou Tela inteira.' : '';
+    audioWarn.hidden = !audioWarn.textContent;
     const s = SURFACES.find((x) => x[0] === state.surface);
     go.lastChild.textContent = `Transmitir ${s ? s[1].toLowerCase() : ''}`;
   };
@@ -2576,6 +2579,7 @@ function shareModal() {
       h('div', { class: 'sh-surfaces', role: 'radiogroup', 'aria-label': 'O que transmitir' }, ...surfaceBtns),
       h('div', { class: 'field' }, h('span', { class: 'label' }, 'Qualidade'), h('div', { class: 'sh-qualities', role: 'radiogroup', 'aria-label': 'Qualidade' }, ...qualityBtns), qualityHint),
       h('label', { class: 'cfg-row sh-audio' }, h('span', { class: 'cfg-row-text' }, h('b', null, 'Transmitir o som'), h('small', null, 'O pessoal ouve o jogo ou o vídeo')), audio),
+      audioWarn,
       h('p', { class: 'hint' }, 'No navegador, depois de clicar, o próprio Chrome confirma a tela: é uma proteção dele que nenhum site consegue esconder. O som só vai junto se você marcar a opção de compartilhar áudio nessa confirmação.')
     ],
     actions: [cancel, go]
@@ -2844,7 +2848,7 @@ function onCallChange() {
     $('vb-title').className = 'vb-title' + (ok ? '' : ' warn');
     $('vb-title').innerHTML = '';
     $('vb-title').append(h('span', { class: 'dot' }), ok ? 'Voz conectada' : state === 'reconnecting' ? 'Reconectando…' : 'Conectando…');
-    $('vb-sub').textContent = `Call / ${call.roomName}`;
+    $('vb-sub').textContent = `${call.channelName || 'Call'} / ${call.serverName || call.roomName}`;
     $('hangup-btn').innerHTML = ICON.hangup;
     const lp = call.room ? call.room.localParticipant : null;
     const camOn = Boolean(lp && lp.isCameraEnabled);
@@ -2868,6 +2872,7 @@ function onCallChange() {
   applyAct();
   paintCallTools();
   const inThis = connected && call.roomId === current?.id;
+  if (view === 'call' && inThis && !isDm(current)) $('top-title').textContent = call.channelName || 'Call';
   $('return-call-btn').hidden = !(inThis && view !== 'call');
   $('call-chat-btn').hidden = !inThis || view !== 'call';
   if (!current) return;

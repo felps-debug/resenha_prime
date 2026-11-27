@@ -23,6 +23,8 @@ export const call = {
   room: null,
   roomId: null,
   roomName: '',
+  serverName: '',
+  channelName: '',
   channelId: null,     // canal de voz em que estou (null = call padrão da sala)
   connecting: false,
   muted: false,
@@ -107,6 +109,8 @@ export async function joinCall(roomId, roomName, getToken, channelId = null, cha
   call.connecting = true;
   call.roomId = roomId;
   call.channelId = channelId || null;
+  call.serverName = roomName;
+  call.channelName = channelName || '';
   call.roomName = channelName ? `${roomName} · ${channelName}` : roomName;
   call.onChange();
   try {
@@ -152,6 +156,8 @@ export async function joinCall(roomId, roomName, getToken, channelId = null, cha
     call.room = null;
     call.roomId = null;
     call.channelId = null;
+    call.serverName = '';
+    call.channelName = '';
     const msg = String((err && err.message) || '');
     toast(/dynamically imported module|loading chunk/i.test(msg)
       ? 'Não consegui carregar a call. Recarregue o aplicativo e tente novamente.'
@@ -169,6 +175,8 @@ export async function leaveCall(silent) {
   call.room = null;
   call.roomId = null;
   call.channelId = null;
+  call.serverName = '';
+  call.channelName = '';
   call.focusKey = null;
   call.voiceEffect = 'normal';
   call.pinned = [];
@@ -386,6 +394,12 @@ export async function toggleScreen(opts = {}) {
       ...(surface ? { video: { displaySurface: surface } } : {})
     } : undefined, on ? { screenShareEncoding: preset.encoding } : undefined);
     if (on) call.focusKey = `${lp.identity}:screen`;
+    if (on && audio && !lp.getTrackPublication(Track.Source.ScreenShareAudio)) {
+      const surf = lp.getTrackPublication(Track.Source.ScreenShare)?.track?.mediaStreamTrack?.getSettings?.().displaySurface;
+      toast(surf === 'window'
+        ? 'Transmitindo sem som: o Chrome não manda áudio de janela. Pare e escolha Aba do navegador ou Tela inteira.'
+        : 'Transmitindo sem som: na confirmação do Chrome, ligue "Compartilhar áudio" (aba) ou "Compartilhar áudio do sistema" (tela inteira).', 9000);
+    }
   } catch (err) {
     if (err && err.name !== 'NotAllowedError') toast('Não foi possível transmitir a tela.');
   }
