@@ -43,14 +43,24 @@ export const call = {
 
 // ---------- Preferências (dispositivos, filtros, volumes) ----------
 // noiseMode: off | browser (filtro do navegador) | rnnoise (rede neural, mais forte)
+// noiseChosen: true quando a própria pessoa escolheu o modo na tela de áudio.
+// Antes, quando o RNNoise falhava (ex.: CSP antiga em cache), o fallback era gravado como "browser" para sempre.
+// Sem noiseChosen, "browser" só pode ter vindo desse fallback automático: volta para o forte.
 export function loadSettings() {
-  const def = { audioinput: '', audiooutput: '', videoinput: '', echoCancellation: true, noiseSuppression: true, autoGainControl: true, mirrorCam: true, zoeiraOnMe: true, zoeiraSound: true, screenQuality: 'nitida', screenAudio: true, screenSurface: 'window' };
+  const def = { audioinput: '', audiooutput: '', videoinput: '', echoCancellation: true, noiseSuppression: true, autoGainControl: true, mirrorCam: true, zoeiraOnMe: true, zoeiraSound: true, screenQuality: 'nitida', screenAudio: true, screenSurface: 'window', noiseMode: 'rnnoise' };
   try {
     const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
     const out = { ...def, ...saved };
     if (!['off', 'browser', 'rnnoise'].includes(saved.noiseMode)) out.noiseMode = saved.noiseSuppression === false ? 'off' : 'rnnoise';
+    else if (saved.noiseMode === 'browser' && !saved.noiseChosen) out.noiseMode = 'rnnoise';
     return out;
   } catch (_) { return def; }
+}
+
+// O RNNoise falhou nesta sessão: usa o filtro do navegador até recarregar a página, sem mudar a preferência salva
+let chainFailed = false;
+function effectiveNoiseMode(s) {
+  return s.noiseMode === 'rnnoise' && chainFailed ? 'browser' : s.noiseMode;
 }
 export function saveSettings(s) { localStorage.setItem(SETTINGS_KEY, JSON.stringify(s)); }
 
@@ -95,7 +105,7 @@ function audioOptions(s) {
   return {
     deviceId: s.audioinput || undefined,
     echoCancellation: s.echoCancellation,
-    noiseSuppression: s.noiseMode === 'browser',
+    noiseSuppression: effectiveNoiseMode(s) === 'browser',
     autoGainControl: s.autoGainControl
   };
 }
@@ -697,7 +707,6 @@ export function renderStage() {
 }
 
 // Cadeia do microfone: RNNoise (modo "Forte") e/ou voz zoada. Roda no navegador, antes de a voz sair para a call.
-let chainFailed = false;
 export async function applyMicChain() {
   if (!call.room) return false;
   const pub = call.room.localParticipant.getTrackPublication(Track.Source.Microphone);
@@ -716,10 +725,10 @@ export async function applyMicChain() {
   } catch (err) {
     console.error('microfone', err);
     if (noise) {
-      // O filtro forte não carregou: cai para o do navegador para você não ficar sem filtro
+      // O filtro forte não carregou: cai para o do navegador só nesta sessão, para você não ficar sem filtro.
+      // A preferência continua "Forte" e volta a ser tentada na próxima vez que abrir a página.
       chainFailed = true;
-      toast('Não consegui ligar o filtro de ruído forte. Usando o do navegador.', 4500);
-      const cur = loadSettings(); cur.noiseMode = 'browser'; saveSettings(cur);
+      toast('Não consegui ligar o filtro de ruído forte. Usando o do navegador por enquanto.', 4500);
       await applyAudioFilters();
     } else toast('Não consegui aplicar a voz agora.');
     return false;

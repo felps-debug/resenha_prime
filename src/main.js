@@ -3656,7 +3656,7 @@ async function settingsModal() {
     h('option', { value: 'off' }, 'Desligado'));
   noiseSel.value = s.noiseMode;
   noiseSel.addEventListener('change', async () => {
-    const cur = loadSettings(); cur.noiseMode = noiseSel.value; saveSettings(cur);
+    const cur = loadSettings(); cur.noiseMode = noiseSel.value; cur.noiseChosen = true; saveSettings(cur);
     await applyAudioFilters();
     if (testing) { await stopTest(); await startTest(); }
   });
