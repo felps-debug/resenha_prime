@@ -2,6 +2,7 @@
 import { $, h, ICON, avatar, toast, beep } from './ui.js';
 import { ZOEIRA_TOPIC, ZOEIRA_KINDS, playZoeira, preloadZoeira, stopAllZoeira, isZoeiraPlaying } from './zoeira.js';
 import { canZoeira } from './zoeira-rules.js';
+import { aloneTick, isQuotaError, ALONE_LIMIT_MS } from './call-idle.js';
 
 let Room, RoomEvent, Track, DisconnectReason, ScreenSharePresets, VideoPresets;
 let livekitPromise;
@@ -159,6 +160,7 @@ export async function joinCall(roomId, roomName, getToken, channelId = null, cha
     applyAllVolumes();
     updateMediaSession();
     preloadZoeira();
+    startAloneWatch(room);
     beep(660, 880);
   } catch (err) {
     console.error(err);
@@ -171,6 +173,8 @@ export async function joinCall(roomId, roomName, getToken, channelId = null, cha
     const msg = String((err && err.message) || '');
     toast(/dynamically imported module|loading chunk/i.test(msg)
       ? 'Não consegui carregar a call. Recarregue o aplicativo e tente novamente.'
+      : (err && err.status === 429) || isQuotaError(msg)
+      ? 'A call está fora do ar agora (limite do servidor de voz). O chat continua funcionando.'
       : /signal connection|Failed to fetch|websocket/i.test(msg)
       ? 'Não consegui conectar na call. Confira sua internet ou as chaves do LiveKit no servidor.'
       : msg || 'Não foi possível entrar na call.', 4500);
@@ -180,7 +184,26 @@ export async function joinCall(roomId, roomName, getToken, channelId = null, cha
   }
 }
 
+// Sozinho na call por ALONE_LIMIT_MS: sai automaticamente para não gastar minutos da LiveKit à toa.
+let aloneTimer = null;
+function stopAloneWatch() { if (aloneTimer) clearInterval(aloneTimer); aloneTimer = null; }
+function startAloneWatch(room) {
+  stopAloneWatch();
+  let aloneSince = null;
+  aloneTimer = setInterval(() => {
+    if (call.room !== room) return stopAloneWatch();
+    const r = aloneTick(aloneSince, room.remoteParticipants.size, Date.now());
+    aloneSince = r.aloneSince;
+    if (r.leave) {
+      stopAloneWatch();
+      leaveCall(false);
+      toast(`Você saiu da call porque ficou sozinho por ${Math.round(ALONE_LIMIT_MS / 60000)} minutos.`, 6000);
+    }
+  }, 15000);
+}
+
 export async function leaveCall(silent) {
+  stopAloneWatch();
   const room = call.room;
   call.room = null;
   call.roomId = null;
